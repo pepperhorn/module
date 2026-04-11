@@ -1,0 +1,23 @@
+{
+  "id": "custom/poly-bass",
+  "name": "Poly Bass",
+  "category": "Bass",
+  "bank": "CST",
+  "color": "coral",
+  "defaultOctave": 2,
+  "source": {
+    "kind": "sampler",
+    "baseUrl": "/patches/poly-bass/",
+    "samples": {
+      "C2": "C2.wav",
+      "C3": ["C3-a.wav", "C3-b.wav"],
+      "C4": {
+        "p": "C4-soft.wav",
+        "mp": "C4-soft.wav",
+        "mf": ["C4-hard-a.wav", "C4-hard-b.wav"],
+        "f": ["C4-hard-a.wav", "C4-hard-b.wav"],
+        "ff": ["C4-hard-a.wav", "C4-hard-b.wav"]
+      }
+    }
+  }
+}

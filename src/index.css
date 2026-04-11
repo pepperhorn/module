@@ -1,0 +1,124 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #FAFBFC;
+  --color-text: #1A1A2E;
+  --color-panel: #F0F2F5;
+  --color-rack: #E8EBEF;
+  --color-rack-edge: #D4D9E0;
+
+  --color-coral: #FF6B6B;
+  --color-amber: #FFB84D;
+  --color-lime: #B5E853;
+  --color-sky: #5BC0EB;
+  --color-lavender: #B59CD9;
+  --color-peach: #FFB5A7;
+  --color-mint: #96E6B3;
+  --color-rose: #FFA5B8;
+
+  --color-lcd-bg: #0F1024;
+  --color-lcd-text: #5BC0EB;
+  --color-lcd-dim: #2A3A5C;
+
+  --font-display: "Fredoka", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html, body, #root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* drumlet-style press animation */
+.cell-hit {
+  transition: transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.12s ease,
+              background-color 0.12s ease;
+}
+.cell-hit:active {
+  transform: scale(0.94);
+}
+
+/* JV-style LED pulse */
+@keyframes led-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 6px 1px currentColor; }
+  50%      { opacity: 0.7; box-shadow: 0 0 4px 0px currentColor; }
+}
+.led-on {
+  animation: led-pulse 1.6s ease-in-out infinite;
+}
+
+/* LCD glow */
+.lcd-glow {
+  text-shadow:
+    0 0 4px rgba(91, 192, 235, 0.9),
+    0 0 8px rgba(91, 192, 235, 0.55),
+    0 0 18px rgba(91, 192, 235, 0.25);
+}
+
+/* Subtle rack texture */
+.rack-panel {
+  background:
+    linear-gradient(180deg, #F4F6F9 0%, #E8EBEF 100%);
+  border: 1px solid var(--color-rack-edge);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.7),
+    inset 0 -1px 0 rgba(0,0,0,0.04),
+    0 1px 2px rgba(20, 30, 60, 0.06);
+}
+
+.rack-screw {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 35% 35%, #FFFFFF 0%, #C8CDD6 45%, #8A93A3 100%);
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+}
+
+/* Knob ring */
+.knob-ring {
+  background: conic-gradient(
+    from -135deg,
+    var(--color-sky) 0%,
+    var(--color-sky) var(--knob-pct, 0%),
+    rgba(20, 30, 60, 0.08) var(--knob-pct, 0%),
+    rgba(20, 30, 60, 0.08) 75%,
+    transparent 75%
+  );
+}
+
+/* Modal animation */
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);    }
+}
+.pop-in { animation: pop-in 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.fade-in { animation: fade-in 0.16s ease-out both; }
+
+/* hide scrollbar but keep scroll */
+.scroll-clean::-webkit-scrollbar { width: 8px; height: 8px; }
+.scroll-clean::-webkit-scrollbar-thumb { background: rgba(20,30,60,0.18); border-radius: 9999px; }
+.scroll-clean::-webkit-scrollbar-track { background: transparent; }
