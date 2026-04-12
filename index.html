@@ -6,6 +6,22 @@
     <meta name="theme-color" content="#FAFBFC" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>MODULE — JV smplr</title>
+    <script>
+      // Catch any top-level error that would otherwise produce a silent white screen.
+      // Shows a visible diagnostic so the user knows what broke.
+      window.onerror = function(msg, src, line, col, err) {
+        var root = document.getElementById('root');
+        if (root && !root.children.length) {
+          root.innerHTML =
+            '<div style="padding:2rem;font-family:monospace;color:#FF6B6B;background:#0F1024;min-height:100vh">' +
+            '<h2 style="margin:0 0 1rem">MODULE failed to start</h2>' +
+            '<p style="color:#5BC0EB;word-break:break-all">' + String(msg) + '</p>' +
+            '<p style="color:#888;font-size:12px">' + String(src) + ':' + line + ':' + col + '</p>' +
+            '<p style="color:#888;font-size:12px;margin-top:1rem">Try: clear site data in browser settings, or hard-refresh.</p>' +
+            '</div>';
+        }
+      };
+    </script>
   </head>
   <body>
     <div id="root"></div>
