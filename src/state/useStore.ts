@@ -165,6 +165,8 @@ const initialId =
   catalog[0].id
 const initialFxEnabled: Record<EffectId, boolean> = {
   distortion: persisted.fxEnabled?.distortion ?? false,
+  doubler1: persisted.fxEnabled?.doubler1 ?? false,
+  doubler2: persisted.fxEnabled?.doubler2 ?? false,
   chorus: persisted.fxEnabled?.chorus ?? false,
   delay: persisted.fxEnabled?.delay ?? false,
   reverb: persisted.fxEnabled?.reverb ?? true,

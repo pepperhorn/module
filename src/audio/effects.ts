@@ -1,6 +1,6 @@
 import type { PatchColor } from '../patches/types'
 
-export type EffectId = 'distortion' | 'chorus' | 'delay' | 'reverb'
+export type EffectId = 'distortion' | 'doubler1' | 'doubler2' | 'chorus' | 'delay' | 'reverb'
 
 export interface EffectParamDef {
   id: string
@@ -27,6 +27,24 @@ export const EFFECT_DEFS: EffectDef[] = [
     params: [
       { id: 'drive', label: 'drive', min: 0, max: 1, step: 0.01, default: 0.4 },
       { id: 'tone', label: 'tone', min: 0, max: 1, step: 0.01, default: 0.55 },
+      { id: 'mix', label: 'mix', min: 0, max: 1, step: 0.01, default: 0 },
+    ],
+  },
+  {
+    id: 'doubler1',
+    name: 'DBL 1',
+    color: 'lavender',
+    params: [
+      { id: 'pitch', label: 'pitch', min: -12, max: 12, step: 1, default: 0, unit: 'st' },
+      { id: 'mix', label: 'mix', min: 0, max: 1, step: 0.01, default: 0 },
+    ],
+  },
+  {
+    id: 'doubler2',
+    name: 'DBL 2',
+    color: 'rose',
+    params: [
+      { id: 'pitch', label: 'pitch', min: -12, max: 12, step: 1, default: 0, unit: 'st' },
       { id: 'mix', label: 'mix', min: 0, max: 1, step: 0.01, default: 0 },
     ],
   },
@@ -398,6 +416,150 @@ function makeReverb(ctx: AudioContext): FxNode {
   }
 }
 
+// ───────────────────────────────────────────────────────────────────────
+// Doubler / harmoniser: granular pitch shifter using two cross-fading
+// delay lines with a sawtooth LFO. The LFO modulates delay time to
+// create a continuous pitch shift up to ±12 semitones. Two delay lines
+// 180° out of phase provide seamless cross-fade at grain boundaries.
+// ───────────────────────────────────────────────────────────────────────
+function makeDoubler(ctx: AudioContext): FxNode {
+  const input = ctx.createGain()
+  const output = ctx.createGain()
+  const dry = ctx.createGain()
+  const wet = ctx.createGain()
+
+  const GRAIN_HZ = 18
+  const BASE_DELAY = 0.04
+
+  const delay1 = ctx.createDelay(0.5)
+  const delay2 = ctx.createDelay(0.5)
+  delay1.delayTime.value = BASE_DELAY
+  delay2.delayTime.value = BASE_DELAY
+
+  const fade1 = ctx.createGain()
+  const fade2 = ctx.createGain()
+  fade1.gain.value = 0
+  fade2.gain.value = 0
+
+  const lfo = ctx.createOscillator()
+  lfo.type = 'sawtooth'
+  lfo.frequency.value = GRAIN_HZ
+
+  const lfoDepth1 = ctx.createGain()
+  lfoDepth1.gain.value = 0
+  const invertGain = ctx.createGain()
+  invertGain.gain.value = -1
+  const lfoDepth2 = ctx.createGain()
+  lfoDepth2.gain.value = 0
+
+  // WaveShaper: abs(x) → triangle envelope from sawtooth
+  const absCurveLen = 256
+  const absCurve = new Float32Array(absCurveLen)
+  for (let i = 0; i < absCurveLen; i++) {
+    const x = (i / (absCurveLen - 1)) * 2 - 1
+    absCurve[i] = 1 - Math.abs(x)
+  }
+  const fadeShaper1 = ctx.createWaveShaper()
+  fadeShaper1.curve = absCurve
+  const fadeShaper2 = ctx.createWaveShaper()
+  fadeShaper2.curve = absCurve
+
+  // LFO → delay modulation
+  lfo.connect(lfoDepth1)
+  lfoDepth1.connect(delay1.delayTime)
+  lfo.connect(invertGain)
+  invertGain.connect(lfoDepth2)
+  lfoDepth2.connect(delay2.delayTime)
+
+  // LFO → cross-fade envelopes
+  lfo.connect(fadeShaper1)
+  fadeShaper1.connect(fade1.gain)
+  invertGain.connect(fadeShaper2)
+  fadeShaper2.connect(fade2.gain)
+
+  try {
+    lfo.start()
+  } catch {
+    // noop
+  }
+
+  // Audio path
+  dry.gain.value = 1
+  wet.gain.value = 0
+  input.connect(dry).connect(output)
+  input.connect(delay1)
+  delay1.connect(fade1)
+  fade1.connect(wet)
+  input.connect(delay2)
+  delay2.connect(fade2)
+  fade2.connect(wet)
+  wet.connect(output)
+
+  let pitchSt = 0
+  let mix = 0
+  let bypass = false
+
+  const applyPitch = () => {
+    if (pitchSt === 0) {
+      lfoDepth1.gain.value = 0
+      lfoDepth2.gain.value = 0
+      return
+    }
+    const ratio = Math.pow(2, pitchSt / 12)
+    const depth = (1 - ratio) / (2 * GRAIN_HZ)
+    lfoDepth1.gain.value = depth
+    lfoDepth2.gain.value = depth
+  }
+
+  const applyMix = () => {
+    const effectiveMix = bypass ? 0 : mix
+    wet.gain.value = effectiveMix
+    dry.gain.value = 1
+  }
+
+  return {
+    input,
+    output,
+    setParam: (paramId, value) => {
+      switch (paramId) {
+        case 'pitch':
+          pitchSt = Math.round(value)
+          applyPitch()
+          break
+        case 'mix':
+          mix = value
+          applyMix()
+          break
+      }
+    },
+    setEnabled: (on) => {
+      bypass = !on
+      applyMix()
+    },
+    dispose: () => {
+      try {
+        lfo.stop()
+        lfo.disconnect()
+        lfoDepth1.disconnect()
+        lfoDepth2.disconnect()
+        invertGain.disconnect()
+        fadeShaper1.disconnect()
+        fadeShaper2.disconnect()
+        delay1.disconnect()
+        delay2.disconnect()
+        fade1.disconnect()
+        fade2.disconnect()
+        dry.disconnect()
+        wet.disconnect()
+        input.disconnect()
+        output.disconnect()
+      } catch {
+        // noop
+      }
+    },
+  }
+}
+
 export interface EffectChain {
   inputNode: AudioNode
   master: GainNode
@@ -408,14 +570,18 @@ export interface EffectChain {
 
 export function buildEffectChain(context: AudioContext): EffectChain {
   const distortion = makeDistortion(context)
+  const doubler1 = makeDoubler(context)
+  const doubler2 = makeDoubler(context)
   const chorus = makeChorus(context)
   const delay = makeDelay(context)
   const reverb = makeReverb(context)
   const master = context.createGain()
   master.gain.value = 0.85
 
-  // Wire fixed order: input → DIST → CHORUS → DELAY → REVERB → master → destination
-  distortion.output.connect(chorus.input)
+  // Wire: input → DIST → DBL1 → DBL2 → CHORUS → DELAY → REVERB → master → out
+  distortion.output.connect(doubler1.input)
+  doubler1.output.connect(doubler2.input)
+  doubler2.output.connect(chorus.input)
   chorus.output.connect(delay.input)
   delay.output.connect(reverb.input)
   reverb.output.connect(master)
@@ -425,6 +591,8 @@ export function buildEffectChain(context: AudioContext): EffectChain {
 
   const fxMap: Record<EffectId, FxNode> = {
     distortion,
+    doubler1,
+    doubler2,
     chorus,
     delay,
     reverb,
@@ -444,6 +612,8 @@ export function buildEffectChain(context: AudioContext): EffectChain {
 
   const dispose = () => {
     distortion.dispose()
+    doubler1.dispose()
+    doubler2.dispose()
     chorus.dispose()
     delay.dispose()
     reverb.dispose()
