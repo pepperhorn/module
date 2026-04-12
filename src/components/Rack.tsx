@@ -1,5 +1,6 @@
 import { useRef, type ReactNode } from 'react'
 import { MidiStatus } from './MidiStatus'
+import { UserMenu } from './UserMenu'
 import { useStore } from '../state/useStore'
 
 interface RackProps {
@@ -79,6 +80,7 @@ export function Rack({ children }: RackProps) {
           </button>
           <div className="rack-brand-status flex items-center gap-2">
             <MidiStatus />
+            <UserMenu />
           </div>
         </div>
 

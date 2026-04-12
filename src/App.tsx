@@ -10,6 +10,7 @@ import { TouchKeyboard } from './components/TouchKeyboard'
 import { DebugPanel } from './components/DebugPanel'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import { SaveDialog } from './components/SaveDialog'
+import { useUserPatchSync } from './state/useUserPatchSync'
 import { useStore } from './state/useStore'
 import { useComputerKeyboard } from './input/useComputerKeyboard'
 import { useWebMidi } from './input/useWebMidi'
@@ -19,6 +20,10 @@ import type { Bank, PatchManifest } from './patches/types'
 import type { EffectId as EngineEffectId } from './audio/effects'
 
 export default function App() {
+  // Mount the patch sync hook so it pulls/merges on login and pushes on save.
+  // Logged-out users see no behaviour change — local store works as before.
+  useUserPatchSync()
+
   const engine = useMemo(() => getEngine(), [])
   const catalog = useStore((s) => s.catalog)
   const currentPatchId = useStore((s) => s.currentPatchId)
