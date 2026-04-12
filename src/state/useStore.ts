@@ -133,6 +133,7 @@ interface State {
   saveDialogOpen: boolean
   pickerOpen: boolean
   midiConnected: boolean
+  midiActivity: boolean
   debugMode: boolean
   setPickerOpen: (open: boolean) => void
   setLoadingPatchId: (id: string | null) => void
@@ -150,6 +151,7 @@ interface State {
   setFxParam: (id: EffectId, paramId: string, value: number) => void
   toggleFavourite: (id: string) => void
   setMidiConnected: (b: boolean) => void
+  flashMidiActivity: () => void
   setSaveDialogOpen: (open: boolean) => void
   saveCurrentAsUserPatch: (name: string) => string | null
   deleteUserPatch: (id: string) => void
@@ -207,6 +209,7 @@ export const useStore = create<State>((set, get) => ({
   saveDialogOpen: false,
   pickerOpen: false,
   midiConnected: false,
+  midiActivity: false,
   debugMode: loadDebug(),
   setPickerOpen: (open) => set({ pickerOpen: open }),
   setLoadingPatchId: (id) => set({ loadingPatchId: id }),
@@ -272,6 +275,14 @@ export const useStore = create<State>((set, get) => ({
   },
   setDownloadingPatchId: (id) => set({ downloadingPatchId: id }),
   setMidiConnected: (b) => set({ midiConnected: b }),
+  flashMidiActivity: (() => {
+    let timer: ReturnType<typeof setTimeout> | null = null
+    return () => {
+      set({ midiActivity: true })
+      if (timer) clearTimeout(timer)
+      timer = setTimeout(() => set({ midiActivity: false }), 80)
+    }
+  })(),
   setSaveDialogOpen: (open) => set({ saveDialogOpen: open }),
   saveCurrentAsUserPatch: (name) => {
     const state = get()

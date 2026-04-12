@@ -4,6 +4,7 @@ export function KeyboardHud() {
   const octave = useStore((s) => s.octave)
   const velocity = useStore((s) => s.velocity)
   const midiConnected = useStore((s) => s.midiConnected)
+  const midiActivity = useStore((s) => s.midiActivity)
 
   return (
     <footer
@@ -46,8 +47,11 @@ export function KeyboardHud() {
         <span
           className="midi-status-dot inline-block h-2 w-2 rounded-full"
           style={{
-            background: midiConnected ? '#B5E853' : 'rgba(20,30,60,0.18)',
-            boxShadow: midiConnected ? '0 0 6px #B5E853' : 'none',
+            background: midiActivity ? '#5BC0EB' : midiConnected ? '#B5E853' : 'rgba(20,30,60,0.18)',
+            boxShadow: midiActivity
+              ? '0 0 8px #5BC0EB, 0 0 16px #5BC0EB'
+              : midiConnected ? '0 0 6px #B5E853' : 'none',
+            transition: 'all 0.05s ease-out',
           }}
         />
         MIDI {midiConnected ? 'connected' : 'none'}

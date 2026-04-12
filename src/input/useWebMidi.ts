@@ -18,6 +18,7 @@ export function useWebMidi(callbacks: WebMidiCallbacks): void {
     const handle = (msg: MIDIMessageEvent) => {
       const data = msg.data
       if (!data || data.length < 1) return
+      useStore.getState().flashMidiActivity()
       const status = data[0] & 0xf0
       if (status === 0x90) {
         const midi = data[1]
