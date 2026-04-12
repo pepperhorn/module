@@ -161,7 +161,7 @@ const persisted = loadPersisted()
 const catalog = getCatalog()
 const initialId =
   (persisted.currentPatchId && findPatch(persisted.currentPatchId)?.id) ??
-  catalog.find((p) => p.id === 'pno/splendid-grand')?.id ??
+  catalog.find((p) => p.id === 'ep/wurlitzerep200')?.id ??
   catalog[0].id
 const initialFxEnabled: Record<EffectId, boolean> = {
   distortion: persisted.fxEnabled?.distortion ?? false,

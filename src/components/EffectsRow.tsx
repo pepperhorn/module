@@ -16,7 +16,7 @@ export function EffectsRow() {
     >
       <header className="effects-row-header flex items-center justify-between">
         <span className="font-mono text-[10px] uppercase tracking-widest text-text/50">
-          DIST → DBL → CHORUS → DELAY → REVERB
+          DBL → DIST → CHORUS → DELAY → REVERB
         </span>
       </header>
       <div className="effects-row-pedals scroll-clean flex gap-3 overflow-x-auto pb-1">

@@ -1,5 +1,5 @@
 import type { PatchManifest, PatchSource } from '../patches/types'
-import { buildEffectChain } from './effects'
+import { buildEffectChain, DOUBLER_SNAPS } from './effects'
 import type { EffectId } from './effects'
 import { instantiatePatch, type LoadedInstrument, type LoadProgress } from './loadPatch'
 import { createLoggedStorage, clearCdnCache, computeSourceTag, type PatchSourceTag } from './loggedStorage'
@@ -204,6 +204,12 @@ export class AudioEngine {
   // to a single cached instrument. Map iteration order is insertion order, so
   // re-inserting on access promotes to most-recently-used.
   private instrumentCache: Map<string, CachedInstrument> = new Map()
+
+  private doublerState = {
+    doubler1: { enabled: false, pitch: 0, mix: 0 },
+    doubler2: { enabled: false, pitch: 0, mix: 0 },
+  }
+  private activeDoubles = new Map<number, number[]>()
 
   constructor() {
     installConsoleShim()
@@ -455,12 +461,29 @@ export class AudioEngine {
     }
     try {
       this.current.start({ note: midi, velocity })
-      // Only log every 4th note to avoid log spam during chord/slide play.
       if (tag % 4 === 1) {
         log('noteOn ✓', { tag, midi, vel: velocity, patch: this.currentId })
       }
     } catch (err) {
       log('noteOn ✗ start threw', { tag, midi, currentId: this.currentId, err })
+    }
+
+    const extras: number[] = []
+    for (const dbl of [this.doublerState.doubler1, this.doublerState.doubler2]) {
+      if (!dbl.enabled || dbl.pitch === 0 || dbl.mix <= 0) continue
+      const doubled = midi + dbl.pitch
+      if (doubled < 0 || doubled > 127) continue
+      const dblVel = Math.round(velocity * dbl.mix)
+      if (dblVel <= 0) continue
+      try {
+        this.current.start({ note: doubled, velocity: dblVel })
+        extras.push(doubled)
+      } catch {
+        // noop
+      }
+    }
+    if (extras.length > 0) {
+      this.activeDoubles.set(midi, extras)
     }
   }
 
@@ -672,6 +695,17 @@ export class AudioEngine {
     } catch (err) {
       log('noteOff: stop threw', { midi, err })
     }
+    const extras = this.activeDoubles.get(midi)
+    if (extras) {
+      for (const note of extras) {
+        try {
+          this.current.stop(note)
+        } catch {
+          // noop
+        }
+      }
+      this.activeDoubles.delete(midi)
+    }
   }
 
   panic(): void {
@@ -681,13 +715,24 @@ export class AudioEngine {
     } catch {
       // noop
     }
+    this.activeDoubles.clear()
   }
 
   setEffectParam(id: EffectId, paramId: string, value: number): void {
+    if (id === 'doubler1' || id === 'doubler2') {
+      const dbl = this.doublerState[id]
+      if (paramId === 'pitch') dbl.pitch = DOUBLER_SNAPS[Math.round(value)]?.st ?? 0
+      else if (paramId === 'mix') dbl.mix = value
+      return
+    }
     this.chain?.setParam(id, paramId, value)
   }
 
   setEffectEnabled(id: EffectId, on: boolean): void {
+    if (id === 'doubler1' || id === 'doubler2') {
+      this.doublerState[id].enabled = on
+      return
+    }
     this.chain?.setEnabled(id, on)
   }
 

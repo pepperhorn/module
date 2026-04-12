@@ -14,6 +14,8 @@ const COLOR_HEX: Record<string, string> = {
   amber: '#FFB84D',
   lime: '#B5E853',
   sky: '#5BC0EB',
+  lavender: '#B59CD9',
+  rose: '#FFA5B8',
 }
 
 export function EffectPedal({
@@ -67,6 +69,8 @@ export function EffectPedal({
             unit={p.unit}
             color={hex}
             size={36}
+            labels={p.labels}
+            defaultValue={p.default}
             onChange={(v) => onParamChange(def.id, p.id, v)}
           />
         ))}

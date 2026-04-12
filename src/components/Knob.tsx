@@ -9,6 +9,8 @@ interface KnobProps {
   unit?: string
   color?: string
   size?: number
+  labels?: string[]
+  defaultValue?: number
   onChange: (value: number) => void
 }
 
@@ -21,6 +23,8 @@ export function Knob({
   unit,
   color = 'var(--color-sky)',
   size = 48,
+  labels,
+  defaultValue,
   onChange,
 }: KnobProps) {
   const ref = useRef<HTMLDivElement>(null)
@@ -67,8 +71,8 @@ export function Knob({
   }, [])
 
   const onDoubleClick = useCallback(() => {
-    onChange(min)
-  }, [min, onChange])
+    onChange(defaultValue ?? min)
+  }, [defaultValue, min, onChange])
 
   const onWheel = useCallback(
     (e: React.WheelEvent) => {
@@ -85,9 +89,11 @@ export function Knob({
   )
 
   const display =
-    showValue || dragRef.current
-      ? value.toFixed(step < 0.1 ? 2 : step < 1 ? 2 : 0) + (unit ?? '')
-      : label
+    labels
+      ? labels[Math.round(value)] ?? label
+      : showValue || dragRef.current
+        ? value.toFixed(step < 0.1 ? 2 : step < 1 ? 2 : 0) + (unit ?? '')
+        : label
 
   return (
     <div className="knob flex flex-col items-center gap-1 select-none">
