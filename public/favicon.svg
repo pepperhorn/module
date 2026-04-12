@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <defs>
+    <linearGradient id="lcd-bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0F1024"/>
+      <stop offset="50%" stop-color="#161A33"/>
+      <stop offset="100%" stop-color="#0F1024"/>
+    </linearGradient>
+    <pattern id="scanlines" width="2" height="2" patternUnits="userSpaceOnUse">
+      <rect width="2" height="1" fill="#5BC0EB" fill-opacity="0.06"/>
+    </pattern>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="0.8" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="32" height="32" rx="5" ry="5" fill="url(#lcd-bg)"/>
+  <rect width="32" height="32" rx="5" ry="5" fill="url(#scanlines)"/>
+  <rect x="0.5" y="0.5" width="31" height="31" rx="4.5" ry="4.5" fill="none" stroke="#5BC0EB" stroke-opacity="0.18"/>
+  <g fill="#5BC0EB" filter="url(#glow)" font-family="ui-monospace, 'JetBrains Mono', Menlo, monospace" font-weight="600">
+    <text x="16" y="21" text-anchor="middle" font-size="15" letter-spacing="-0.5">M</text>
+  </g>
+  <rect x="4" y="26" width="4" height="1.5" fill="#5BC0EB" fill-opacity="0.55"/>
+  <rect x="24" y="26" width="4" height="1.5" fill="#5BC0EB" fill-opacity="0.55"/>
+</svg>
