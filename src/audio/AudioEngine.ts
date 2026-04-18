@@ -187,6 +187,20 @@ const log = (msg: string, ...rest: unknown[]) => {
   }
 }
 
+// Feature-detect AudioContext output routing. Chromium 110+ exposes
+// setSinkId on AudioContext; Safari and (currently) Firefox do not. When
+// unsupported, the context always plays out the OS default output.
+interface AudioContextWithSink extends AudioContext {
+  sinkId?: string | { type: 'none' }
+  setSinkId?: (id: string) => Promise<void>
+}
+
+function contextSupportsSinkId(): boolean {
+  if (typeof AudioContext === 'undefined') return false
+  // Property-on-prototype check avoids having to instantiate a context.
+  return 'setSinkId' in AudioContext.prototype
+}
+
 export class AudioEngine {
   readonly context: AudioContext
   private chain: ReturnType<typeof buildEffectChain> | null = null
@@ -198,7 +212,9 @@ export class AudioEngine {
   onLoading?: (id: string | null) => void
   onProgress?: (id: string, progress: LoadProgress) => void
   onError?: (id: string, err: unknown) => void
+  onSinkChange?: (sinkId: string) => void
   private currentSource: PatchSourceTag | null = null
+  private currentSinkId = ''
   // LRU cache of loaded smplr instruments keyed by source identity. Multiple
   // patches that share the same source (e.g. user-saved variants of CP80) map
   // to a single cached instrument. Map iteration order is insertion order, so
@@ -738,6 +754,42 @@ export class AudioEngine {
 
   get loadedPatchId(): string | null {
     return this.currentId
+  }
+
+  /** True on browsers where AudioContext.setSinkId is implemented. */
+  get sinkIdSupported(): boolean {
+    return contextSupportsSinkId()
+  }
+
+  /** Current routing target: '' = system default. */
+  get sinkId(): string {
+    return this.currentSinkId
+  }
+
+  /**
+   * Route all audio output to the given deviceId (as returned by
+   * navigator.mediaDevices.enumerateDevices() { kind: 'audiooutput' }). Pass
+   * '' to route to the OS default output.
+   *
+   * USB audio interfaces — including class-compliant (UAC1/UAC2) devices —
+   * show up in enumerateDevices() as regular audiooutput entries once the
+   * OS has claimed the device, so this is the correct path for them.
+   */
+  async setSinkId(deviceId: string): Promise<void> {
+    const ctx = this.context as AudioContextWithSink
+    if (!ctx.setSinkId) {
+      log('setSinkId unsupported — ignoring', { deviceId })
+      return
+    }
+    try {
+      await ctx.setSinkId(deviceId)
+      this.currentSinkId = deviceId
+      this.onSinkChange?.(deviceId)
+      log('setSinkId ✓', { deviceId: deviceId || '(default)' })
+    } catch (err) {
+      log('setSinkId failed', { deviceId, err })
+      throw err
+    }
   }
 }
 

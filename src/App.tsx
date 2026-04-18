@@ -10,10 +10,12 @@ import { TouchKeyboard } from './components/TouchKeyboard'
 import { DebugPanel } from './components/DebugPanel'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import { SaveDialog } from './components/SaveDialog'
+import { OutputPicker } from './components/OutputPicker'
 import { useUserPatchSync } from './state/useUserPatchSync'
 import { useStore } from './state/useStore'
 import { useComputerKeyboard } from './input/useComputerKeyboard'
 import { useWebMidi } from './input/useWebMidi'
+import { useWakeLock } from './input/useWakeLock'
 import { getEngine } from './audio/AudioEngine'
 import { findPatch } from './patches/catalog'
 import type { Bank, PatchManifest } from './patches/types'
@@ -183,6 +185,7 @@ export default function App() {
   const panic = useCallback(() => engine.panic(), [engine])
   useComputerKeyboard({ noteOn, noteOff, panic })
   useWebMidi(useMemo(() => ({ noteOn, noteOff }), [noteOn, noteOff]))
+  const wakeLock = useWakeLock()
 
   // Browse hotkey
   useEffect(() => {
@@ -358,6 +361,36 @@ export default function App() {
                     PURGE
                   </button>
                 </>
+              )}
+              <OutputPicker />
+              {wakeLock.supported && (
+                <button
+                  type="button"
+                  aria-pressed={wakeLock.enabled}
+                  title={
+                    wakeLock.enabled
+                      ? 'Screen stay-on: on'
+                      : 'Keep the screen awake while playing'
+                  }
+                  className="rack-display-wake cell-hit rounded-md px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest"
+                  style={{
+                    background: wakeLock.enabled ? 'var(--color-lime)' : '#FFFFFF',
+                    color: wakeLock.enabled ? 'var(--color-bg)' : 'var(--color-text)',
+                    border: wakeLock.enabled
+                      ? '1px solid transparent'
+                      : '1px solid var(--color-rack-edge)',
+                    boxShadow: wakeLock.enabled
+                      ? '0 0 10px rgba(181,232,83,0.5)'
+                      : 'none',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (needsGesture) void onFirstGesture()
+                    void wakeLock.toggle()
+                  }}
+                >
+                  {wakeLock.enabled ? '☀ STAY ON' : '☀ STAY ON'}
+                </button>
               )}
               <button
                 type="button"
