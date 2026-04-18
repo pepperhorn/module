@@ -10,6 +10,7 @@ import { TouchKeyboard } from './components/TouchKeyboard'
 import { DebugPanel } from './components/DebugPanel'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import { SaveDialog } from './components/SaveDialog'
+import { OutputPicker } from './components/OutputPicker'
 import { useUserPatchSync } from './state/useUserPatchSync'
 import { useStore } from './state/useStore'
 import { useComputerKeyboard } from './input/useComputerKeyboard'
@@ -361,6 +362,7 @@ export default function App() {
                   </button>
                 </>
               )}
+              <OutputPicker />
               {wakeLock.supported && (
                 <button
                   type="button"
