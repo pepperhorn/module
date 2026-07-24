@@ -129,6 +129,7 @@ interface State {
   favourites: Set<string>
   downloaded: Set<string>
   downloadingPatchId: string | null
+  warmProgress: { done: number; total: number } | null
   userPatches: UserPatch[]
   saveDialogOpen: boolean
   pickerOpen: boolean
@@ -143,6 +144,7 @@ interface State {
   markDownloaded: (id: string) => void
   unmarkDownloaded: (id: string) => void
   setDownloadingPatchId: (id: string | null) => void
+  setWarmProgress: (p: { done: number; total: number } | null) => void
   setOctave: (n: number) => void
   shiftOctave: (delta: number) => void
   setVelocity: (n: number) => void
@@ -205,6 +207,7 @@ export const useStore = create<State>((set, get) => ({
   favourites: loadFavourites(),
   downloaded: loadDownloaded(),
   downloadingPatchId: null,
+  warmProgress: null,
   userPatches: loadUserPatches(),
   saveDialogOpen: false,
   pickerOpen: false,
@@ -274,6 +277,7 @@ export const useStore = create<State>((set, get) => ({
     saveDownloaded(next)
   },
   setDownloadingPatchId: (id) => set({ downloadingPatchId: id }),
+  setWarmProgress: (p) => set({ warmProgress: p }),
   setMidiConnected: (b) => set({ midiConnected: b }),
   flashMidiActivity: (() => {
     let timer: ReturnType<typeof setTimeout> | null = null
