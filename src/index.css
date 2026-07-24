@@ -80,6 +80,21 @@ button {
     0 0 18px rgba(85, 230, 200, 0.25);
 }
 
+/* LCD blinking block cursor (character-display cue) */
+@keyframes lcd-cursor-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+.lcd-cursor {
+  animation: lcd-cursor-blink 1.2s step-end infinite;
+}
+
 /* Silkscreen legend system (JV faceplate printing) */
 .legend {
   font-family: var(--font-mono);
