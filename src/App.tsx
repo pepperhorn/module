@@ -245,40 +245,48 @@ export default function App() {
             <div className="rack-bank-spacer h-2" />
             <button
               type="button"
-              className="rack-bank-browse cell-hit w-full rounded-md font-display text-xs font-medium uppercase tracking-widest text-bg"
-              style={{
-                padding: '8px 0',
-                background:
-                  'linear-gradient(180deg, var(--color-sky) 0%, #4AA8D2 100%)',
-                boxShadow:
-                  'inset 0 -2px 0 rgba(0,0,0,0.18), 0 0 12px rgba(91,192,235,0.35)',
-              }}
+              className="rack-bank-browse hw-btn hw-btn-accent flex w-full items-center justify-center gap-2"
+              style={{ padding: '8px 0', ['--hw-accent' as string]: 'var(--color-sky)' }}
               onClick={(e) => {
                 e.stopPropagation()
                 if (needsGesture) void onFirstGesture()
                 setPickerOpen(true)
               }}
             >
-              BROWSE LIBRARY
+              <span
+                aria-hidden="true"
+                className="rack-bank-browse-led hw-btn-led"
+                style={{
+                  background: 'var(--color-sky)',
+                  boxShadow: '0 0 5px rgba(91,192,235,0.8)',
+                }}
+              />
+              <span className="rack-bank-browse-label legend" style={{ color: '#2f7fa0' }}>
+                BROWSE LIBRARY
+              </span>
             </button>
             <div className="rack-bank-save-spacer h-2" />
             <button
               type="button"
-              className="rack-bank-save cell-hit w-full rounded-md font-display text-xs font-medium uppercase tracking-widest text-bg"
-              style={{
-                padding: '8px 0',
-                background:
-                  'linear-gradient(180deg, var(--color-coral) 0%, #E55A5A 100%)',
-                boxShadow:
-                  'inset 0 -2px 0 rgba(0,0,0,0.18), 0 0 12px rgba(255,107,107,0.35)',
-              }}
+              className="rack-bank-save hw-btn hw-btn-accent flex w-full items-center justify-center gap-2"
+              style={{ padding: '8px 0', ['--hw-accent' as string]: 'var(--color-coral)' }}
               onClick={(e) => {
                 e.stopPropagation()
                 if (needsGesture) void onFirstGesture()
                 setSaveDialogOpen(true)
               }}
             >
-              ★ SAVE PATCH
+              <span
+                aria-hidden="true"
+                className="rack-bank-save-led hw-btn-led"
+                style={{
+                  background: 'var(--color-coral)',
+                  boxShadow: '0 0 5px rgba(255,107,107,0.8)',
+                }}
+              />
+              <span className="rack-bank-save-label legend" style={{ color: '#C84A4A' }}>
+                SAVE PATCH
+              </span>
             </button>
           </div>
 
@@ -296,7 +304,7 @@ export default function App() {
             <div className="rack-display-controls legend mt-3 flex items-center justify-between gap-2">
               <button
                 type="button"
-                className="rack-display-step cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                className="rack-display-step hw-btn legend px-3 py-1.5"
                 onClick={(e) => {
                   e.stopPropagation()
                   if (needsGesture) void onFirstGesture()
@@ -309,7 +317,7 @@ export default function App() {
                 <>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       if (needsGesture) void onFirstGesture()
@@ -320,7 +328,7 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       if (needsGesture) void onFirstGesture()
@@ -331,7 +339,7 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       if (needsGesture) void onFirstGesture()
@@ -342,7 +350,7 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       if (needsGesture) void onFirstGesture()
@@ -353,7 +361,7 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       if (needsGesture) void onFirstGesture()
@@ -374,29 +382,37 @@ export default function App() {
                       ? 'Screen stay-on: on'
                       : 'Keep the screen awake while playing'
                   }
-                  className="rack-display-wake cell-hit rounded-md px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest"
-                  style={{
-                    background: wakeLock.enabled ? 'var(--color-lime)' : '#FFFFFF',
-                    color: wakeLock.enabled ? 'var(--color-bg)' : 'var(--color-text)',
-                    border: wakeLock.enabled
-                      ? '1px solid transparent'
-                      : '1px solid var(--color-rack-edge)',
-                    boxShadow: wakeLock.enabled
-                      ? '0 0 10px rgba(181,232,83,0.5)'
-                      : 'none',
-                  }}
+                  className="rack-display-wake hw-btn flex items-center gap-1.5 px-3 py-1.5"
                   onClick={(e) => {
                     e.stopPropagation()
                     if (needsGesture) void onFirstGesture()
                     void wakeLock.toggle()
                   }}
                 >
-                  {wakeLock.enabled ? '☀ STAY ON' : '☀ STAY ON'}
+                  <span
+                    aria-hidden="true"
+                    className="rack-display-wake-led hw-btn-led"
+                    style={
+                      wakeLock.enabled
+                        ? {
+                            background: 'var(--color-lime)',
+                            boxShadow: '0 0 5px rgba(181,232,83,0.8)',
+                          }
+                        : {}
+                    }
+                  />
+                  <span
+                    className={`rack-display-wake-label ${
+                      wakeLock.enabled ? 'legend-strong' : 'legend'
+                    }`}
+                  >
+                    STAY ON
+                  </span>
                 </button>
               )}
               <button
                 type="button"
-                className="rack-display-step cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                className="rack-display-step hw-btn legend px-3 py-1.5"
                 onClick={(e) => {
                   e.stopPropagation()
                   if (needsGesture) void onFirstGesture()

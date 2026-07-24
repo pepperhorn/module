@@ -152,26 +152,21 @@ export function OutputPicker() {
           e.stopPropagation()
           void handleClick()
         }}
-        className="rack-display-output cell-hit flex max-w-[10rem] items-center gap-1.5 overflow-hidden rounded-md px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest"
-        style={{
-          background: '#FFFFFF',
-          border: '1px solid var(--color-rack-edge)',
-          color: 'var(--color-text)',
-        }}
+        className="rack-display-output hw-btn legend flex max-w-[10rem] items-center gap-1.5 overflow-hidden px-3 py-1.5"
       >
         <span
           aria-hidden="true"
-          style={{
-            display: 'inline-block',
-            width: 6,
-            height: 6,
-            borderRadius: 9999,
-            background: sinkId ? 'var(--color-sky)' : 'rgba(20,30,60,0.35)',
-            boxShadow: sinkId ? '0 0 6px rgba(91,192,235,0.6)' : 'none',
-            flexShrink: 0,
-          }}
+          className="rack-display-output-led hw-btn-led"
+          style={
+            sinkId
+              ? {
+                  background: 'var(--color-sky)',
+                  boxShadow: '0 0 5px rgba(91,192,235,0.8)',
+                }
+              : {}
+          }
         />
-        <span className="truncate">OUT · {deviceLabel}</span>
+        <span className="rack-display-output-label truncate">OUT · {deviceLabel}</span>
       </button>
 
       {open && (

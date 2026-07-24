@@ -30,30 +30,36 @@ export function ButtonBank({ active, onSelect }: ButtonBankProps) {
             <button
               key={bank}
               type="button"
-              className={`bank-button cell-hit relative h-9 rounded-md font-display text-xs font-medium uppercase tracking-wider ${
-                isActive
-                  ? 'bank-button-active text-bg shadow-inner'
-                  : 'bg-white text-text/70 hover:text-text'
+              aria-pressed={isActive}
+              className={`bank-button hw-btn relative flex h-9 items-center justify-center ${
+                isActive ? 'bank-button-active' : ''
               }`}
-              style={
-                isActive
-                  ? {
-                      background:
-                        'linear-gradient(180deg, var(--color-coral) 0%, #E55A5A 100%)',
-                      boxShadow:
-                        'inset 0 -2px 0 rgba(0,0,0,0.18), 0 0 10px rgba(255,107,107,0.3)',
-                    }
-                  : {
-                      background:
-                        'linear-gradient(180deg, #FFFFFF 0%, #F2F4F8 100%)',
-                      boxShadow:
-                        'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(20,30,60,0.1)',
-                      border: '1px solid var(--color-rack-edge)',
-                    }
-              }
               onClick={() => onSelect(bank)}
             >
-              {SHORT[bank]}
+              <span
+                aria-hidden="true"
+                className="bank-button-led hw-btn-led absolute"
+                style={{
+                  top: 4,
+                  right: 4,
+                  ...(isActive
+                    ? {
+                        background: 'var(--color-coral)',
+                        boxShadow: '0 0 5px rgba(255,107,107,0.8)',
+                      }
+                    : {}),
+                }}
+              />
+              <span
+                className="bank-button-label legend"
+                style={{
+                  color: isActive
+                    ? 'var(--color-legend-strong)'
+                    : 'var(--color-legend)',
+                }}
+              >
+                {SHORT[bank]}
+              </span>
             </button>
           )
         })}
