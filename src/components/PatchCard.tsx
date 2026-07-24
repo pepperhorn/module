@@ -117,6 +117,7 @@ function DownloadButton({
   unavailableOffline: boolean
   onClick: (e: React.MouseEvent) => void
 }) {
+  // Full phrasing for screen readers / tooltip; short glyph-label on the pill.
   const label = downloaded
     ? 'Cached for offline'
     : downloading
@@ -124,6 +125,13 @@ function DownloadButton({
       : unavailableOffline
         ? 'Offline — connect to download'
         : 'Download for offline'
+  const short = downloaded
+    ? 'Saved'
+    : downloading
+      ? 'Saving…'
+      : unavailableOffline
+        ? 'Unavailable'
+        : 'Download'
 
   return (
     <button
@@ -132,35 +140,29 @@ function DownloadButton({
       title={label}
       disabled={downloading || downloaded || unavailableOffline}
       onClick={onClick}
-      className="patch-card-dl absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full"
+      className="patch-card-dl cell-hit mt-0.5 flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1.5 font-mono text-[10px] uppercase tracking-wider"
       style={{
         color: downloaded
-          ? 'var(--color-bg)'
+          ? '#3f6a0f'
           : downloading
-            ? '#5BC0EB'
+            ? '#2f7fa0'
             : unavailableOffline
-              ? 'rgba(20,30,60,0.35)'
-              : '#FFFFFF',
+              ? 'rgba(20,30,60,0.42)'
+              : '#2f7fa0',
         background: downloaded
-          ? 'var(--color-lime)'
+          ? 'rgba(181,232,83,0.22)'
           : downloading
-            ? 'rgba(91,192,235,0.15)'
+            ? 'rgba(91,192,235,0.12)'
             : unavailableOffline
-              ? 'rgba(255,255,255,0.7)'
-              : 'linear-gradient(180deg, #5BC0EB 0%, #4AA8D2 100%)',
-        border: downloaded || (!downloading && !unavailableOffline)
-          ? 'none'
+              ? 'transparent'
+              : '#FFFFFF',
+        border: downloaded
+          ? '1px solid rgba(181,232,83,0.55)'
           : '1px solid var(--color-rack-edge)',
-        boxShadow: downloaded
-          ? '0 0 8px rgba(181,232,83,0.5)'
-          : downloading
-            ? 'none'
-            : unavailableOffline
-              ? 'none'
-              : '0 0 8px rgba(91,192,235,0.35), inset 0 -1px 0 rgba(0,0,0,0.12)',
       }}
     >
       {downloaded ? <CheckIcon /> : downloading ? <SpinnerIcon /> : <DownloadIcon />}
+      <span>{short}</span>
     </button>
   )
 }
