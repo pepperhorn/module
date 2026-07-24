@@ -36,6 +36,7 @@ function Root() {
     // offline-ready without blocking startup or competing with audio loads.
     const setWarmProgress = useStore.getState().setWarmProgress
     const start = () => {
+      if (!navigator.onLine) return
       void warmVendored({
         urls: vendoredUrls,
         onProgress: (done, total) =>

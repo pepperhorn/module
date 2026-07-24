@@ -38,6 +38,7 @@ export default defineConfig({
         // Precache the app shell ONLY. Audio (ogg/m4a/wav) is intentionally
         // excluded so the 26 MB of vendored samples never bloat the install.
         globPatterns: ['**/*.{js,css,html,svg,woff2,ico}'],
+        globIgnores: ['**/smplr-samples/**'],
         navigateFallback: '/index.html',
         cleanupOutdatedCaches: true,
         runtimeCaching: [
