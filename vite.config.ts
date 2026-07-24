@@ -10,6 +10,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: null,
+      manifest: false,
       devOptions: { enabled: true, type: 'module' },
       workbox: {
         // Precache the app shell ONLY. Audio (ogg/m4a/wav) is intentionally
