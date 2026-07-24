@@ -21,6 +21,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
   const setDownloadingPatchId = useStore((s) => s.setDownloadingPatchId)
   const markDownloaded = useStore((s) => s.markDownloaded)
   const userPatches = useStore((s) => s.userPatches)
+  const online = useStore((s) => s.online)
 
   // Merge user-saved patches into the picker as USR-bank manifests. Each
   // user patch reuses its base patch's source so it shares the engine cache.
@@ -41,6 +42,21 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
     }
     return [...userManifests, ...catalog]
   }, [catalog, userPatches])
+
+  // A USR patch is playable offline whenever its underlying base patch is
+  // cached — the audio source is shared. For everything else, the patch's
+  // own id is the download marker.
+  const isOfflineReady = useCallback(
+    (patch: PatchManifest): boolean => {
+      if (downloaded.has(patch.id)) return true
+      if (patch.bank === 'USR') {
+        const u = userPatches.find((x) => x.id === patch.id)
+        if (u && downloaded.has(u.basePatchId)) return true
+      }
+      return false
+    },
+    [downloaded, userPatches],
+  )
 
   const handleDownload = useCallback(
     async (id: string) => {
@@ -117,6 +133,29 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
             <div className="font-mono text-[10px] uppercase tracking-widest text-text/40">
               {filtered.length} patches
             </div>
+            {!online && (
+              <div
+                className="patch-picker-offline-pill flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest"
+                title="You are offline — only cached patches are playable"
+                style={{
+                  background: 'rgba(255,184,77,0.18)',
+                  color: '#8a5a10',
+                  border: '1px solid rgba(255,184,77,0.4)',
+                }}
+              >
+                <span
+                  aria-hidden="true"
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 9999,
+                    background: '#FFB84D',
+                    boxShadow: '0 0 6px rgba(255,184,77,0.7)',
+                  }}
+                />
+                offline
+              </div>
+            )}
           </div>
           <input
             type="text"
@@ -177,6 +216,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
                     favourited
                     downloaded={downloaded.has(p.id)}
                     downloading={downloadingPatchId === p.id}
+                    unavailableOffline={!online && !isOfflineReady(p)}
                     onSelect={(id) => {
                       onSelect(id)
                       setPickerOpen(false)
@@ -201,6 +241,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
                   favourited={favourites.has(p.id)}
                   downloaded={downloaded.has(p.id)}
                   downloading={downloadingPatchId === p.id}
+                  unavailableOffline={!online && !isOfflineReady(p)}
                   onSelect={(id) => {
                     onSelect(id)
                     setPickerOpen(false)

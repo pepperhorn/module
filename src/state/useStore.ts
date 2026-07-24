@@ -136,6 +136,7 @@ interface State {
   midiConnected: boolean
   midiActivity: boolean
   debugMode: boolean
+  online: boolean
   setPickerOpen: (open: boolean) => void
   setLoadingPatchId: (id: string | null) => void
   setLoadingProgress: (p: { loaded: number; total: number } | null) => void
@@ -159,6 +160,7 @@ interface State {
   deleteUserPatch: (id: string) => void
   setDebugMode: (v: boolean) => void
   toggleDebugMode: () => void
+  setOnline: (v: boolean) => void
 }
 
 const persisted = loadPersisted()
@@ -214,6 +216,7 @@ export const useStore = create<State>((set, get) => ({
   midiConnected: false,
   midiActivity: false,
   debugMode: loadDebug(),
+  online: typeof navigator === 'undefined' ? true : navigator.onLine,
   setPickerOpen: (open) => set({ pickerOpen: open }),
   setLoadingPatchId: (id) => set({ loadingPatchId: id }),
   setLoadingProgress: (p) => set({ loadingProgress: p }),
@@ -328,4 +331,10 @@ export const useStore = create<State>((set, get) => ({
     set({ debugMode: next })
     saveDebug(next)
   },
+  setOnline: (v) => set({ online: v }),
 }))
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => useStore.getState().setOnline(true))
+  window.addEventListener('offline', () => useStore.getState().setOnline(false))
+}

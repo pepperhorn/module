@@ -10,19 +10,23 @@ export default defineConfig({
     tailwindcss(),
     vendoredSamplesPlugin(),
     VitePWA({
+      // Prompt-style updates: a live audio instrument must never reload itself
+      // mid-performance. main.tsx registers manually and shows a Reload toast.
       registerType: 'prompt',
       injectRegister: null,
+      includeAssets: ['favicon.svg'],
       manifest: {
         name: 'MODULE',
         short_name: 'MODULE',
-        description: 'MODULE — playable sampler instrument',
+        description: 'Browser-based JV-style sound module',
         display: 'standalone',
-        orientation: 'portrait-primary',
+        orientation: 'any',
         start_url: '/',
         scope: '/',
         theme_color: '#FAFBFC',
         background_color: '#0F1024',
         icons: [
+          { src: '/favicon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
           { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
           {
@@ -35,11 +39,16 @@ export default defineConfig({
       },
       devOptions: { enabled: true, type: 'module' },
       workbox: {
-        // Precache the app shell ONLY. Audio (ogg/m4a/wav) is intentionally
-        // excluded so the 26 MB of vendored samples never bloat the install.
-        globPatterns: ['**/*.{js,css,html,svg,woff2,ico}'],
-        globIgnores: ['**/smplr-samples/**'],
+        // Precache the app shell ONLY. Audio + patches are excluded so the
+        // 26 MB of vendored samples never bloat the install; they are handled
+        // by the runtime CacheFirst route below (+ the idle warm loop) and by
+        // loggedStorage.ts's own Cache API cascade.
+        globPatterns: ['**/*.{js,css,html,svg,woff,woff2,ico}'],
+        globIgnores: ['**/smplr-samples/**', '**/patches/**'],
         navigateFallback: '/index.html',
+        navigateFallbackDenylist: [/^\/smplr-samples\//, /^\/patches\//],
+        // Raise from the default 2 MiB so our font + JS chunks precache cleanly.
+        maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
