@@ -1,6 +1,10 @@
 // Pure mapping from absolute sample file paths under <publicDir>/smplr-samples
-// to their encoded, rooted public URL paths. Used by the Vite plugin that
-// builds the `virtual:vendored-samples` list. Kept framework-free so it is
+// to their rooted public URL paths. The on-disk filenames are already the
+// exact percent-encoded strings the CDN used (the vendor script saves files at
+// `new URL(cdnUrl).pathname`), and loggedStorage.ts requests that same string
+// at runtime. So we emit the relative path VERBATIM — re-encoding it would
+// produce a URL that never matches the runtime request and the service-worker
+// cache (keyed by request URL) would miss offline. Kept framework-free so it is
 // unit-testable without Vite.
 export function toVendoredUrls(publicDir: string, absPaths: string[]): string[] {
   const normDir = publicDir.replace(/\\/g, '/').replace(/\/+$/, '')
@@ -10,8 +14,7 @@ export function toVendoredUrls(publicDir: string, absPaths: string[]): string[] 
     const p = raw.replace(/\\/g, '/')
     if (!p.startsWith(prefix)) continue
     const rel = p.slice(prefix.length)
-    const encoded = rel.split('/').map(encodeURIComponent).join('/')
-    out.push(`/smplr-samples/${encoded}`)
+    out.push(`/smplr-samples/${rel}`)
   }
   return out
 }

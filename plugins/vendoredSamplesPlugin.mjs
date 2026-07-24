@@ -14,7 +14,7 @@ function walk(dir) {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
     if (statSync(full).isDirectory()) out.push(...walk(full))
-    else if (/\.(ogg|m4a|wav)$/i.test(entry)) out.push(full)
+    else if (/\.(ogg|m4a|wav|sfz|js)$/i.test(entry)) out.push(full)
   }
   return out
 }
