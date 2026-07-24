@@ -39,7 +39,10 @@ export function PatchCard({
   return (
     <button
       type="button"
-      onClick={() => onSelect(patch.id)}
+      onClick={() => {
+        if (unavailableOffline) return
+        onSelect(patch.id)
+      }}
       aria-disabled={unavailableOffline}
       className={`patch-card cell-hit group relative flex flex-col gap-2 overflow-hidden rounded-lg p-3 text-left ${
         active ? 'patch-card-active ring-2 ring-coral' : ''
@@ -61,13 +64,13 @@ export function PatchCard({
         }}
       />
       <div className="patch-card-meta flex flex-1 flex-col gap-1">
-        <div className="patch-card-title font-display text-sm font-medium text-text">
+        <div className="patch-card-title font-display text-[15px] font-medium text-text">
           {patch.name}
         </div>
-        <div className="patch-card-cat font-mono text-[10px] uppercase tracking-wider text-text/50">
+        <div className="patch-card-cat font-mono text-[11px] uppercase tracking-wider text-text/65">
           {patch.category} · {patch.bank}
           {unavailableOffline && (
-            <span className="ml-1 text-text/60"> · offline</span>
+            <span className="ml-1 text-text/75"> · offline</span>
           )}
         </div>
       </div>
@@ -79,7 +82,7 @@ export function PatchCard({
           e.preventDefault()
           onToggleFavourite(patch.id)
         }}
-        className="patch-card-fav absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-base leading-none"
+        className="patch-card-fav absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-base leading-none"
         style={{
           color: favourited ? '#FF6B6B' : 'rgba(20,30,60,0.25)',
           background: favourited ? 'rgba(255,107,107,0.1)' : 'rgba(255,255,255,0.6)',
@@ -129,7 +132,7 @@ function DownloadButton({
       title={label}
       disabled={downloading || downloaded || unavailableOffline}
       onClick={onClick}
-      className="patch-card-dl absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full"
+      className="patch-card-dl absolute left-2 top-2 flex h-8 w-8 items-center justify-center rounded-full"
       style={{
         color: downloaded
           ? 'var(--color-bg)'

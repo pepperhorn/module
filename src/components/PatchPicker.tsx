@@ -125,22 +125,22 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
         style={{ border: '1px solid var(--color-rack-edge)' }}
       >
         <header
-          className="patch-picker-header flex items-center justify-between gap-3 p-4"
+          className="patch-picker-header flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
           style={{ borderBottom: '1px solid var(--color-rack-edge)' }}
         >
-          <div className="patch-picker-title flex items-center gap-3">
+          <div className="patch-picker-title flex min-w-0 items-center gap-2.5">
             <div className="font-display text-lg font-medium text-text">Library</div>
-            <div className="font-mono text-[10px] uppercase tracking-widest text-text/40">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-text/55">
               {filtered.length} patches
             </div>
             {!online && (
               <div
-                className="patch-picker-offline-pill flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest"
+                className="patch-picker-offline-pill flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-widest"
                 title="You are offline — only cached patches are playable"
                 style={{
                   background: 'rgba(255,184,77,0.18)',
-                  color: '#8a5a10',
-                  border: '1px solid rgba(255,184,77,0.4)',
+                  color: '#7a4f0e',
+                  border: '1px solid rgba(255,184,77,0.5)',
                 }}
               >
                 <span
@@ -157,29 +157,30 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
               </div>
             )}
           </div>
-          <input
-            type="text"
-            placeholder="Search…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="patch-picker-search w-48 rounded-md px-3 py-1.5 font-mono text-xs outline-none focus:ring-2 focus:ring-coral"
-            style={{
-              background: '#FFFFFF',
-              border: '1px solid var(--color-rack-edge)',
-            }}
-            autoFocus
-          />
-          <button
-            type="button"
-            onClick={() => setPickerOpen(false)}
-            className="patch-picker-close cell-hit rounded-md px-3 py-1.5 font-mono text-xs uppercase tracking-wider text-text/60 hover:text-text"
-            style={{
-              background: '#FFFFFF',
-              border: '1px solid var(--color-rack-edge)',
-            }}
-          >
-            Close · esc
-          </button>
+          <div className="patch-picker-controls flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="patch-picker-search w-full min-w-0 rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-2 focus:ring-coral sm:w-48"
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid var(--color-rack-edge)',
+              }}
+            />
+            <button
+              type="button"
+              onClick={() => setPickerOpen(false)}
+              className="patch-picker-close cell-hit shrink-0 rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider text-text/70 hover:text-text"
+              style={{
+                background: '#FFFFFF',
+                border: '1px solid var(--color-rack-edge)',
+              }}
+            >
+              Close<span className="hidden sm:inline"> · esc</span>
+            </button>
+          </div>
         </header>
 
         <div
@@ -204,7 +205,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
         <div className="patch-picker-body scroll-clean flex-1 overflow-y-auto p-4">
           {favList.length > 0 && bankFilter === 'ALL' && !query && (
             <section className="patch-picker-section mb-6">
-              <h3 className="patch-picker-section-title mb-3 font-mono text-[10px] uppercase tracking-widest text-text/50">
+              <h3 className="patch-picker-section-title mb-3 font-mono text-[11px] uppercase tracking-widest text-text/65">
                 Your Library
               </h3>
               <div className="patch-picker-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -229,7 +230,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
             </section>
           )}
           <section className="patch-picker-section">
-            <h3 className="patch-picker-section-title mb-3 font-mono text-[10px] uppercase tracking-widest text-text/50">
+            <h3 className="patch-picker-section-title mb-3 font-mono text-[11px] uppercase tracking-widest text-text/65">
               Browse
             </h3>
             <div className="patch-picker-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -275,7 +276,7 @@ function BankChip({
   return (
     <button
       type="button"
-      className="bank-chip cell-hit rounded-full px-3 py-1 font-mono text-[10px] uppercase tracking-wider"
+      className="bank-chip cell-hit rounded-full px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider"
       style={
         active
           ? {
