@@ -235,8 +235,9 @@ export default function App() {
       }}
     >
       <Rack>
-        <div className="rack-row-1 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]">
-          <div className="rack-bank rack-panel rounded-xl p-4">
+        <div className="rack-row-1 grid grid-cols-1 gap-2.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]">
+          <div className="rack-bank rack-panel rounded-lg p-3">
+            <span className="rack-bank-title group-legend legend">BANK / SELECT</span>
             <ButtonBank active={activeBank} onSelect={handleBankSelect} />
             <div className="rack-bank-hint legend-strong mt-3">
               {currentBankPatches.length} patches in bank
@@ -281,7 +282,8 @@ export default function App() {
             </button>
           </div>
 
-          <div className="rack-display rack-panel rounded-xl p-4">
+          <div className="rack-display rack-panel rounded-lg p-4">
+            <span className="rack-display-title group-legend legend">DISPLAY</span>
             <Lcd
               patch={currentPatch}
               index={currentIndex < 0 ? 0 : currentIndex}
@@ -406,7 +408,8 @@ export default function App() {
             </div>
           </div>
 
-          <div className="rack-dial rack-panel flex flex-col items-center justify-center rounded-xl p-4">
+          <div className="rack-dial rack-panel relative flex flex-col items-center justify-center rounded-lg p-3">
+            <span className="rack-dial-title group-legend legend">VALUE</span>
             <ValueDial
               onStep={(delta) => {
                 if (needsGesture) void onFirstGesture()
@@ -419,15 +422,15 @@ export default function App() {
           </div>
         </div>
 
-        <div className="rack-row-2 mt-4">
+        <div className="rack-row-2 mt-2.5">
           <EffectsRow />
         </div>
 
-        <div className="rack-row-3 mt-4">
+        <div className="rack-row-3 mt-2.5">
           <TouchKeyboard noteOn={noteOn} noteOff={noteOff} />
         </div>
 
-        <div className="rack-row-4 mt-3">
+        <div className="rack-row-4 mt-2.5">
           <KeyboardHud />
         </div>
       </Rack>

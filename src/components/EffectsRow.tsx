@@ -11,11 +11,12 @@ export function EffectsRow() {
 
   return (
     <section
-      className="effects-row rack-panel flex flex-col gap-2 rounded-xl p-4"
+      className="effects-row rack-panel flex flex-col gap-2 rounded-lg p-3"
       aria-label="Effects chain"
     >
-      <header className="effects-row-header flex items-center justify-between">
-        <span className="legend">
+      <span className="effects-row-title group-legend legend">EFFECTS</span>
+      <header className="effects-row-header flex items-center justify-end">
+        <span className="effects-row-chain legend">
           DBL → DIST → CHORUS → DELAY → REVERB
         </span>
       </header>

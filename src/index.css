@@ -98,23 +98,63 @@ button {
   color: var(--color-legend-strong);
 }
 
-/* Subtle rack texture */
+/* Silkscreen group frame (JV faceplate grouping) — a printed hairline box on
+   one continuous faceplate, NOT a raised/floating card. */
+.group-frame {
+  position: relative;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
+}
+
+/* Group title printed ON the top border of a frame (knocks out the line). */
+.group-legend {
+  position: absolute;
+  top: -7px;
+  left: 12px;
+  padding: 0 6px;
+  background: var(--color-face-hi);
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* Existing .rack-panel usages inherit the silkscreen-frame treatment:
+   no gradient fill, no drop shadow — just a hairline box on the faceplate. */
 .rack-panel {
-  background:
-    linear-gradient(180deg, #F4F6F9 0%, #E8EBEF 100%);
-  border: 1px solid var(--color-rack-edge);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.7),
-    inset 0 -1px 0 rgba(0,0,0,0.04),
-    0 1px 2px rgba(20, 30, 60, 0.06);
+  position: relative;
+  background: rgba(255, 255, 255, 0.35);
+  border: 1px solid var(--color-hairline);
+  border-radius: 8px;
 }
 
 .rack-screw {
+  position: relative;
   width: 10px;
   height: 10px;
   border-radius: 9999px;
   background: radial-gradient(circle at 35% 35%, #FFFFFF 0%, #C8CDD6 45%, #8A93A3 100%);
   box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+  pointer-events: none;
+}
+/* Slotted head so the screw reads as a screw, not a dot. */
+.rack-screw::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 20%;
+  width: 60%;
+  height: 1.5px;
+  border-radius: 1px;
+  background: rgba(20, 30, 60, 0.45);
+  transform: translateY(-50%) rotate(var(--slot-rot, 30deg));
+}
+
+/* Rack ear (desktop only) — slightly darker alloy strip flanking the chassis. */
+.rack-ear {
+  background: linear-gradient(180deg, #E2E6EC 0%, #D6DBE3 100%);
+  border: 1px solid #C9CFD9;
+  border-radius: 6px;
+  pointer-events: none;
 }
 
 /* Knob ring */

@@ -169,7 +169,8 @@ export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardPro
   )
 
   return (
-    <div className="touch-keyboard rack-panel rounded-xl p-3">
+    <div className="touch-keyboard rack-panel rounded-lg p-3">
+      <span className="touch-keyboard-title group-legend legend">KEYBOARD</span>
       <div className="touch-keyboard-header legend mb-2 flex items-center justify-between">
         <span>
           TOUCH · OCT {octave}–{octave + octaves}
