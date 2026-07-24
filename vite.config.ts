@@ -10,7 +10,27 @@ export default defineConfig({
     VitePWA({
       registerType: 'prompt',
       injectRegister: null,
-      manifest: false,
+      manifest: {
+        name: 'MODULE',
+        short_name: 'MODULE',
+        description: 'MODULE — playable sampler instrument',
+        display: 'standalone',
+        orientation: 'portrait-primary',
+        start_url: '/',
+        scope: '/',
+        theme_color: '#FAFBFC',
+        background_color: '#0F1024',
+        icons: [
+          { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+          {
+            src: '/icons/icon-512-maskable.png',
+            sizes: '512x512',
+            type: 'image/png',
+            purpose: 'maskable',
+          },
+        ],
+      },
       devOptions: { enabled: true, type: 'module' },
       workbox: {
         // Precache the app shell ONLY. Audio (ogg/m4a/wav) is intentionally
