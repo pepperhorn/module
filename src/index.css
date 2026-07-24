@@ -26,7 +26,9 @@
   --color-lcd-text: #55E6C8;
   --color-lcd-dim: #1D5B50;
 
-  --font-display: "Fredoka", system-ui, sans-serif;
+  --font-brand: "Michroma", sans-serif;
+  --font-display: "Chakra Petch", "Inter", system-ui, sans-serif;
+  --font-legend: "Chakra Petch", sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
@@ -147,7 +149,7 @@ button {
 
 /* Silkscreen legend system (JV faceplate printing) */
 .legend {
-  font-family: var(--font-mono);
+  font-family: var(--font-legend);
   font-size: 10px;
   font-weight: 500;
   text-transform: uppercase;
@@ -155,7 +157,7 @@ button {
   color: var(--color-legend);
 }
 .legend-strong {
-  font-family: var(--font-mono);
+  font-family: var(--font-legend);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;

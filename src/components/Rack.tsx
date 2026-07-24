@@ -98,7 +98,10 @@ export function Rack({ children }: RackProps) {
               />
               <span className="rack-power-label legend">POWER</span>
             </span>
-            <span className="rack-brand-name font-display text-xl font-semibold tracking-widest text-text">
+            <span
+              className="rack-brand-name text-xl tracking-widest text-text"
+              style={{ fontFamily: 'var(--font-brand)' }}
+            >
               MODULE
             </span>
             <span className="rack-brand-tag legend hidden sm:inline">
