@@ -75,7 +75,7 @@ export function Rack({ children }: RackProps) {
             <span className="rack-brand-name font-display text-xl font-semibold tracking-widest text-text">
               MODULE
             </span>
-            <span className="rack-brand-tag font-mono text-[10px] uppercase tracking-widest text-text/40">
+            <span className="rack-brand-tag legend">
               JV · smplr{debugMode ? ' · debug' : ''}
             </span>
           </button>

@@ -67,7 +67,7 @@ export function PatchCard({
         <div className="patch-card-title font-display text-[15px] font-medium text-text">
           {patch.name}
         </div>
-        <div className="patch-card-cat font-mono text-[11px] uppercase tracking-wider text-text/65">
+        <div className="patch-card-cat font-mono text-[11px] uppercase tracking-wider text-legend">
           {patch.category} · {patch.bank}
           {unavailableOffline && (
             <span className="ml-1 text-text/75"> · offline</span>

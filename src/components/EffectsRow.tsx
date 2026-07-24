@@ -15,7 +15,7 @@ export function EffectsRow() {
       aria-label="Effects chain"
     >
       <header className="effects-row-header flex items-center justify-between">
-        <span className="font-mono text-[10px] uppercase tracking-widest text-text/50">
+        <span className="legend">
           DBL → DIST → CHORUS → DELAY → REVERB
         </span>
       </header>

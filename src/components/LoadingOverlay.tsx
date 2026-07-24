@@ -86,7 +86,7 @@ export function LoadingOverlay() {
           )}
         </div>
 
-        <div className="loading-card-hint font-mono text-[9px] uppercase tracking-widest text-lcd-dim/60">
+        <div className="loading-card-hint font-mono text-[10px] uppercase tracking-widest text-lcd-dim/60">
           first load fetches samples over the network · subsequent loads use the cache
         </div>
       </div>

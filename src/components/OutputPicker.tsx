@@ -191,7 +191,7 @@ export function OutputPicker() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="cell-hit rounded-md border border-rack-edge bg-white px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-text/60 hover:text-text"
+                className="cell-hit rounded-md border border-rack-edge bg-white px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-legend hover:text-text"
               >
                 Close
               </button>
@@ -211,7 +211,7 @@ export function OutputPicker() {
                 />
               ))}
               {devices.every((d) => !d.label) && (
-                <p className="mt-2 font-mono text-[10px] leading-snug text-text/50">
+                <p className="mt-2 font-mono text-[10px] leading-snug text-legend">
                   Device names are hidden by the browser until you grant
                   microphone permission once. The OS default and any
                   connected USB interface will still work when selected.

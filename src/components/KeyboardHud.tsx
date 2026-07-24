@@ -14,7 +14,7 @@ export function KeyboardHud() {
         border: '1px solid var(--color-rack-edge)',
       }}
     >
-      <div className="keyboard-hud-keys flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-text/60">
+      <div className="keyboard-hud-keys legend flex items-center gap-3">
         <span className="keyboard-hud-row">
           <kbd className="hud-kbd">A</kbd>
           <kbd className="hud-kbd">S</kbd>
@@ -65,8 +65,8 @@ export function KeyboardHud() {
           padding: 1px 4px;
           margin-right: 2px;
           font-family: var(--font-mono);
-          font-size: 9px;
-          color: var(--color-text);
+          font-size: 10px;
+          color: var(--color-legend-strong);
           background: #FFFFFF;
           border: 1px solid var(--color-rack-edge);
           border-bottom-width: 2px;

@@ -20,7 +20,7 @@ const SHORT: Record<Bank, string> = {
 export function ButtonBank({ active, onSelect }: ButtonBankProps) {
   return (
     <div className="button-bank">
-      <div className="button-bank-label mb-2 font-mono text-[9px] uppercase tracking-widest text-text/50">
+      <div className="button-bank-label legend mb-2">
         BANK
       </div>
       <div className="button-bank-grid grid grid-cols-4 gap-1.5">

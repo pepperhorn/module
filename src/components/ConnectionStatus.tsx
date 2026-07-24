@@ -9,7 +9,7 @@ export function ConnectionStatus() {
   return (
     <div className="connection-status flex items-center gap-2">
       {warm && (
-        <span className="connection-warm font-mono text-[10px] uppercase tracking-widest text-text/40">
+        <span className="connection-warm legend">
           downloading built-ins {warm.done}/{warm.total}
         </span>
       )}

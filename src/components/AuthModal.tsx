@@ -72,12 +72,12 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
           <div className="font-display text-base font-semibold text-text">
             {step === 'email' ? 'Sign in' : 'Enter the code'}
           </div>
-          <div className="font-mono text-[10px] uppercase tracking-widest text-text/50">
+          <div className="legend">
             pepperhorn id
           </div>
         </div>
 
-        <div className="auth-modal-blurb font-mono text-[10px] uppercase tracking-wider text-text/55">
+        <div className="auth-modal-blurb legend">
           {step === 'email'
             ? 'Sign in with your email to sync user patches across devices.'
             : `We sent a 6-digit code to ${email}. It expires in 10 minutes.`}
@@ -85,7 +85,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
 
         {step === 'email' ? (
           <label className="auth-modal-field flex flex-col gap-1">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-text/40">
+            <span className="legend">
               email
             </span>
             <input
@@ -113,7 +113,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
           </label>
         ) : (
           <label className="auth-modal-field flex flex-col gap-1">
-            <span className="font-mono text-[9px] uppercase tracking-widest text-text/40">
+            <span className="legend">
               code
             </span>
             <input
@@ -159,7 +159,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
           {step === 'otp' ? (
             <button
               type="button"
-              className="cell-hit rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider text-text/60"
+              className="cell-hit rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider text-legend"
               onClick={() => {
                 setStep('email')
                 setOtp('')
@@ -171,7 +171,7 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
           ) : (
             <button
               type="button"
-              className="cell-hit rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider text-text/60"
+              className="cell-hit rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider text-legend"
               onClick={onClose}
             >
               cancel

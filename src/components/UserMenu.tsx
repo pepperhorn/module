@@ -9,7 +9,7 @@ export function UserMenu() {
 
   if (isLoading) {
     return (
-      <div className="user-menu-loading flex items-center gap-2 rounded-full border border-rack-edge bg-white/70 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-text/40">
+      <div className="user-menu-loading legend flex items-center gap-2 rounded-full border border-rack-edge bg-white/70 px-3 py-1">
         <span className="h-2 w-2 animate-pulse rounded-full bg-text/30" />
         ...
       </div>
@@ -21,7 +21,7 @@ export function UserMenu() {
       <>
         <button
           type="button"
-          className="user-menu-signin cell-hit flex items-center gap-2 rounded-full border border-rack-edge bg-white/70 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-text/60 hover:text-text"
+          className="user-menu-signin legend cell-hit flex items-center gap-2 rounded-full border border-rack-edge bg-white/70 px-3 py-1 hover:text-text"
           onClick={(e) => {
             e.stopPropagation()
             setAuthOpen(true)
@@ -79,7 +79,7 @@ export function UserMenu() {
             <div className="font-display text-xs font-medium text-text">
               {display}
             </div>
-            <div className="font-mono text-[9px] uppercase tracking-wider text-text/50">
+            <div className="legend">
               {user.email}
             </div>
           </div>

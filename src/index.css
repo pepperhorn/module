@@ -16,9 +16,15 @@
   --color-mint: #96E6B3;
   --color-rose: #FFA5B8;
 
-  --color-lcd-bg: #0F1024;
-  --color-lcd-text: #5BC0EB;
-  --color-lcd-dim: #2A3A5C;
+  --color-legend: #5A6172;
+  --color-legend-strong: #3C4356;
+  --color-hairline: rgba(26, 26, 46, 0.14);
+  --color-face-hi: #F2F4F7;
+  --color-face-lo: #E9ECF1;
+
+  --color-lcd-bg: #07211F;
+  --color-lcd-text: #55E6C8;
+  --color-lcd-dim: #1D5B50;
 
   --font-display: "Fredoka", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
@@ -69,9 +75,27 @@ button {
 /* LCD glow */
 .lcd-glow {
   text-shadow:
-    0 0 4px rgba(91, 192, 235, 0.9),
-    0 0 8px rgba(91, 192, 235, 0.55),
-    0 0 18px rgba(91, 192, 235, 0.25);
+    0 0 4px rgba(85, 230, 200, 0.9),
+    0 0 8px rgba(85, 230, 200, 0.55),
+    0 0 18px rgba(85, 230, 200, 0.25);
+}
+
+/* Silkscreen legend system (JV faceplate printing) */
+.legend {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-legend);
+}
+.legend-strong {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--color-legend-strong);
 }
 
 /* Subtle rack texture */

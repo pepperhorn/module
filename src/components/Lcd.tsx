@@ -92,7 +92,7 @@ export function Lcd({
       <div className="lcd-row-1 flex items-baseline justify-between gap-2 text-xs uppercase tracking-widest text-lcd-dim">
         <span className="lcd-bank truncate">{bankLabel}</span>
         <span
-          className="lcd-source-badge inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 font-mono text-[9px] tracking-widest"
+          className="lcd-source-badge inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 font-mono text-[10px] tracking-widest"
           title={
             srcCounts ? `${srcStyle.title} · ${srcCounts}` : srcStyle.title
           }

@@ -137,7 +137,7 @@ export function Knob({
         </div>
       </div>
       <div
-        className="knob-label font-mono text-[9px] uppercase tracking-wide text-text/60"
+        className="knob-label legend"
         style={{ minHeight: 12 }}
       >
         {display}

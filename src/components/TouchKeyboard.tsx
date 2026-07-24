@@ -170,7 +170,7 @@ export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardPro
 
   return (
     <div className="touch-keyboard rack-panel rounded-xl p-3">
-      <div className="touch-keyboard-header mb-2 flex items-center justify-between font-mono text-[9px] uppercase tracking-widest text-text/40">
+      <div className="touch-keyboard-header legend mb-2 flex items-center justify-between">
         <span>
           TOUCH · OCT {octave}–{octave + octaves}
         </span>
@@ -197,7 +197,7 @@ export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardPro
             <div
               key={`w-${k.midi}`}
               data-midi={k.midi}
-              className={`touch-key touch-key-white absolute bottom-0 top-0 flex flex-col items-center justify-end pb-2 font-mono text-[9px] uppercase ${
+              className={`touch-key touch-key-white absolute bottom-0 top-0 flex flex-col items-center justify-end pb-2 font-mono text-[10px] uppercase ${
                 isPressed ? 'touch-key-pressed' : ''
               }`}
               style={{

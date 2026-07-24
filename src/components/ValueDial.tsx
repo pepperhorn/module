@@ -79,7 +79,7 @@ export function ValueDial({ onStep }: ValueDialProps) {
           style={{ background: '#1A1A2E' }}
         />
       </div>
-      <div className="value-dial-label font-mono text-[9px] uppercase tracking-widest text-text/50">
+      <div className="value-dial-label legend">
         VALUE
       </div>
     </div>

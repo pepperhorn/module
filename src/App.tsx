@@ -238,7 +238,7 @@ export default function App() {
         <div className="rack-row-1 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]">
           <div className="rack-bank rack-panel rounded-xl p-4">
             <ButtonBank active={activeBank} onSelect={handleBankSelect} />
-            <div className="rack-bank-hint mt-3 font-mono text-[9px] uppercase tracking-widest text-text/40">
+            <div className="rack-bank-hint legend-strong mt-3">
               {currentBankPatches.length} patches in bank
             </div>
             <div className="rack-bank-spacer h-2" />
@@ -291,7 +291,7 @@ export default function App() {
               loading={loadingPatchId !== null}
               source={currentSource}
             />
-            <div className="rack-display-controls mt-3 flex items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-widest text-text/50">
+            <div className="rack-display-controls legend mt-3 flex items-center justify-between gap-2">
               <button
                 type="button"
                 className="rack-display-step cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
@@ -413,7 +413,7 @@ export default function App() {
                 handleStep(delta)
               }}
             />
-            <div className="rack-dial-help mt-2 font-mono text-[9px] uppercase tracking-widest text-text/40">
+            <div className="rack-dial-help legend mt-2">
               drag · scroll
             </div>
           </div>
@@ -454,7 +454,7 @@ export default function App() {
             <div className="gesture-title font-display text-lg font-semibold text-text">
               tap to power on
             </div>
-            <div className="gesture-sub max-w-xs font-mono text-[10px] uppercase tracking-wider text-text/50">
+            <div className="gesture-sub legend max-w-xs">
               browser audio needs a user gesture · click anywhere
             </div>
           </div>

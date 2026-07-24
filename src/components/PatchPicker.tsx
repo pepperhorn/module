@@ -130,7 +130,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
         >
           <div className="patch-picker-title flex min-w-0 items-center gap-2.5">
             <div className="font-display text-lg font-medium text-text">Library</div>
-            <div className="font-mono text-[11px] uppercase tracking-widest text-text/55">
+            <div className="font-mono text-[11px] uppercase tracking-widest text-legend">
               {filtered.length} patches
             </div>
             {!online && (
@@ -205,7 +205,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
         <div className="patch-picker-body scroll-clean flex-1 overflow-y-auto p-4">
           {favList.length > 0 && bankFilter === 'ALL' && !query && (
             <section className="patch-picker-section mb-6">
-              <h3 className="patch-picker-section-title mb-3 font-mono text-[11px] uppercase tracking-widest text-text/65">
+              <h3 className="patch-picker-section-title mb-3 font-mono text-[11px] uppercase tracking-widest text-legend-strong">
                 Your Library
               </h3>
               <div className="patch-picker-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -230,7 +230,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
             </section>
           )}
           <section className="patch-picker-section">
-            <h3 className="patch-picker-section-title mb-3 font-mono text-[11px] uppercase tracking-widest text-text/65">
+            <h3 className="patch-picker-section-title mb-3 font-mono text-[11px] uppercase tracking-widest text-legend-strong">
               Browse
             </h3>
             <div className="patch-picker-grid grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
@@ -252,7 +252,7 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
                 />
               ))}
               {filtered.length === 0 && (
-                <div className="col-span-full py-12 text-center font-mono text-xs text-text/40">
+                <div className="col-span-full py-12 text-center font-mono text-xs text-legend">
                   No patches match.
                 </div>
               )}

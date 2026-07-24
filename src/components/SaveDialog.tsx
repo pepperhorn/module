@@ -67,7 +67,7 @@ export function SaveDialog() {
           <div className="font-display text-base font-semibold text-text">
             Save User Patch
           </div>
-          <div className="font-mono text-[10px] uppercase tracking-widest text-text/50">
+          <div className="legend">
             usr bank
           </div>
         </div>
@@ -78,28 +78,28 @@ export function SaveDialog() {
             border: '1px solid var(--color-rack-edge)',
           }}
         >
-          <div className="font-mono text-[9px] uppercase tracking-widest text-text/40">
+          <div className="legend">
             base patch
           </div>
           <div className="font-display text-sm text-text">
             {basePatch?.name ?? '(unknown)'}
           </div>
-          <div className="font-mono text-[10px] uppercase tracking-wider text-text/50">
+          <div className="legend">
             {basePatch?.category} · {basePatch?.bank}
           </div>
         </div>
 
         <div className="save-dialog-fx flex flex-col gap-1">
-          <div className="font-mono text-[9px] uppercase tracking-widest text-text/40">
+          <div className="legend">
             fx state
           </div>
-          <div className="font-mono text-[10px] uppercase tracking-wider text-text/60">
+          <div className="legend-strong">
             {fxSummary}
           </div>
         </div>
 
         <label className="save-dialog-name flex flex-col gap-1">
-          <span className="font-mono text-[9px] uppercase tracking-widest text-text/40">
+          <span className="legend">
             name
           </span>
           <input
