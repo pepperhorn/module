@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Rack } from './components/Rack'
 import { Lcd } from './components/Lcd'
-import { ValueDial } from './components/ValueDial'
 import { ButtonBank } from './components/ButtonBank'
 import { EffectsRow } from './components/EffectsRow'
 import { PatchPicker } from './components/PatchPicker'
@@ -47,6 +46,9 @@ export default function App() {
 
   const [activeBank, setActiveBank] = useState<Bank>('PNO')
   const [needsGesture, setNeedsGesture] = useState(true)
+  // On-screen keyboard is hidden by default on mobile (revealed via a toggle);
+  // always shown on desktop (lg+) where screen space isn't scarce.
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
 
   // Build a synthetic catalog that includes user patches as USR-bank entries
   // so the rest of the app (LCD, prev/next, bank scroll) can treat them like
@@ -261,7 +263,7 @@ export default function App() {
       }}
     >
       <Rack>
-        <div className="rack-row-1 grid grid-cols-1 gap-2.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)]">
+        <div className="rack-row-1 grid grid-cols-1 gap-2.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.4fr)]">
           <div className="rack-bank rack-panel rounded-lg p-3">
             <span className="rack-bank-title group-legend legend">BANK / SELECT</span>
             <ButtonBank active={activeBank} onSelect={handleBankSelect} />
@@ -449,19 +451,6 @@ export default function App() {
               </button>
             </div>
           </div>
-
-          <div className="rack-dial rack-panel relative flex flex-col items-center justify-center rounded-lg p-3">
-            <span className="rack-dial-title group-legend legend">VALUE</span>
-            <ValueDial
-              onStep={(delta) => {
-                if (needsGesture) void onFirstGesture()
-                handleStep(delta)
-              }}
-            />
-            <div className="rack-dial-help legend mt-2">
-              drag · scroll
-            </div>
-          </div>
         </div>
 
         <div className="rack-row-2 mt-2.5">
@@ -469,7 +458,17 @@ export default function App() {
         </div>
 
         <div className="rack-row-3 mt-2.5">
-          <TouchKeyboard noteOn={noteOn} noteOff={noteOff} activeNotes={activeNotes} />
+          <button
+            type="button"
+            onClick={() => setKeyboardOpen((v) => !v)}
+            aria-expanded={keyboardOpen}
+            className="rack-keyboard-toggle hw-btn legend-strong flex w-full items-center justify-center gap-2 py-2.5 lg:hidden"
+          >
+            {keyboardOpen ? 'Hide keyboard ▾' : 'Show keyboard ▸'}
+          </button>
+          <div className={`${keyboardOpen ? 'mt-2.5 block' : 'hidden'} lg:mt-0 lg:block`}>
+            <TouchKeyboard noteOn={noteOn} noteOff={noteOff} activeNotes={activeNotes} />
+          </div>
         </div>
 
         <div className="rack-row-4 mt-2.5">
