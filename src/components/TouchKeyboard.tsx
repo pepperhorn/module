@@ -4,6 +4,9 @@ import { useStore } from '../state/useStore'
 interface TouchKeyboardProps {
   noteOn: (midi: number, velocity: number) => void
   noteOff: (midi: number) => void
+  /** Notes currently sounding from ANY source (computer keyboard, MIDI, touch) —
+   *  used to light the on-screen keys. Touch also feeds this via App.noteOn. */
+  activeNotes?: Set<number>
   octaves?: number
 }
 
@@ -59,7 +62,12 @@ function midiFromPoint(x: number, y: number): number | null {
   return midiFromTarget(el)
 }
 
-export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardProps) {
+export function TouchKeyboard({
+  noteOn,
+  noteOff,
+  activeNotes,
+  octaves = 2,
+}: TouchKeyboardProps) {
   const octave = useStore((s) => s.octave)
   const velocity = useStore((s) => s.velocity)
   const startMidi = (octave + 1) * 12
@@ -193,7 +201,7 @@ export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardPro
         onPointerLeave={onPointerUp}
       >
         {whiteKeys.map((k) => {
-          const isPressed = pressed.has(k.midi)
+          const isPressed = pressed.has(k.midi) || (activeNotes?.has(k.midi) ?? false)
           return (
             <div
               key={`w-${k.midi}`}
@@ -225,7 +233,7 @@ export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardPro
           const whiteBelow = whiteKeys.findIndex((w) => w.midi === k.midi - 1)
           if (whiteBelow < 0 || whiteBelow >= whiteKeys.length - 1) return null
           const left = (whiteBelow + 1) * whiteKeyWidth - whiteKeyWidth * 0.32
-          const isPressed = pressed.has(k.midi)
+          const isPressed = pressed.has(k.midi) || (activeNotes?.has(k.midi) ?? false)
           return (
             <div
               key={`b-${k.midi}`}

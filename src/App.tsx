@@ -176,13 +176,39 @@ export default function App() {
     }
   }, [engine, currentPatch])
 
-  // Computer keyboard input
+  // Notes currently sounding, from ANY input source (computer keyboard, MIDI,
+  // on-screen touch). All three route through these handlers, so tracking here
+  // lets the on-screen keyboard light up regardless of what triggered the note.
+  const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set())
+
   const noteOn = useCallback(
-    (midi: number, vel: number) => engine.noteOn(midi, vel),
+    (midi: number, vel: number) => {
+      engine.noteOn(midi, vel)
+      setActiveNotes((prev) => {
+        if (prev.has(midi)) return prev
+        const next = new Set(prev)
+        next.add(midi)
+        return next
+      })
+    },
     [engine],
   )
-  const noteOff = useCallback((midi: number) => engine.noteOff(midi), [engine])
-  const panic = useCallback(() => engine.panic(), [engine])
+  const noteOff = useCallback(
+    (midi: number) => {
+      engine.noteOff(midi)
+      setActiveNotes((prev) => {
+        if (!prev.has(midi)) return prev
+        const next = new Set(prev)
+        next.delete(midi)
+        return next
+      })
+    },
+    [engine],
+  )
+  const panic = useCallback(() => {
+    engine.panic()
+    setActiveNotes(new Set())
+  }, [engine])
   useComputerKeyboard({ noteOn, noteOff, panic })
   useWebMidi(useMemo(() => ({ noteOn, noteOff }), [noteOn, noteOff]))
   const wakeLock = useWakeLock()
@@ -443,7 +469,7 @@ export default function App() {
         </div>
 
         <div className="rack-row-3 mt-2.5">
-          <TouchKeyboard noteOn={noteOn} noteOff={noteOff} />
+          <TouchKeyboard noteOn={noteOn} noteOff={noteOff} activeNotes={activeNotes} />
         </div>
 
         <div className="rack-row-4 mt-2.5">
