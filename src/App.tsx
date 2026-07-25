@@ -167,7 +167,8 @@ export default function App() {
       void engine.loadPatch(currentPatch)
     }
     // Apply current FX state to engine
-    const { fxEnabled, fxParams } = useStore.getState()
+    const { fxEnabled, fxParams, fxOrder } = useStore.getState()
+    engine.setEffectOrder(fxOrder)
     for (const [id, on] of Object.entries(fxEnabled)) {
       engine.setEffectEnabled(id as never, on)
     }

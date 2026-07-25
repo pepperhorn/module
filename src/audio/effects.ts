@@ -443,6 +443,8 @@ export interface EffectChain {
   master: GainNode
   setEnabled: (id: EffectId, on: boolean) => void
   setParam: (id: EffectId, paramId: string, value: number) => void
+  /** Reorder the audio-graph effects in series. Non-audio ids are ignored. */
+  setOrder: (order: EffectId[]) => void
   dispose: () => void
 }
 
@@ -454,21 +456,52 @@ export function buildEffectChain(context: AudioContext): EffectChain {
   const master = context.createGain()
   master.gain.value = 0.85
 
-  // Wire: input → DIST → CHORUS → DELAY → REVERB → master → out
-  // (Doublers are handled at note level in AudioEngine, not as audio FX)
-  distortion.output.connect(chorus.input)
-  chorus.output.connect(delay.input)
-  delay.output.connect(reverb.input)
-  reverb.output.connect(master)
-  master.connect(context.destination)
-
-  const inputNode = distortion.input
+  // Stable input node: note sources always connect here regardless of how the
+  // audio effects are currently ordered. (Doublers are handled at note level
+  // in AudioEngine, not as audio FX, so they never appear in this graph.)
+  const inputNode = context.createGain()
 
   const fxMap: Partial<Record<EffectId, FxNode>> = {
     distortion,
     chorus,
     delay,
     reverb,
+  }
+  // The audio-graph effects, in default series order.
+  const AUDIO_FX: EffectId[] = ['distortion', 'chorus', 'delay', 'reverb']
+
+  // (Re)connect inputNode → fx… → master in the given order.
+  const wire = (order: EffectId[]) => {
+    try {
+      inputNode.disconnect()
+    } catch {
+      // noop
+    }
+    for (const id of AUDIO_FX) {
+      try {
+        fxMap[id]?.output.disconnect()
+      } catch {
+        // noop
+      }
+    }
+    let prev: AudioNode = inputNode
+    for (const id of order) {
+      const n = fxMap[id]
+      if (!n) continue
+      prev.connect(n.input)
+      prev = n.output
+    }
+    prev.connect(master)
+  }
+  wire(AUDIO_FX)
+  master.connect(context.destination)
+
+  const setOrder = (order: EffectId[]) => {
+    // Keep only audio fx in the requested relative order, then append any
+    // audio fx not mentioned so all of them always stay wired.
+    const audio = order.filter((id) => AUDIO_FX.includes(id))
+    const complete = [...audio, ...AUDIO_FX.filter((id) => !audio.includes(id))]
+    wire(complete)
   }
 
   const setEnabled = (id: EffectId, on: boolean) => {
@@ -489,11 +522,16 @@ export function buildEffectChain(context: AudioContext): EffectChain {
     delay.dispose()
     reverb.dispose()
     try {
+      inputNode.disconnect()
+    } catch {
+      // noop
+    }
+    try {
       master.disconnect()
     } catch {
       // noop
     }
   }
 
-  return { inputNode, master, setEnabled, setParam, dispose }
+  return { inputNode, master, setEnabled, setParam, setOrder, dispose }
 }

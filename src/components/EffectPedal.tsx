@@ -7,6 +7,10 @@ interface EffectPedalProps {
   params: Record<string, number>
   onToggle: (id: EffectId) => void
   onParamChange: (id: EffectId, paramId: string, value: number) => void
+  /** Begin a drag-reorder from the grip handle (pointer = mouse or touch). */
+  onDragStart?: (e: React.PointerEvent) => void
+  /** This pedal is the one currently being dragged. */
+  dragging?: boolean
 }
 
 const COLOR_HEX: Record<string, string> = {
@@ -24,6 +28,8 @@ export function EffectPedal({
   params,
   onToggle,
   onParamChange,
+  onDragStart,
+  dragging = false,
 }: EffectPedalProps) {
   const hex = COLOR_HEX[def.color] ?? COLOR_HEX.sky
   return (
@@ -31,18 +37,34 @@ export function EffectPedal({
       className="effect-pedal flex flex-col items-center gap-2 rounded-lg p-3"
       style={{
         background: 'linear-gradient(180deg, #FFFFFF 0%, #F2F4F8 100%)',
-        border: '1px solid var(--color-rack-edge)',
-        boxShadow:
-          'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(20,30,60,0.06)',
+        border: dragging
+          ? `1px solid ${hex}`
+          : '1px solid var(--color-rack-edge)',
+        boxShadow: dragging
+          ? `0 8px 20px rgba(20,30,60,0.18), 0 0 0 1px ${hex}55`
+          : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(20,30,60,0.06)',
+        opacity: dragging ? 0.9 : 1,
         minWidth: 132,
       }}
     >
       <header className="effect-pedal-header flex w-full items-center justify-between">
-        <span
-          className="effect-pedal-name font-display text-xs font-semibold uppercase tracking-wider"
-          style={{ color: hex }}
-        >
-          {def.name}
+        <span className="effect-pedal-namewrap flex min-w-0 items-center gap-1.5">
+          <button
+            type="button"
+            aria-label={`Reorder ${def.name}`}
+            title="Drag to reorder"
+            onPointerDown={onDragStart}
+            className="effect-pedal-grip shrink-0 leading-none text-legend"
+            style={{ cursor: 'grab', touchAction: 'none', fontSize: '13px' }}
+          >
+            ⠿
+          </button>
+          <span
+            className="effect-pedal-name font-display text-xs font-semibold uppercase tracking-wider"
+            style={{ color: hex }}
+          >
+            {def.name}
+          </span>
         </span>
         <button
           type="button"

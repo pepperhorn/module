@@ -752,6 +752,11 @@ export class AudioEngine {
     this.chain?.setEnabled(id, on)
   }
 
+  /** Reorder the audio-graph effects in series (doublers are ignored). */
+  setEffectOrder(order: EffectId[]): void {
+    this.chain?.setOrder(order)
+  }
+
   get loadedPatchId(): string | null {
     return this.currentId
   }
