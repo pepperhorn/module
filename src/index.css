@@ -47,6 +47,14 @@
 :root {
   color-scheme: dark;
 
+  /* the room behind the rack */
+  --room-bg: radial-gradient(ellipse at 50% 0%, #303a4c 0%, #1c2230 55%, #12151d 100%);
+
+  /* accent text that sits ON a button face — bright on dark metal, deeper on
+     cream so it stays legible in both themes */
+  --ink-sky: #5BC0EB;
+  --ink-coral: #FF6B6B;
+
   /* faceplate chassis */
   --face-bg:
     linear-gradient(180deg, #2A3141 0%, #232A3A 46%, #1B2130 100%),
@@ -118,69 +126,75 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* colour tokens → original light faceplate */
-  --color-bg: #FAFBFC;
-  --color-text: #1A1A2E;
-  --color-panel: #F0F2F5;
-  --color-rack: #E8EBEF;
-  --color-rack-edge: #D4D9E0;
-  --color-legend: #5A6172;
-  --color-legend-strong: #3C4356;
-  --color-hairline: rgba(26, 26, 46, 0.14);
-  --color-face-hi: #F2F4F7;
-  --color-face-lo: #E9ECF1;
+  /* the room → Claude cream-gray */
+  --room-bg: radial-gradient(ellipse at 50% 0%, #EFEDE4 0%, #E7E4DA 55%, #DCD9CD 100%);
 
-  /* materials → original light */
-  --face-bg: linear-gradient(180deg, #F2F4F7 0%, #E9ECF1 100%);
-  --face-border: #D4D9E0;
-  --face-shadow: 0 10px 30px rgba(20, 30, 60, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.85);
-  --brand-border: rgba(26, 26, 46, 0.14);
-  --brand-hi: rgba(255, 255, 255, 0.7);
-  --power-border: rgba(26, 26, 46, 0.14);
+  --ink-sky: #226680;
+  --ink-coral: #B03B3B;
+
+  /* colour tokens → warm Claude cream faceplate */
+  --color-bg: #F0EEE6;
+  --color-text: #26241F;
+  --color-panel: #E9E7DD;
+  --color-rack: #E4E1D6;
+  --color-rack-edge: #D3D0C4;
+  --color-legend: #6B675C;
+  --color-legend-strong: #3D3A32;
+  --color-hairline: rgba(40, 36, 28, 0.14);
+  --color-face-hi: #F2F0E7;
+  --color-face-lo: #E7E4DA;
+
+  /* materials → warm cream-gray */
+  --face-bg: linear-gradient(180deg, #F3F1E8 0%, #E9E6DC 100%);
+  --face-border: #D3D0C4;
+  --face-shadow: 0 10px 30px rgba(50, 45, 35, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --brand-border: rgba(40, 36, 28, 0.14);
+  --brand-hi: rgba(255, 255, 255, 0.6);
+  --power-border: rgba(40, 36, 28, 0.14);
   --power-shadow: 0 0 transparent;
 
-  --well-bg: rgba(255, 255, 255, 0.35);
-  --well-border: rgba(26, 26, 46, 0.14);
+  --well-bg: rgba(255, 255, 255, 0.4);
+  --well-border: rgba(40, 36, 28, 0.12);
   --well-shadow: 0 0 transparent;
 
-  --btn-bg: linear-gradient(180deg, #FFFFFF 0%, #F0F2F6 100%);
-  --btn-border: #C9CFD9;
-  --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(20, 30, 60, 0.12);
-  --btn-shadow-active: inset 0 2px 3px rgba(20, 30, 60, 0.18);
-  --btn-led-off-bg: rgba(20, 30, 60, 0.15);
+  --btn-bg: linear-gradient(180deg, #FCFBF7 0%, #EFEDE3 100%);
+  --btn-border: #CFCCC0;
+  --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(50, 45, 35, 0.12);
+  --btn-shadow-active: inset 0 2px 3px rgba(50, 45, 35, 0.18);
+  --btn-led-off-bg: rgba(40, 36, 28, 0.15);
   --btn-led-off-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
 
-  --knob-bg: linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 100%);
-  --knob-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(20, 30, 60, 0.08),
-    0 1px 2px rgba(20, 30, 60, 0.15);
-  --knob-track: rgba(20, 30, 60, 0.08);
+  --knob-bg: linear-gradient(180deg, #FCFBF7 0%, #E7E4DA 100%);
+  --knob-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(50, 45, 35, 0.08),
+    0 1px 2px rgba(50, 45, 35, 0.15);
+  --knob-track: rgba(40, 36, 28, 0.08);
 
-  --pedal-bg: linear-gradient(180deg, #FFFFFF 0%, #F2F4F8 100%);
-  --pedal-border: #D4D9E0;
-  --pedal-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(20, 30, 60, 0.06);
+  --pedal-bg: linear-gradient(180deg, #FBFAF5 0%, #EEEBE1 100%);
+  --pedal-border: #D3D0C4;
+  --pedal-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(50, 45, 35, 0.06);
 
-  --lcd-bezel-bg: linear-gradient(180deg, #C7CDD7 0%, #DFE3EA 100%);
-  --lcd-bezel-shadow: inset 0 2px 5px rgba(20, 30, 60, 0.30), inset 0 -1px 0 rgba(255, 255, 255, 0.6);
+  --lcd-bezel-bg: linear-gradient(180deg, #CBC7BC 0%, #DEDACF 100%);
+  --lcd-bezel-shadow: inset 0 2px 5px rgba(50, 45, 35, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.55);
 
-  --rail-bg: linear-gradient(90deg, #BFC5CE 0%, #DEE2E8 48%, #C6CCD5 100%);
-  --rail-border: #AEB5C0;
-  --rail-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.45), inset -1px 0 0 rgba(20, 30, 60, 0.12),
-    0 4px 12px rgba(20, 30, 60, 0.28);
+  --rail-bg: linear-gradient(90deg, #C2BEB2 0%, #DEDACF 48%, #C8C4B8 100%);
+  --rail-border: #ADA99C;
+  --rail-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.45), inset -1px 0 0 rgba(50, 45, 35, 0.12),
+    0 4px 12px rgba(50, 45, 35, 0.26);
 
-  --pill-bg: rgba(255, 255, 255, 0.7);
-  --pill-border: #D4D9E0;
+  --pill-bg: rgba(255, 255, 255, 0.6);
+  --pill-border: #D3D0C4;
 
-  --hud-bg: linear-gradient(180deg, #F4F6F9 0%, #E8EBEF 100%);
-  --hud-border: #D4D9E0;
+  --hud-bg: linear-gradient(180deg, #F3F1E8 0%, #E7E4DA 100%);
+  --hud-border: #D3D0C4;
   --hud-shadow: 0 0 transparent;
-  --kbd-bg: #FFFFFF;
-  --kbd-border: #D4D9E0;
+  --kbd-bg: #FCFBF7;
+  --kbd-border: #D3D0C4;
 
-  --scrim: rgba(26, 26, 46, 0.5);
-  --card-bg: #FFFFFF;
-  --card-solid: #FAFBFC;
-  --card-border: #D4D9E0;
-  --card-shadow: 0 24px 60px rgba(20, 30, 60, 0.18);
+  --scrim: rgba(38, 36, 31, 0.5);
+  --card-bg: #F6F4EC;
+  --card-solid: #F3F1E8;
+  --card-border: #D3D0C4;
+  --card-shadow: 0 24px 60px rgba(50, 45, 35, 0.18);
 }
 
 html, body, #root {

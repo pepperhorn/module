@@ -290,7 +290,7 @@ export default function App() {
                   boxShadow: '0 0 5px rgba(91,192,235,0.8)',
                 }}
               />
-              <span className="rack-bank-browse-label legend" style={{ color: 'var(--color-sky)' }}>
+              <span className="rack-bank-browse-label legend" style={{ color: 'var(--ink-sky)' }}>
                 BROWSE LIBRARY
               </span>
             </button>
@@ -313,7 +313,7 @@ export default function App() {
                   boxShadow: '0 0 5px rgba(255,107,107,0.8)',
                 }}
               />
-              <span className="rack-bank-save-label legend" style={{ color: 'var(--color-coral)' }}>
+              <span className="rack-bank-save-label legend" style={{ color: 'var(--ink-coral)' }}>
                 SAVE PATCH
               </span>
             </button>

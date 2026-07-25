@@ -31,10 +31,7 @@ export function Rack({ children }: RackProps) {
   return (
     <div
       className="rack-outer flex min-h-full items-start justify-center p-3 sm:p-6"
-      style={{
-        background:
-          'radial-gradient(ellipse at 50% 0%, #303a4c 0%, #1c2230 55%, #12151d 100%)',
-      }}
+      style={{ background: 'var(--room-bg)' }}
     >
       <div className="rack-frame flex w-full max-w-6xl items-stretch justify-center gap-2 sm:gap-3">
         {/* Left rack rail — desktop only, decorative */}
