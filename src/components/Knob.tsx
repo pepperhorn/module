@@ -35,6 +35,12 @@ export function Knob({
   const pct = ((value - min) / range) * 100
   const angle = -135 + ((value - min) / range) * 270
 
+  // Layered geometry: colored arc (full), skirt collar (inset), domed cap (more
+  // inset). Bands scale with the knob so small effect knobs stay legible.
+  const skirtInset = Math.max(3, Math.round(size * 0.1))
+  const capInset = Math.max(6, Math.round(size * 0.19))
+  const capD = size - capInset * 2
+
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       e.preventDefault()
@@ -108,28 +114,39 @@ export function Knob({
         onDoubleClick={onDoubleClick}
         onWheel={onWheel}
       >
+        {/* colored value arc on the outer rim (gap at the bottom) */}
         <div
-          className="knob-ring absolute inset-0 rounded-full"
-          style={
-            {
-              '--knob-pct': `${pct * 0.75}%`,
-              background: `conic-gradient(from -135deg, ${color} 0%, ${color} ${pct * 0.75}%, rgba(20, 30, 60, 0.08) ${pct * 0.75}%, rgba(20, 30, 60, 0.08) 75%, transparent 75%)`,
-            } as React.CSSProperties
-          }
+          className="knob-arc absolute inset-0 rounded-full"
+          style={{
+            background: `conic-gradient(from -135deg, ${color} 0%, ${color} ${pct * 0.75}%, var(--knob-track) ${pct * 0.75}%, var(--knob-track) 75%, transparent 75%)`,
+          }}
         />
+        {/* skirt collar — casts the knob's drop shadow */}
+        <div
+          className="knob-skirt absolute rounded-full"
+          style={{
+            inset: skirtInset,
+            background: 'var(--knob-skirt-bg)',
+            boxShadow: 'var(--knob-skirt-shadow)',
+          }}
+        />
+        {/* domed cap + neutral pointer line */}
         <div
           className="knob-cap absolute rounded-full"
           style={{
-            inset: 4,
+            inset: capInset,
             background: 'var(--knob-bg)',
             boxShadow: 'var(--knob-shadow)',
           }}
         >
           <div
-            className="knob-indicator absolute left-1/2 top-1 h-2 w-[2px] -translate-x-1/2 rounded-full"
+            className="knob-indicator absolute left-1/2 -translate-x-1/2 rounded-full"
             style={{
-              background: color,
-              transformOrigin: `50% ${size / 2 - 4}px`,
+              top: Math.round(capD * 0.11),
+              width: Math.max(2, Math.round(size * 0.055)),
+              height: Math.round(capD * 0.36),
+              background: 'var(--knob-pointer)',
+              transformOrigin: `50% ${capD / 2 - Math.round(capD * 0.11)}px`,
               transform: `translateX(-50%) rotate(${angle}deg)`,
             }}
           />

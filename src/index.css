@@ -82,11 +82,14 @@
   --btn-led-off-bg: rgba(0, 0, 0, 0.45);
   --btn-led-off-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
 
-  /* knobs */
-  --knob-bg: radial-gradient(circle at 50% 32%, #414B60 0%, #2A3140 46%, #161B26 100%);
-  --knob-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -2px 4px rgba(0, 0, 0, 0.45),
-    0 2px 4px rgba(0, 0, 0, 0.55);
-  --knob-track: rgba(255, 255, 255, 0.08);
+  /* knobs — domed cap seated in a skirt collar, colored value arc on the rim */
+  --knob-bg: radial-gradient(circle at 50% 30%, #454F66 0%, #2A3140 48%, #141922 100%);
+  --knob-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.16), inset 0 -3px 5px rgba(0, 0, 0, 0.5);
+  --knob-track: rgba(255, 255, 255, 0.07);
+  --knob-skirt-bg: radial-gradient(circle at 50% 28%, #2E3648 0%, #10141D 100%);
+  --knob-skirt-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), inset 0 -1px 2px rgba(0, 0, 0, 0.6),
+    0 3px 7px rgba(0, 0, 0, 0.55);
+  --knob-pointer: #EAECF2;
 
   /* effect pedal tiles */
   --pedal-bg: linear-gradient(180deg, #2A3141 0%, #1E2432 100%);
@@ -164,10 +167,13 @@
   --btn-led-off-bg: rgba(40, 36, 28, 0.15);
   --btn-led-off-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
 
-  --knob-bg: linear-gradient(180deg, #FCFBF7 0%, #E7E4DA 100%);
-  --knob-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(50, 45, 35, 0.08),
-    0 1px 2px rgba(50, 45, 35, 0.15);
-  --knob-track: rgba(40, 36, 28, 0.08);
+  --knob-bg: radial-gradient(circle at 50% 30%, #FFFFFF 0%, #F1EFE7 55%, #E1DED3 100%);
+  --knob-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 -2px 4px rgba(50, 45, 35, 0.12);
+  --knob-track: rgba(40, 36, 28, 0.10);
+  --knob-skirt-bg: radial-gradient(circle at 50% 28%, #FFFFFF 0%, #D0CDC2 55%, #B4B1A4 100%);
+  --knob-skirt-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(50, 45, 35, 0.22),
+    0 3px 7px rgba(50, 45, 35, 0.2);
+  --knob-pointer: #3B3A36;
 
   --pedal-bg: linear-gradient(180deg, #FBFAF5 0%, #EEEBE1 100%);
   --pedal-border: #D3D0C4;
