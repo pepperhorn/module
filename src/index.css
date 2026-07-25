@@ -20,7 +20,7 @@
   --color-mint: #96E6B3;
   --color-rose: #FFA5B8;
 
-  --color-legend: #9BA3B6;         /* screened grey-cream label */
+  --color-legend: #B2BACB;         /* screened grey-cream label */
   --color-legend-strong: #E6E8F0;  /* bright screened label */
   --color-hairline: rgba(0, 0, 0, 0.5);
   --color-face-hi: #242B3B;        /* faceplate mid (legend knockout bg) */
@@ -74,12 +74,12 @@ button {
    label stays cream; a lit LED signals the active/engaged state. */
 .hw-btn {
   border-radius: 4px;
-  background: linear-gradient(180deg, #333C4F 0%, #232B3A 100%);
-  border: 1px solid #10141D;
+  background: linear-gradient(180deg, #414B62 0%, #2E3648 100%);
+  border: 1px solid #0D1119;
   color: var(--color-legend-strong);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10),
-    inset 0 -1px 1px rgba(0, 0, 0, 0.35),
-    0 1px 2px rgba(0, 0, 0, 0.5);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.5);
   transition: transform 80ms ease-out, box-shadow 80ms ease-out;
 }
 .hw-btn:active {
