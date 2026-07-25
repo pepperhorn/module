@@ -32,18 +32,12 @@ export function Rack({ children }: RackProps) {
       className="rack-outer flex min-h-full items-start justify-center p-3 sm:p-6"
       style={{
         background:
-          'radial-gradient(ellipse at top, #FAFBFC 0%, #EDF0F4 100%)',
+          'radial-gradient(ellipse at 50% 0%, #303a4c 0%, #1c2230 55%, #12151d 100%)',
       }}
     >
-      <div className="rack-frame flex w-full max-w-6xl items-stretch justify-center gap-2">
-        {/* Left rack ear — desktop only, decorative */}
-        <div
-          className="rack-ear hidden w-7 shrink-0 flex-col items-center justify-between py-4 lg:flex"
-          aria-hidden="true"
-        >
-          <div className="rack-screw" style={{ ['--slot-rot' as string]: '18deg' }} />
-          <div className="rack-screw" style={{ ['--slot-rot' as string]: '-24deg' }} />
-        </div>
+      <div className="rack-frame flex w-full max-w-6xl items-stretch justify-center gap-2 sm:gap-3">
+        {/* Left rack rail — desktop only, decorative */}
+        <RackRail />
 
         <div
           className="rack-chassis relative w-full min-w-0 max-w-6xl flex-1 rounded-[10px]"
@@ -55,11 +49,6 @@ export function Rack({ children }: RackProps) {
               '0 10px 30px rgba(20, 30, 60, 0.10), inset 0 1px 0 rgba(255,255,255,0.85)',
           }}
         >
-          <div className="rack-screw absolute left-3 top-3" style={{ ['--slot-rot' as string]: '20deg' }} />
-          <div className="rack-screw absolute right-3 top-3" style={{ ['--slot-rot' as string]: '65deg' }} />
-          <div className="rack-screw absolute bottom-3 left-3" style={{ ['--slot-rot' as string]: '-15deg' }} />
-          <div className="rack-screw absolute bottom-3 right-3" style={{ ['--slot-rot' as string]: '40deg' }} />
-
           <div
             className="rack-brand-strip flex items-center justify-between px-6 pt-4 pb-3 sm:px-10"
             style={{
@@ -118,15 +107,31 @@ export function Rack({ children }: RackProps) {
           <div className="rack-body p-4 sm:p-6">{children}</div>
         </div>
 
-        {/* Right rack ear — desktop only, decorative */}
-        <div
-          className="rack-ear hidden w-7 shrink-0 flex-col items-center justify-between py-4 lg:flex"
-          aria-hidden="true"
-        >
-          <div className="rack-screw" style={{ ['--slot-rot' as string]: '-18deg' }} />
-          <div className="rack-screw" style={{ ['--slot-rot' as string]: '28deg' }} />
-        </div>
+        {/* Right rack rail — desktop only, decorative */}
+        <RackRail />
       </div>
+    </div>
+  )
+}
+
+/**
+ * A 19"/EIA-style mounting rail with a full-height column of rack holes grouped
+ * three-per-unit across 4U, matching a studio rack. Desktop only, decorative.
+ */
+function RackRail() {
+  const units = [0, 1, 2, 3] // 4U
+  return (
+    <div
+      className="rack-rail hidden w-6 shrink-0 flex-col items-center justify-around py-3 lg:flex"
+      aria-hidden="true"
+    >
+      {units.map((u) => (
+        <div key={u} className="rack-rail-unit flex flex-col items-center gap-2.5">
+          {[0, 1, 2].map((h) => (
+            <span key={h} className="rack-hole" />
+          ))}
+        </div>
+      ))}
     </div>
   )
 }
