@@ -10,9 +10,9 @@ export function KeyboardHud() {
     <footer
       className="keyboard-hud flex flex-wrap items-center justify-between gap-3 rounded-lg px-4 py-2"
       style={{
-        background: 'linear-gradient(180deg, #1C2230 0%, #151A26 100%)',
-        border: '1px solid rgba(0,0,0,0.5)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 1px 2px rgba(0,0,0,0.4)',
+        background: 'var(--hud-bg)',
+        border: '1px solid var(--hud-border)',
+        boxShadow: 'var(--hud-shadow)',
       }}
     >
       <div className="keyboard-hud-keys legend flex items-center gap-3">
@@ -68,8 +68,8 @@ export function KeyboardHud() {
           font-family: var(--font-mono);
           font-size: 10px;
           color: var(--color-legend-strong);
-          background: linear-gradient(180deg, #2E3647 0%, #232B3A 100%);
-          border: 1px solid #10141D;
+          background: var(--kbd-bg);
+          border: 1px solid var(--kbd-border);
           border-bottom-width: 2px;
           border-radius: 3px;
           box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);

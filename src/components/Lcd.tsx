@@ -79,9 +79,8 @@ export function Lcd({
         position: 'relative',
         padding: 8,
         borderRadius: 6,
-        background: 'linear-gradient(180deg, #0E1219 0%, #171C26 100%)',
-        boxShadow:
-          'inset 0 2px 6px rgba(0,0,0,0.7), inset 0 -1px 0 rgba(255,255,255,0.05), 0 1px 0 rgba(255,255,255,0.05)',
+        background: 'var(--lcd-bezel-bg)',
+        boxShadow: 'var(--lcd-bezel-shadow)',
       }}
     >
       <span className="lcd-screw rack-screw" aria-hidden="true" style={{ position: 'absolute', top: 3, left: 3, ['--slot-rot' as string]: '20deg' }} />

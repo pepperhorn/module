@@ -54,14 +54,19 @@ export function SaveDialog() {
 
   return (
     <div
-      className="save-dialog fade-in fixed inset-0 z-[55] flex items-center justify-center bg-text/50 p-4 backdrop-blur-sm"
+      className="save-dialog fade-in fixed inset-0 z-[55] flex items-center justify-center p-4 backdrop-blur-sm"
+      style={{ background: 'var(--scrim)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) setOpen(false)
       }}
     >
       <div
-        className="save-dialog-card pop-in flex w-[min(420px,calc(100vw-2rem))] flex-col gap-4 rounded-2xl bg-bg p-5 shadow-2xl"
-        style={{ border: '1px solid var(--color-rack-edge)' }}
+        className="save-dialog-card pop-in flex w-[min(420px,calc(100vw-2rem))] flex-col gap-4 rounded-2xl p-5"
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+          boxShadow: 'var(--card-shadow)',
+        }}
       >
         <div className="save-dialog-header flex items-baseline justify-between">
           <div className="font-display text-base font-semibold text-text">
@@ -74,8 +79,8 @@ export function SaveDialog() {
 
         <div className="save-dialog-base flex flex-col gap-1 rounded-md p-3"
           style={{
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #F4F6F9 100%)',
-            border: '1px solid var(--color-rack-edge)',
+            background: 'var(--card-solid)',
+            border: '1px solid var(--card-border)',
           }}
         >
           <div className="legend">
@@ -114,8 +119,8 @@ export function SaveDialog() {
             }}
             className="save-dialog-input rounded-md px-3 py-2 font-display text-sm outline-none focus:ring-2 focus:ring-coral"
             style={{
-              background: '#FFFFFF',
-              border: '1px solid var(--color-rack-edge)',
+              background: 'var(--card-solid)',
+              border: '1px solid var(--card-border)',
               color: 'var(--color-text)',
             }}
             autoFocus
@@ -128,8 +133,9 @@ export function SaveDialog() {
             type="button"
             className="cell-hit rounded-md px-4 py-2 font-mono text-xs uppercase tracking-wider text-text/70"
             style={{
-              background: '#FFFFFF',
-              border: '1px solid var(--color-rack-edge)',
+              background: 'var(--btn-bg)',
+              border: '1px solid var(--btn-border)',
+              boxShadow: 'var(--btn-shadow)',
             }}
             onClick={() => setOpen(false)}
           >

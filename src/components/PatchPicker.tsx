@@ -116,13 +116,18 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
 
   return (
     <div
-      className="patch-picker fade-in fixed inset-0 z-50 flex items-stretch justify-center bg-text/40 p-2 sm:p-6 backdrop-blur-sm"
+      className="patch-picker fade-in fixed inset-0 z-50 flex items-stretch justify-center p-2 sm:p-6 backdrop-blur-sm"
       onClick={() => setPickerOpen(false)}
+      style={{ background: 'var(--scrim)' }}
     >
       <div
-        className="patch-picker-sheet pop-in flex w-full max-w-5xl flex-col overflow-hidden rounded-xl bg-bg shadow-2xl"
+        className="patch-picker-sheet pop-in flex w-full max-w-5xl flex-col overflow-hidden rounded-xl"
         onClick={(e) => e.stopPropagation()}
-        style={{ border: '1px solid var(--color-rack-edge)' }}
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+          boxShadow: 'var(--card-shadow)',
+        }}
       >
         <header
           className="patch-picker-header flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
@@ -163,10 +168,11 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
               placeholder="Search…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              className="patch-picker-search w-full min-w-0 rounded-md px-3 py-2 font-mono text-xs outline-none focus:ring-2 focus:ring-coral sm:w-48"
+              className="patch-picker-search w-full min-w-0 rounded-md px-3 py-2 font-mono text-xs outline-none placeholder:text-legend focus:ring-2 focus:ring-coral sm:w-48"
               style={{
-                background: '#FFFFFF',
-                border: '1px solid var(--color-rack-edge)',
+                background: 'var(--card-solid)',
+                border: '1px solid var(--card-border)',
+                color: 'var(--color-text)',
               }}
             />
             <button
@@ -174,8 +180,8 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
               onClick={() => setPickerOpen(false)}
               className="patch-picker-close cell-hit shrink-0 rounded-md px-3 py-2 font-mono text-xs uppercase tracking-wider text-text/70 hover:text-text"
               style={{
-                background: '#FFFFFF',
-                border: '1px solid var(--color-rack-edge)',
+                background: 'var(--pill-bg)',
+                border: '1px solid var(--pill-border)',
               }}
             >
               Close<span className="hidden sm:inline"> · esc</span>
@@ -284,9 +290,9 @@ function BankChip({
               color: 'var(--color-bg)',
             }
           : {
-              background: '#FFFFFF',
+              background: 'var(--pill-bg)',
               color: 'var(--color-text)',
-              border: '1px solid var(--color-rack-edge)',
+              border: '1px solid var(--pill-border)',
             }
       }
       onClick={onClick}

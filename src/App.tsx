@@ -479,7 +479,8 @@ export default function App() {
 
       {needsGesture && (
         <div
-          className="gesture-overlay fade-in fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          className="gesture-overlay fade-in fixed inset-0 z-40 flex items-center justify-center backdrop-blur-sm"
+          style={{ background: 'var(--scrim)' }}
           onClick={(e) => {
             e.stopPropagation()
             void onFirstGesture()
@@ -488,10 +489,9 @@ export default function App() {
           <div
             className="gesture-card pop-in flex flex-col items-center gap-3 rounded-2xl px-8 py-6 text-center"
             style={{
-              background: 'linear-gradient(180deg, #2A3141 0%, #1B2130 100%)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              boxShadow:
-                '0 24px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.10)',
+              background: 'var(--card-bg)',
+              border: '1px solid var(--card-border)',
+              boxShadow: 'var(--card-shadow)',
             }}
           >
             <span

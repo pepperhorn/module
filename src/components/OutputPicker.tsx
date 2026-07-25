@@ -171,13 +171,18 @@ export function OutputPicker() {
 
       {open && (
         <div
-          className="output-picker-backdrop fixed inset-0 z-50 flex items-start justify-center bg-text/40 p-4 backdrop-blur-sm"
+          className="output-picker-backdrop fixed inset-0 z-50 flex items-start justify-center p-4 backdrop-blur-sm"
+          style={{ background: 'var(--scrim)' }}
           onClick={() => setOpen(false)}
         >
           <div
-            className="output-picker-sheet pop-in mt-24 w-full max-w-sm rounded-xl bg-bg p-4 shadow-2xl"
+            className="output-picker-sheet pop-in mt-24 w-full max-w-sm rounded-xl p-4"
             onClick={(e) => e.stopPropagation()}
-            style={{ border: '1px solid var(--color-rack-edge)' }}
+            style={{
+              background: 'var(--card-bg)',
+              border: '1px solid var(--card-border)',
+              boxShadow: 'var(--card-shadow)',
+            }}
           >
             <div className="mb-3 flex items-center justify-between">
               <div className="font-display text-sm font-medium text-text">
@@ -186,7 +191,11 @@ export function OutputPicker() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="cell-hit rounded-md border border-rack-edge bg-white px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-legend hover:text-text"
+                className="cell-hit rounded-md px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-legend hover:text-text"
+                style={{
+                  background: 'var(--pill-bg)',
+                  border: '1px solid var(--pill-border)',
+                }}
               >
                 Close
               </button>
@@ -235,11 +244,11 @@ function DeviceRow({
       onClick={onClick}
       className="cell-hit flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left"
       style={{
-        background: selected ? 'var(--color-sky)' : '#FFFFFF',
+        background: selected ? 'var(--color-sky)' : 'var(--card-solid)',
         color: selected ? 'var(--color-bg)' : 'var(--color-text)',
         border: selected
           ? '1px solid transparent'
-          : '1px solid var(--color-rack-edge)',
+          : '1px solid var(--card-border)',
       }}
     >
       <span className="truncate">{label}</span>

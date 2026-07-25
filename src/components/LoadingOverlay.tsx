@@ -19,8 +19,8 @@ export function LoadingOverlay() {
 
   return (
     <div
-      className="loading-overlay fade-in fixed inset-0 z-[60] flex items-center justify-center bg-text/55 backdrop-blur-sm"
-      style={{ pointerEvents: 'auto' }}
+      className="loading-overlay fade-in fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-sm"
+      style={{ pointerEvents: 'auto', background: 'var(--scrim)' }}
       onClick={(e) => e.stopPropagation()}
     >
       <div

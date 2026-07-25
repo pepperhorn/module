@@ -59,14 +59,19 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
 
   return (
     <div
-      className="auth-modal fade-in fixed inset-0 z-[58] flex items-center justify-center bg-text/55 p-4 backdrop-blur-sm"
+      className="auth-modal fade-in fixed inset-0 z-[58] flex items-center justify-center p-4 backdrop-blur-sm"
+      style={{ background: 'var(--scrim)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
     >
       <div
-        className="auth-modal-card pop-in flex w-[min(420px,calc(100vw-2rem))] flex-col gap-4 rounded-2xl bg-bg p-6 shadow-2xl"
-        style={{ border: '1px solid var(--color-rack-edge)' }}
+        className="auth-modal-card pop-in flex w-[min(420px,calc(100vw-2rem))] flex-col gap-4 rounded-2xl p-6"
+        style={{
+          background: 'var(--card-bg)',
+          border: '1px solid var(--card-border)',
+          boxShadow: 'var(--card-shadow)',
+        }}
       >
         <div className="auth-modal-header flex items-baseline justify-between">
           <div className="font-display text-base font-semibold text-text">
@@ -101,8 +106,8 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
               }}
               className="auth-modal-input rounded-md px-3 py-2 font-display text-sm outline-none focus:ring-2 focus:ring-coral"
               style={{
-                background: '#FFFFFF',
-                border: '1px solid var(--color-rack-edge)',
+                background: 'var(--card-solid)',
+                border: '1px solid var(--card-border)',
                 color: 'var(--color-text)',
               }}
               autoFocus
@@ -130,8 +135,8 @@ export function AuthModal({ open, onClose }: AuthModalProps) {
               }}
               className="auth-modal-input rounded-md px-3 py-2 text-center font-mono text-2xl tracking-[0.4em] outline-none focus:ring-2 focus:ring-coral"
               style={{
-                background: '#FFFFFF',
-                border: '1px solid var(--color-rack-edge)',
+                background: 'var(--card-solid)',
+                border: '1px solid var(--card-border)',
                 color: 'var(--color-text)',
               }}
               autoFocus

@@ -36,13 +36,11 @@ export function EffectPedal({
     <div
       className="effect-pedal flex flex-col items-center gap-2 rounded-lg p-3"
       style={{
-        background: 'linear-gradient(180deg, #2A3141 0%, #1E2432 100%)',
-        border: dragging
-          ? `1px solid ${hex}`
-          : '1px solid #10141D',
+        background: 'var(--pedal-bg)',
+        border: dragging ? `1px solid ${hex}` : '1px solid var(--pedal-border)',
         boxShadow: dragging
           ? `0 10px 24px rgba(0,0,0,0.55), 0 0 0 1px ${hex}66`
-          : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 5px rgba(0,0,0,0.45)',
+          : 'var(--pedal-shadow)',
         opacity: dragging ? 0.9 : 1,
         minWidth: 132,
       }}
@@ -69,13 +67,20 @@ export function EffectPedal({
         <button
           type="button"
           aria-label={enabled ? 'Bypass' : 'Enable'}
+          title={enabled ? 'On — click to bypass' : 'Bypassed — click to enable'}
           onClick={() => onToggle(def.id)}
-          className="effect-pedal-led h-3 w-3 rounded-full"
+          className="effect-pedal-led h-3.5 w-3.5 rounded-full"
           style={{
-            background: enabled ? hex : 'rgba(20,30,60,0.15)',
+            cursor: 'pointer',
+            // A socketed indicator lamp: a light rim ring makes it read as a
+            // button in BOTH states. Off = dim colour-hinted lens sunk into the
+            // tile; on = bright glowing lamp.
+            background: enabled
+              ? hex
+              : `radial-gradient(circle at 50% 35%, ${hex}55 0%, #0E1219 72%)`,
             boxShadow: enabled
-              ? `0 0 6px ${hex}, 0 0 14px ${hex}80`
-              : 'inset 0 1px 1px rgba(0,0,0,0.18)',
+              ? `0 0 6px ${hex}, 0 0 14px ${hex}80, inset 0 0 0 1px rgba(255,255,255,0.35)`
+              : 'inset 0 1px 2px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.22)',
           }}
         />
       </header>

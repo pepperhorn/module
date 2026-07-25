@@ -48,10 +48,9 @@ export function PatchCard({
         active ? 'patch-card-active ring-2 ring-coral' : ''
       } ${unavailableOffline ? 'patch-card-offline' : ''}`}
       style={{
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #F4F6F9 100%)',
-        border: '1px solid var(--color-rack-edge)',
-        boxShadow:
-          'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(20,30,60,0.06)',
+        background: 'var(--card-bg)',
+        border: '1px solid var(--card-border)',
+        boxShadow: 'var(--card-shadow)',
         opacity: unavailableOffline ? 0.42 : 1,
         filter: unavailableOffline ? 'grayscale(0.6)' : 'none',
       }}
@@ -85,7 +84,7 @@ export function PatchCard({
         className="patch-card-fav absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-base leading-none"
         style={{
           color: favourited ? '#FF6B6B' : 'rgba(20,30,60,0.25)',
-          background: favourited ? 'rgba(255,107,107,0.1)' : 'rgba(255,255,255,0.6)',
+          background: favourited ? 'rgba(255,107,107,0.1)' : 'var(--pill-bg)',
         }}
       >
         {favourited ? '♥' : '♡'}
@@ -155,10 +154,16 @@ function DownloadButton({
             ? 'rgba(91,192,235,0.12)'
             : unavailableOffline
               ? 'transparent'
-              : '#FFFFFF',
+              : 'var(--btn-bg)',
         border: downloaded
           ? '1px solid rgba(181,232,83,0.55)'
-          : '1px solid var(--color-rack-edge)',
+          : downloading || unavailableOffline
+            ? '1px solid var(--card-border)'
+            : '1px solid var(--btn-border)',
+        boxShadow:
+          downloaded || downloading || unavailableOffline
+            ? 'none'
+            : 'var(--btn-shadow)',
       }}
     >
       {downloaded ? <CheckIcon /> : downloading ? <SpinnerIcon /> : <DownloadIcon />}

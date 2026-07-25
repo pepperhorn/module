@@ -2,6 +2,7 @@ import { useRef, type ReactNode } from 'react'
 import { ConnectionStatus } from './ConnectionStatus'
 import { MidiStatus } from './MidiStatus'
 import { UserMenu } from './UserMenu'
+import { ThemeToggle } from './ThemeToggle'
 import { useStore } from '../state/useStore'
 
 interface RackProps {
@@ -42,21 +43,16 @@ export function Rack({ children }: RackProps) {
         <div
           className="rack-chassis relative w-full min-w-0 max-w-6xl flex-1 rounded-[10px]"
           style={{
-            background:
-              // milled aluminium faceplate: a vertical light-fall over a fine
-              // directional brush grain, with a hairline top bevel.
-              'linear-gradient(180deg, #2A3141 0%, #232A3A 46%, #1B2130 100%),' +
-              'repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, rgba(0,0,0,0.018) 1px, rgba(0,0,0,0.018) 2px)',
-            border: '1px solid #0B0E15',
-            boxShadow:
-              '0 18px 44px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -2px 6px rgba(0,0,0,0.4)',
+            background: 'var(--face-bg)',
+            border: '1px solid var(--face-border)',
+            boxShadow: 'var(--face-shadow)',
           }}
         >
           <div
             className="rack-brand-strip flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 pt-4 pb-3 sm:px-10"
             style={{
-              borderBottom: '1px solid rgba(0,0,0,0.5)',
-              boxShadow: '0 1px 0 rgba(255,255,255,0.06)',
+              borderBottom: '1px solid var(--brand-border)',
+              boxShadow: '0 1px 0 var(--brand-hi)',
             }}
           >
           <button
@@ -67,16 +63,15 @@ export function Rack({ children }: RackProps) {
               onBrandTap()
             }}
             title={debugMode ? 'debug mode on (5 taps to toggle)' : undefined}
-            aria-label="MODULE"
+            aria-label="The Module"
           >
             <span
               className="rack-power flex shrink-0 items-center gap-1.5"
               style={{
-                border: '1px solid rgba(255,255,255,0.12)',
+                border: '1px solid var(--power-border)',
                 borderRadius: '4px',
                 padding: '3px 6px',
-                boxShadow:
-                  'inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 2px rgba(0,0,0,0.35)',
+                boxShadow: 'var(--power-shadow)',
               }}
             >
               <span
@@ -96,7 +91,7 @@ export function Rack({ children }: RackProps) {
               className="rack-brand-name text-xl tracking-widest text-text"
               style={{ fontFamily: 'var(--font-brand)' }}
             >
-              MODULE
+              The Module
             </span>
             <span className="rack-brand-tag legend hidden sm:inline">
               64-PATCH SAMPLER MODULE · MDL-1080{debugMode ? ' · DEBUG' : ''}
@@ -105,6 +100,7 @@ export function Rack({ children }: RackProps) {
           <div className="rack-brand-status flex shrink-0 items-center gap-2">
             <ConnectionStatus />
             <MidiStatus />
+            <ThemeToggle />
             <UserMenu />
           </div>
         </div>
