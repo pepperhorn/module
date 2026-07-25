@@ -43,22 +43,25 @@ export function Rack({ children }: RackProps) {
           className="rack-chassis relative w-full min-w-0 max-w-6xl flex-1 rounded-[10px]"
           style={{
             background:
-              'linear-gradient(180deg, #F2F4F7 0%, #E9ECF1 100%)',
-            border: '1px solid #D4D9E0',
+              // milled aluminium faceplate: a vertical light-fall over a fine
+              // directional brush grain, with a hairline top bevel.
+              'linear-gradient(180deg, #2A3141 0%, #232A3A 46%, #1B2130 100%),' +
+              'repeating-linear-gradient(90deg, rgba(255,255,255,0.022) 0px, rgba(255,255,255,0.022) 1px, rgba(0,0,0,0.018) 1px, rgba(0,0,0,0.018) 2px)',
+            border: '1px solid #0B0E15',
             boxShadow:
-              '0 10px 30px rgba(20, 30, 60, 0.10), inset 0 1px 0 rgba(255,255,255,0.85)',
+              '0 18px 44px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255,255,255,0.05), inset 0 1px 0 rgba(255,255,255,0.10), inset 0 -2px 6px rgba(0,0,0,0.4)',
           }}
         >
           <div
-            className="rack-brand-strip flex items-center justify-between px-6 pt-4 pb-3 sm:px-10"
+            className="rack-brand-strip flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 pt-4 pb-3 sm:px-10"
             style={{
-              borderBottom: '1px solid var(--color-hairline)',
-              boxShadow: '0 1px 0 rgba(255,255,255,0.7)',
+              borderBottom: '1px solid rgba(0,0,0,0.5)',
+              boxShadow: '0 1px 0 rgba(255,255,255,0.06)',
             }}
           >
           <button
             type="button"
-            className="rack-brand flex items-center gap-3 cursor-default select-none"
+            className="rack-brand flex min-w-0 items-center gap-3 cursor-default select-none"
             onClick={(e) => {
               e.stopPropagation()
               onBrandTap()
@@ -67,11 +70,13 @@ export function Rack({ children }: RackProps) {
             aria-label="MODULE"
           >
             <span
-              className="rack-power flex items-center gap-1.5"
+              className="rack-power flex shrink-0 items-center gap-1.5"
               style={{
-                border: '1px solid var(--color-hairline)',
+                border: '1px solid rgba(255,255,255,0.12)',
                 borderRadius: '4px',
                 padding: '3px 6px',
+                boxShadow:
+                  'inset 0 1px 0 rgba(255,255,255,0.06), inset 0 -1px 2px rgba(0,0,0,0.35)',
               }}
             >
               <span
@@ -97,7 +102,7 @@ export function Rack({ children }: RackProps) {
               64-PATCH SAMPLER MODULE · MDL-1080{debugMode ? ' · DEBUG' : ''}
             </span>
           </button>
-          <div className="rack-brand-status flex items-center gap-2">
+          <div className="rack-brand-status flex shrink-0 items-center gap-2">
             <ConnectionStatus />
             <MidiStatus />
             <UserMenu />

@@ -121,9 +121,9 @@ export function Knob({
           className="knob-cap absolute rounded-full"
           style={{
             inset: 4,
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #E8EBEF 100%)',
+            background: 'radial-gradient(circle at 50% 32%, #414B60 0%, #2A3140 46%, #161B26 100%)',
             boxShadow:
-              'inset 0 1px 0 rgba(255,255,255,0.9), inset 0 -1px 0 rgba(20,30,60,0.08), 0 1px 2px rgba(20,30,60,0.15)',
+              'inset 0 1px 0 rgba(255,255,255,0.14), inset 0 -2px 4px rgba(0,0,0,0.45), 0 2px 4px rgba(0,0,0,0.55)',
           }}
         >
           <div

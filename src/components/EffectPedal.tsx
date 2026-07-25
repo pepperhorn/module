@@ -36,13 +36,13 @@ export function EffectPedal({
     <div
       className="effect-pedal flex flex-col items-center gap-2 rounded-lg p-3"
       style={{
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #F2F4F8 100%)',
+        background: 'linear-gradient(180deg, #2A3141 0%, #1E2432 100%)',
         border: dragging
           ? `1px solid ${hex}`
-          : '1px solid var(--color-rack-edge)',
+          : '1px solid #10141D',
         boxShadow: dragging
-          ? `0 8px 20px rgba(20,30,60,0.18), 0 0 0 1px ${hex}55`
-          : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(20,30,60,0.06)',
+          ? `0 10px 24px rgba(0,0,0,0.55), 0 0 0 1px ${hex}66`
+          : 'inset 0 1px 0 rgba(255,255,255,0.08), 0 2px 5px rgba(0,0,0,0.45)',
         opacity: dragging ? 0.9 : 1,
         minWidth: 132,
       }}

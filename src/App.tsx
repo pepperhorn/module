@@ -290,7 +290,7 @@ export default function App() {
                   boxShadow: '0 0 5px rgba(91,192,235,0.8)',
                 }}
               />
-              <span className="rack-bank-browse-label legend" style={{ color: '#2f7fa0' }}>
+              <span className="rack-bank-browse-label legend" style={{ color: 'var(--color-sky)' }}>
                 BROWSE LIBRARY
               </span>
             </button>
@@ -313,7 +313,7 @@ export default function App() {
                   boxShadow: '0 0 5px rgba(255,107,107,0.8)',
                 }}
               />
-              <span className="rack-bank-save-label legend" style={{ color: '#C84A4A' }}>
+              <span className="rack-bank-save-label legend" style={{ color: 'var(--color-coral)' }}>
                 SAVE PATCH
               </span>
             </button>
@@ -479,15 +479,20 @@ export default function App() {
 
       {needsGesture && (
         <div
-          className="gesture-overlay fade-in fixed inset-0 z-40 flex items-center justify-center bg-text/50 backdrop-blur-sm"
+          className="gesture-overlay fade-in fixed inset-0 z-40 flex items-center justify-center bg-black/70 backdrop-blur-sm"
           onClick={(e) => {
             e.stopPropagation()
             void onFirstGesture()
           }}
         >
           <div
-            className="gesture-card pop-in flex flex-col items-center gap-3 rounded-2xl bg-bg px-8 py-6 text-center shadow-2xl"
-            style={{ border: '1px solid var(--color-rack-edge)' }}
+            className="gesture-card pop-in flex flex-col items-center gap-3 rounded-2xl px-8 py-6 text-center"
+            style={{
+              background: 'linear-gradient(180deg, #2A3141 0%, #1B2130 100%)',
+              border: '1px solid rgba(255,255,255,0.12)',
+              boxShadow:
+                '0 24px 60px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.10)',
+            }}
           >
             <span
               className="gesture-mark inline-block h-3 w-3 rounded-sm"

@@ -76,13 +76,18 @@ export function Lcd({
     <div
       className="lcd-bezel"
       style={{
-        padding: 5,
+        position: 'relative',
+        padding: 8,
         borderRadius: 6,
-        background: 'linear-gradient(180deg, #C7CDD7 0%, #DFE3EA 100%)',
+        background: 'linear-gradient(180deg, #0E1219 0%, #171C26 100%)',
         boxShadow:
-          'inset 0 2px 5px rgba(20,30,60,0.30), inset 0 -1px 0 rgba(255,255,255,0.6)',
+          'inset 0 2px 6px rgba(0,0,0,0.7), inset 0 -1px 0 rgba(255,255,255,0.05), 0 1px 0 rgba(255,255,255,0.05)',
       }}
     >
+      <span className="lcd-screw rack-screw" aria-hidden="true" style={{ position: 'absolute', top: 3, left: 3, ['--slot-rot' as string]: '20deg' }} />
+      <span className="lcd-screw rack-screw" aria-hidden="true" style={{ position: 'absolute', top: 3, right: 3, ['--slot-rot' as string]: '115deg' }} />
+      <span className="lcd-screw rack-screw" aria-hidden="true" style={{ position: 'absolute', bottom: 3, left: 3, ['--slot-rot' as string]: '70deg' }} />
+      <span className="lcd-screw rack-screw" aria-hidden="true" style={{ position: 'absolute', bottom: 3, right: 3, ['--slot-rot' as string]: '150deg' }} />
       <div
         className="lcd-screen relative overflow-hidden p-4 font-mono text-lcd-text"
         style={{

@@ -1,11 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #FAFBFC;
-  --color-text: #1A1A2E;
-  --color-panel: #F0F2F5;
-  --color-rack: #E8EBEF;
-  --color-rack-edge: #D4D9E0;
+  /* Poly-Rack — deep brushed-navy aluminium faceplate (Korg-inspired).
+     The faceplate is dark milled metal; legends are screened cream; the
+     recessed section wells sit *into* the metal. Section accents stay bright
+     so they read like the Polysix's coloured control groups. */
+  --color-bg: #0B0E15;          /* the room behind the rack */
+  --color-text: #ECEAE0;        /* silkscreen cream-white */
+  --color-panel: #161C28;       /* recessed well surface */
+  --color-rack: #232A3A;        /* faceplate metal base */
+  --color-rack-edge: #0B0E15;   /* dark seam / outer edge */
 
   --color-coral: #FF6B6B;
   --color-amber: #FFB84D;
@@ -16,11 +20,11 @@
   --color-mint: #96E6B3;
   --color-rose: #FFA5B8;
 
-  --color-legend: #5A6172;
-  --color-legend-strong: #3C4356;
-  --color-hairline: rgba(26, 26, 46, 0.14);
-  --color-face-hi: #F2F4F7;
-  --color-face-lo: #E9ECF1;
+  --color-legend: #9BA3B6;         /* screened grey-cream label */
+  --color-legend-strong: #E6E8F0;  /* bright screened label */
+  --color-hairline: rgba(0, 0, 0, 0.5);
+  --color-face-hi: #242B3B;        /* faceplate mid (legend knockout bg) */
+  --color-face-lo: #161B26;        /* metal shadow */
 
   --color-lcd-bg: #07211F;
   --color-lcd-text: #55E6C8;
@@ -34,7 +38,7 @@
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
 }
 
 html, body, #root {
@@ -65,19 +69,22 @@ button {
   transform: scale(0.94);
 }
 
-/* JV function button — light face, LED-active (no gradient fills). Active
-   state is shown by a lit LED + strong label; the face always stays light. */
+/* JV function button — dark moulded keycap milled into the faceplate. A top
+   gloss + inner shadow gives it dimension; active state depresses it. The
+   label stays cream; a lit LED signals the active/engaged state. */
 .hw-btn {
   border-radius: 4px;
-  background: linear-gradient(180deg, #FFFFFF, #F0F2F6);
-  border: 1px solid #C9CFD9;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 1px 2px rgba(20, 30, 60, 0.12);
+  background: linear-gradient(180deg, #333C4F 0%, #232B3A 100%);
+  border: 1px solid #10141D;
+  color: var(--color-legend-strong);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.10),
+    inset 0 -1px 1px rgba(0, 0, 0, 0.35),
+    0 1px 2px rgba(0, 0, 0, 0.5);
   transition: transform 80ms ease-out, box-shadow 80ms ease-out;
 }
 .hw-btn:active {
   transform: translateY(1px);
-  box-shadow: inset 0 2px 3px rgba(20, 30, 60, 0.18);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.55);
 }
 .hw-btn:focus-visible {
   outline: none;
@@ -90,12 +97,12 @@ button {
    still work. Declared after .hw-btn so equal-specificity pseudo rules win. */
 .hw-btn-accent {
   box-shadow: inset 0 0 0 1.5px var(--hw-accent, var(--color-sky)),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(20, 30, 60, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.10), 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 .hw-btn-accent:active {
   transform: translateY(1px);
   box-shadow: inset 0 0 0 1.5px var(--hw-accent, var(--color-sky)),
-    inset 0 2px 3px rgba(20, 30, 60, 0.18);
+    inset 0 2px 4px rgba(0, 0, 0, 0.55);
 }
 .hw-btn-accent:focus-visible {
   outline: none;
@@ -109,8 +116,9 @@ button {
   width: 5px;
   height: 5px;
   border-radius: 9999px;
-  background: rgba(20, 30, 60, 0.15);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.45);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.04);
   flex-shrink: 0;
   pointer-events: none;
 }
@@ -165,16 +173,22 @@ button {
   color: var(--color-legend-strong);
 }
 
-/* Silkscreen group frame (JV faceplate grouping) — a printed hairline box on
-   one continuous faceplate, NOT a raised/floating card. */
-.group-frame {
+/* Section well — a control group recessed INTO the brushed-metal faceplate.
+   Inner shadow sinks it below the surface; a faint light lip on the bottom
+   edge is the bevel where the recess meets the metal. */
+.group-frame,
+.rack-panel {
   position: relative;
-  background: rgba(255, 255, 255, 0.35);
-  border: 1px solid var(--color-hairline);
+  background: linear-gradient(180deg, #171D29 0%, #1B2231 100%);
+  border: 1px solid rgba(0, 0, 0, 0.55);
   border-radius: 8px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-/* Group title printed ON the top border of a frame (knocks out the line). */
+/* Group title screened ON the top edge of a well (knocks out the frame line).
+   Its background matches the surrounding faceplate metal. */
 .group-legend {
   position: absolute;
   top: -7px;
@@ -183,15 +197,6 @@ button {
   background: var(--color-face-hi);
   z-index: 1;
   pointer-events: none;
-}
-
-/* Existing .rack-panel usages inherit the silkscreen-frame treatment:
-   no gradient fill, no drop shadow — just a hairline box on the faceplate. */
-.rack-panel {
-  position: relative;
-  background: rgba(255, 255, 255, 0.35);
-  border: 1px solid var(--color-hairline);
-  border-radius: 8px;
 }
 
 .rack-screw {
@@ -219,13 +224,13 @@ button {
 /* Rack rail (desktop only) — a 19"/EIA-style mounting rail flanking the
  * chassis, with a full-height column of rack holes grouped 3-per-U (4U). */
 .rack-rail {
-  background: linear-gradient(90deg, #BFC5CE 0%, #DEE2E8 48%, #C6CCD5 100%);
-  border: 1px solid #AEB5C0;
+  background: linear-gradient(90deg, #1A202C 0%, #2C3444 48%, #1A202C 100%);
+  border: 1px solid #0B0E15;
   border-radius: 5px;
   box-shadow:
-    inset 1px 0 0 rgba(255, 255, 255, 0.45),
-    inset -1px 0 0 rgba(20, 30, 60, 0.12),
-    0 4px 12px rgba(20, 30, 60, 0.28);
+    inset 1px 0 0 rgba(255, 255, 255, 0.06),
+    inset -1px 0 0 rgba(0, 0, 0, 0.5),
+    0 6px 16px rgba(0, 0, 0, 0.55);
   pointer-events: none;
 }
 /* A recessed round mounting hole punched through the rail. */
@@ -245,8 +250,8 @@ button {
     from -135deg,
     var(--color-sky) 0%,
     var(--color-sky) var(--knob-pct, 0%),
-    rgba(20, 30, 60, 0.08) var(--knob-pct, 0%),
-    rgba(20, 30, 60, 0.08) 75%,
+    rgba(255, 255, 255, 0.08) var(--knob-pct, 0%),
+    rgba(255, 255, 255, 0.08) 75%,
     transparent 75%
   );
 }
@@ -266,7 +271,7 @@ button {
 
 /* hide scrollbar but keep scroll */
 .scroll-clean::-webkit-scrollbar { width: 8px; height: 8px; }
-.scroll-clean::-webkit-scrollbar-thumb { background: rgba(20,30,60,0.18); border-radius: 9999px; }
+.scroll-clean::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 9999px; }
 .scroll-clean::-webkit-scrollbar-track { background: transparent; }
 
 @keyframes spin {

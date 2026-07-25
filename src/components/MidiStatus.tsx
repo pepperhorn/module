@@ -5,7 +5,7 @@ export function MidiStatus() {
   const activity = useStore((s) => s.midiActivity)
   return (
     <div
-      className="midi-status legend flex items-center gap-2 rounded-full border border-rack-edge bg-white/70 px-3 py-1"
+      className="midi-status legend flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1"
       title={connected ? 'MIDI input connected' : 'No MIDI input'}
     >
       <span

@@ -9,7 +9,7 @@ export function UserMenu() {
 
   if (isLoading) {
     return (
-      <div className="user-menu-loading legend flex items-center gap-2 rounded-full border border-rack-edge bg-white/70 px-3 py-1">
+      <div className="user-menu-loading legend flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
         <span className="h-2 w-2 animate-pulse rounded-full bg-text/30" />
         ...
       </div>
@@ -21,7 +21,7 @@ export function UserMenu() {
       <>
         <button
           type="button"
-          className="user-menu-signin legend cell-hit flex items-center gap-2 rounded-full border border-rack-edge bg-white/70 px-3 py-1 hover:text-text"
+          className="user-menu-signin legend cell-hit flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 hover:text-text"
           onClick={(e) => {
             e.stopPropagation()
             setAuthOpen(true)
@@ -49,7 +49,7 @@ export function UserMenu() {
     <div className="user-menu relative">
       <button
         type="button"
-        className="user-menu-button cell-hit flex items-center gap-2 rounded-full border border-rack-edge bg-white/70 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-text/70 hover:text-text"
+        className="user-menu-button cell-hit flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-[10px] uppercase tracking-widest text-text/70 hover:text-text"
         onClick={(e) => {
           e.stopPropagation()
           setMenuOpen((o) => !o)
@@ -70,7 +70,7 @@ export function UserMenu() {
           className="user-menu-dropdown pop-in absolute right-0 top-full z-30 mt-1 flex flex-col gap-2 rounded-lg p-3 shadow-xl"
           style={{
             background: 'var(--color-bg)',
-            border: '1px solid var(--color-rack-edge)',
+            border: '1px solid rgba(255,255,255,0.12)',
             minWidth: 200,
           }}
           onClick={(e) => e.stopPropagation()}
@@ -85,7 +85,7 @@ export function UserMenu() {
           </div>
           <div
             className="user-menu-divider"
-            style={{ borderTop: '1px solid var(--color-rack-edge)' }}
+            style={{ borderTop: '1px solid rgba(255,255,255,0.10)' }}
           />
           <button
             type="button"
