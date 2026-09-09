@@ -10,6 +10,7 @@ const STATE_KEY = 'module:state:v1'
 const DOWNLOADED_KEY = 'module:downloaded:v1'
 const USER_PATCHES_KEY = 'module:user-patches:v1'
 const DEBUG_KEY = 'module:debug:v1'
+const UI_KEY = 'module:ui:v1'
 
 interface PersistedSlice {
   currentPatchId: string
@@ -89,6 +90,34 @@ function generateUserPatchId(): string {
   return `usr/${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
 
+interface PersistedUi {
+  keyboardMode: boolean
+  fxVisible: boolean
+}
+
+function loadUi(): PersistedUi {
+  const fallback: PersistedUi = { keyboardMode: false, fxVisible: true }
+  try {
+    const raw = localStorage.getItem(UI_KEY)
+    if (!raw) return fallback
+    const parsed = JSON.parse(raw) as Partial<PersistedUi>
+    return {
+      keyboardMode: parsed.keyboardMode ?? fallback.keyboardMode,
+      fxVisible: parsed.fxVisible ?? fallback.fxVisible,
+    }
+  } catch {
+    return fallback
+  }
+}
+
+function saveUi(ui: PersistedUi): void {
+  try {
+    localStorage.setItem(UI_KEY, JSON.stringify(ui))
+  } catch {
+    // noop
+  }
+}
+
 function loadDebug(): boolean {
   // 1. URL param ?debug=1 forces debug ON and persists
   // 2. ?debug=0 forces OFF and persists
@@ -119,6 +148,13 @@ function saveDebug(v: boolean): void {
 interface State {
   catalog: PatchManifest[]
   currentPatchId: string
+  /**
+   * The patch the user last asked for. Set the instant a selection happens and
+   * cleared when the engine either commits it (currentPatchId) or fails, so the
+   * display never claims a patch that is not actually loaded.
+   */
+  pendingPatchId: string | null
+  loadError: { id: string; name: string } | null
   loadingPatchId: string | null
   loadingProgress: { loaded: number; total: number } | null
   currentSource: PatchSourceTag | null
@@ -137,7 +173,17 @@ interface State {
   midiActivity: boolean
   debugMode: boolean
   online: boolean
+  keyboardMode: boolean
+  fxVisible: boolean
+  previewPatchId: string | null
   setPickerOpen: (open: boolean) => void
+  setPendingPatchId: (id: string | null) => void
+  setLoadError: (e: { id: string; name: string } | null) => void
+  setKeyboardMode: (v: boolean) => void
+  toggleKeyboardMode: () => void
+  setFxVisible: (v: boolean) => void
+  toggleFxVisible: () => void
+  setPreviewPatchId: (id: string | null) => void
   setLoadingPatchId: (id: string | null) => void
   setLoadingProgress: (p: { loaded: number; total: number } | null) => void
   setCurrentSource: (s: PatchSourceTag | null) => void
@@ -169,6 +215,7 @@ const initialId =
   (persisted.currentPatchId && findPatch(persisted.currentPatchId)?.id) ??
   catalog.find((p) => p.id === 'ep/wurlitzerep200')?.id ??
   catalog[0].id
+const initialUi = loadUi()
 const initialFxEnabled: Record<EffectId, boolean> = {
   distortion: persisted.fxEnabled?.distortion ?? false,
   doubler1: persisted.fxEnabled?.doubler1 ?? false,
@@ -199,6 +246,8 @@ function persist(state: State) {
 export const useStore = create<State>((set, get) => ({
   catalog,
   currentPatchId: initialId,
+  pendingPatchId: null,
+  loadError: null,
   loadingPatchId: null,
   loadingProgress: null,
   currentSource: null,
@@ -217,7 +266,31 @@ export const useStore = create<State>((set, get) => ({
   midiActivity: false,
   debugMode: loadDebug(),
   online: typeof navigator === 'undefined' ? true : navigator.onLine,
+  keyboardMode: initialUi.keyboardMode,
+  fxVisible: initialUi.fxVisible,
+  previewPatchId: null,
   setPickerOpen: (open) => set({ pickerOpen: open }),
+  setPendingPatchId: (id) => set({ pendingPatchId: id }),
+  setLoadError: (e) => set({ loadError: e }),
+  setKeyboardMode: (v) => {
+    set({ keyboardMode: v })
+    saveUi({ keyboardMode: v, fxVisible: get().fxVisible })
+  },
+  toggleKeyboardMode: () => {
+    const next = !get().keyboardMode
+    set({ keyboardMode: next })
+    saveUi({ keyboardMode: next, fxVisible: get().fxVisible })
+  },
+  setFxVisible: (v) => {
+    set({ fxVisible: v })
+    saveUi({ keyboardMode: get().keyboardMode, fxVisible: v })
+  },
+  toggleFxVisible: () => {
+    const next = !get().fxVisible
+    set({ fxVisible: next })
+    saveUi({ keyboardMode: get().keyboardMode, fxVisible: next })
+  },
+  setPreviewPatchId: (id) => set({ previewPatchId: id }),
   setLoadingPatchId: (id) => set({ loadingPatchId: id }),
   setLoadingProgress: (p) => set({ loadingProgress: p }),
   setCurrentSource: (s) => set({ currentSource: s }),

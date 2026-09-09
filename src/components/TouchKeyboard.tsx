@@ -5,6 +5,11 @@ interface TouchKeyboardProps {
   noteOn: (midi: number, velocity: number) => void
   noteOff: (midi: number) => void
   octaves?: number
+  /**
+   * Stretch to fill the parent instead of using the fixed rack height. Used by
+   * keyboard mode, where the keys take the lion's share of the viewport.
+   */
+  fill?: boolean
 }
 
 const WHITE_OFFSETS = [0, 2, 4, 5, 7, 9, 11]
@@ -59,7 +64,12 @@ function midiFromPoint(x: number, y: number): number | null {
   return midiFromTarget(el)
 }
 
-export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardProps) {
+export function TouchKeyboard({
+  noteOn,
+  noteOff,
+  octaves = 2,
+  fill = false,
+}: TouchKeyboardProps) {
   const octave = useStore((s) => s.octave)
   const velocity = useStore((s) => s.velocity)
   const startMidi = (octave + 1) * 12
@@ -169,7 +179,11 @@ export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardPro
   )
 
   return (
-    <div className="touch-keyboard rack-panel rounded-xl p-3">
+    <div
+      className={`touch-keyboard rack-panel rounded-xl p-3 ${
+        fill ? 'flex h-full min-h-0 flex-col' : ''
+      }`}
+    >
       <div className="touch-keyboard-header mb-2 flex items-center justify-between font-mono text-[9px] uppercase tracking-widest text-text/40">
         <span>
           TOUCH · OCT {octave}–{octave + octaves}
@@ -177,7 +191,9 @@ export function TouchKeyboard({ noteOn, noteOff, octaves = 2 }: TouchKeyboardPro
         <span>tap or slide · vel {velocity}</span>
       </div>
       <div
-        className="touch-keyboard-body relative h-28 select-none overflow-hidden rounded-md"
+        className={`touch-keyboard-body relative select-none overflow-hidden rounded-md ${
+          fill ? 'min-h-0 flex-1' : 'h-28'
+        }`}
         style={{
           background: 'linear-gradient(180deg, #1A1A2E 0%, #2E2E4F 100%)',
           boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)',

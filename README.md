@@ -16,7 +16,9 @@ fixed Distortion → Chorus → Delay → Reverb effects chain.
 - **Three input modes** simultaneously: MIDI controller (Web MIDI API), Ableton-style
   computer keyboard (`A–L` rows), and a multitouch on-screen keyboard
 - **Effects chain** wired in raw Web Audio: WaveShaper distortion, LFO chorus,
-  feedback delay, ConvolverNode reverb. No Tone.js dependency
+  feedback delay, ConvolverNode reverb. No Tone.js dependency. Each effect is a
+  stompbox — status LED, pots two to a row, and a footswitch that stomps it in
+  and out
 - **Local-first storage cascade**: vendored files → alt-format fallback → persistent
   Cache API → live CDN, with a coloured **LOCAL / CACHE / CDN / MIX** badge in the
   LCD so you always know where the audio came from
@@ -24,8 +26,15 @@ fixed Distortion → Chorus → Delay → Reverb effects chain.
   previously-loaded patch is instant
 - **User patches**: tap `★ SAVE PATCH` to snapshot the current base patch + FX state
   to localStorage. Saved patches appear in the `USR` bank in the picker
-- **Download for offline**: per-patch download button in the picker pre-fills the
-  Cache API for any patch you'll want without an internet connection later
+- **Offline by default**: any patch you load — or preview — is cached as it
+  loads, so it stays playable with no connection. The picker's download button
+  pre-fills the cache for a patch you have not played yet. A patch is only
+  marked cached when *every* sample resolved, so the offline greyout is honest
+- **Library previews**: tap ▶ on a card to audition a patch (a C–G run and a C
+  major chord) without leaving the one you are playing. The audition fetches the
+  same samples a real load would, so it doubles as a download
+- **Keyboard mode**: `⌨ KEYBOARD MODE` hands the screen to the keys — a one-line
+  patch readout on top, the pedalboard behind a show/hide toggle
 
 ---
 
@@ -207,7 +216,7 @@ Hover (or long-press on mobile) the badge to see the precise per-tier counts.
   (palette, fonts, library picker pattern)
 - Effects chain pattern adapted from [pepperhorn/vocoder](https://github.com/pepperhorn/vocoder)
 - Roland JV-1080 / JV-2080 hardware silhouette: 1U-rack proportions, central
-  LCD, value dial, banked button grid
+  LCD, banked button grid
 
 ---
 

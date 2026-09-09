@@ -45,6 +45,17 @@ export function computeSourceTag(stats: LoggedStorageStats): PatchSourceTag {
   return { tier: 'mixed', local, cache, cdn, total }
 }
 
+/**
+ * True when a completed load left the patch genuinely playable offline: every
+ * sample request was satisfied and at least one actually resolved. A load with
+ * missing samples still makes noise, but marking it "downloaded" would lie to
+ * the picker's offline greyout, so it does not count.
+ */
+export function isOfflineReady(stats: LoggedStorageStats): boolean {
+  if (stats.failed.length > 0) return false
+  return stats.attempted > 0 && stats.succeeded === stats.attempted
+}
+
 export interface LoggedStorage {
   fetch: (url: string) => Promise<Response>
   reset(): void
@@ -56,6 +67,17 @@ const HOST_REWRITES: Array<[string, string]> = [
   ['https://gleitz.github.io/', '/smplr-samples/gleitz/'],
   ['https://goldst.dev/', '/smplr-samples/goldst/'],
 ]
+
+/** True for a URL served by this app itself rather than a sample CDN. */
+function isSameOriginAsset(url: string): boolean {
+  if (url.startsWith('/')) return true
+  if (typeof window === 'undefined') return false
+  try {
+    return new URL(url, window.location.origin).origin === window.location.origin
+  } catch {
+    return false
+  }
+}
 
 function rewriteToLocal(url: string): string | null {
   for (const [from, to] of HOST_REWRITES) {
@@ -103,15 +125,28 @@ async function tryCache(url: string): Promise<Response | null> {
   }
 }
 
-async function putCache(url: string, response: Response): Promise<void> {
+// Store a copy of a network response for offline replay.
+//
+// The clone is taken synchronously, before this function yields. The same
+// response is handed straight back to the loader, which reads its body at once;
+// `Response.clone()` throws on a body that is already locked or disturbed, so
+// taking the copy up front means the cache write cannot lose that race however
+// the cache handle happens to settle.
+function putCache(url: string, response: Response): void {
   const cachePromise = openCache()
   if (!cachePromise) return
+  let copy: Response
   try {
-    const cache = await cachePromise
-    await cache.put(url, response.clone())
+    copy = response.clone()
   } catch {
-    // quota exceeded or unavailable — ignore
+    // Body already consumed — nothing we can safely store.
+    return
   }
+  void cachePromise
+    .then((cache) => cache.put(url, copy))
+    .catch(() => {
+      // quota exceeded or unavailable — ignore
+    })
 }
 
 export async function clearCdnCache(): Promise<void> {
@@ -162,6 +197,46 @@ export function createLoggedStorage(
     fetch: (url: string): Promise<Response> =>
       withFetchSlot(async () => {
       attempted++
+      // Bundled patches (public/patches/**) are requested by their own URL and
+      // never match a CDN rewrite. Serve them from this app, count them as
+      // local, and copy them into the cache so they survive going offline.
+      if (isSameOriginAsset(url)) {
+        let networkError: unknown = null
+        let status = 0
+        try {
+          const res = await fetch(url)
+          status = res.status
+          if (res.status >= 200 && res.status < 300) {
+            succeeded++
+            bySource.local++
+            onEvent?.(`bundled ✓ ${shortUrl(url)}`)
+            putCache(url, res)
+            return res
+          }
+        } catch (err) {
+          networkError = err
+        }
+        // Offline, or the service worker is not yet controlling this page —
+        // fall back to the copy an earlier load left behind. Without this the
+        // cache we fill above would only ever be written, never read.
+        const cachedLocal = await tryCache(url)
+        if (cachedLocal) {
+          succeeded++
+          bySource.cache++
+          onEvent?.(`bundled cache ✓ ${shortUrl(url)}`)
+          return cachedLocal
+        }
+        if (networkError) {
+          const msg =
+            networkError instanceof Error ? networkError.message : String(networkError)
+          failed.push(`THREW ${msg} ${url}`)
+          onEvent?.(`bundled THREW ${shortUrl(url)} ${msg}`)
+          throw networkError
+        }
+        failed.push(`${status} ${url}`)
+        onEvent?.(`bundled ${status} ${shortUrl(url)}`)
+        return new Response(null, { status: status || 502 })
+      }
       const localPath = rewriteToLocal(url)
       if (localPath) {
         try {
@@ -216,7 +291,7 @@ export function createLoggedStorage(
           succeeded++
           bySource.cdn++
           onEvent?.(`cdn ✓ ${shortUrl(url)}`)
-          void putCache(url, res)
+          putCache(url, res)
         } else {
           failed.push(`${res.status} ${url}`)
           onEvent?.(`cdn ${res.status} ${shortUrl(url)}`)

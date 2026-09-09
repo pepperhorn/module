@@ -1,47 +1,30 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useStore } from '../state/useStore'
+import { useFullCatalog } from '../state/useFullCatalog'
 import { BANK_ORDER, BANK_LABELS, type Bank, type PatchManifest } from '../patches/types'
-import { findPatch } from '../patches/catalog'
 import { PatchCard } from './PatchCard'
-import { getEngine } from '../audio/AudioEngine'
 
 interface PatchPickerProps {
   onSelect: (id: string) => void
+  /** Audition a patch without switching to it. */
+  onPreview: (id: string) => void
+  /** Fetch a patch's samples into the offline caches. */
+  onDownload: (id: string) => void
 }
 
-export function PatchPicker({ onSelect }: PatchPickerProps) {
+export function PatchPicker({ onSelect, onPreview, onDownload }: PatchPickerProps) {
   const open = useStore((s) => s.pickerOpen)
   const setPickerOpen = useStore((s) => s.setPickerOpen)
-  const catalog = useStore((s) => s.catalog)
   const currentPatchId = useStore((s) => s.currentPatchId)
   const favourites = useStore((s) => s.favourites)
   const toggleFavourite = useStore((s) => s.toggleFavourite)
   const downloaded = useStore((s) => s.downloaded)
   const downloadingPatchId = useStore((s) => s.downloadingPatchId)
-  const setDownloadingPatchId = useStore((s) => s.setDownloadingPatchId)
-  const markDownloaded = useStore((s) => s.markDownloaded)
   const userPatches = useStore((s) => s.userPatches)
+  const previewPatchId = useStore((s) => s.previewPatchId)
   const online = useStore((s) => s.online)
 
-  // Merge user-saved patches into the picker as USR-bank manifests. Each
-  // user patch reuses its base patch's source so it shares the engine cache.
-  const mergedCatalog = useMemo<PatchManifest[]>(() => {
-    const userManifests: PatchManifest[] = []
-    for (const u of userPatches) {
-      const base = findPatch(u.basePatchId)
-      if (!base) continue
-      userManifests.push({
-        id: u.id,
-        name: u.name,
-        category: base.name,
-        bank: 'USR',
-        color: u.color,
-        defaultOctave: base.defaultOctave,
-        source: base.source,
-      })
-    }
-    return [...userManifests, ...catalog]
-  }, [catalog, userPatches])
+  const mergedCatalog = useFullCatalog()
 
   // A USR patch is playable offline whenever its underlying base patch is
   // cached — the audio source is shared. For everything else, the patch's
@@ -56,22 +39,6 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
       return false
     },
     [downloaded, userPatches],
-  )
-
-  const handleDownload = useCallback(
-    async (id: string) => {
-      const patch = catalog.find((p) => p.id === id)
-      if (!patch) return
-      if (downloadingPatchId) return
-      setDownloadingPatchId(id)
-      try {
-        const result = await getEngine().preloadPatch(patch)
-        if (result.ok) markDownloaded(id)
-      } finally {
-        setDownloadingPatchId(null)
-      }
-    },
-    [catalog, downloadingPatchId, setDownloadingPatchId, markDownloaded],
   )
 
   const [bankFilter, setBankFilter] = useState<Bank | 'ALL'>('ALL')
@@ -217,12 +184,14 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
                     downloaded={downloaded.has(p.id)}
                     downloading={downloadingPatchId === p.id}
                     unavailableOffline={!online && !isOfflineReady(p)}
+                    previewing={previewPatchId === p.id}
                     onSelect={(id) => {
                       onSelect(id)
                       setPickerOpen(false)
                     }}
+                    onPreview={onPreview}
                     onToggleFavourite={toggleFavourite}
-                    onDownload={handleDownload}
+                    onDownload={onDownload}
                   />
                 ))}
               </div>
@@ -242,12 +211,14 @@ export function PatchPicker({ onSelect }: PatchPickerProps) {
                   downloaded={downloaded.has(p.id)}
                   downloading={downloadingPatchId === p.id}
                   unavailableOffline={!online && !isOfflineReady(p)}
+                  previewing={previewPatchId === p.id}
                   onSelect={(id) => {
                     onSelect(id)
                     setPickerOpen(false)
                   }}
+                  onPreview={onPreview}
                   onToggleFavourite={toggleFavourite}
-                  onDownload={handleDownload}
+                  onDownload={onDownload}
                 />
               ))}
               {filtered.length === 0 && (

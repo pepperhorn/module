@@ -8,7 +8,10 @@ interface PatchCardProps {
   downloading: boolean
   /** True when we're offline AND this patch isn't cached locally. */
   unavailableOffline?: boolean
+  /** This card's audition is loading or playing. */
+  previewing?: boolean
   onSelect: (id: string) => void
+  onPreview: (id: string) => void
   onToggleFavourite: (id: string) => void
   onDownload: (id: string) => void
 }
@@ -31,17 +34,31 @@ export function PatchCard({
   downloaded,
   downloading,
   unavailableOffline = false,
+  previewing = false,
   onSelect,
+  onPreview,
   onToggleFavourite,
   onDownload,
 }: PatchCardProps) {
   const hex = COLOR_TO_HEX[patch.color] ?? COLOR_TO_HEX.sky
+  // A div rather than a button: the card holds its own buttons (preview,
+  // favourite, download) and a button may not contain another button.
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={() => onSelect(patch.id)}
+      onKeyDown={(e) => {
+        // Only when the card itself has focus. The preview, favourite and
+        // download buttons live inside it and must keep their own Enter/Space.
+        if (e.target !== e.currentTarget) return
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onSelect(patch.id)
+        }
+      }}
       aria-disabled={unavailableOffline}
-      className={`patch-card cell-hit group relative flex flex-col gap-2 overflow-hidden rounded-lg p-3 text-left ${
+      className={`patch-card cell-hit group relative flex cursor-pointer flex-col gap-2 overflow-hidden rounded-lg p-3 text-left ${
         active ? 'patch-card-active ring-2 ring-coral' : ''
       } ${unavailableOffline ? 'patch-card-offline' : ''}`}
       style={{
@@ -54,12 +71,22 @@ export function PatchCard({
       }}
     >
       <div
-        className="patch-card-swatch h-12 w-full rounded-md"
+        className="patch-card-swatch relative flex h-12 w-full items-center justify-center rounded-md"
         style={{
           background: `linear-gradient(135deg, ${hex} 0%, ${hex}cc 100%)`,
           boxShadow: `inset 0 1px 0 rgba(255,255,255,0.4), 0 0 12px ${hex}33`,
         }}
-      />
+      >
+        <PreviewButton
+          previewing={previewing}
+          unavailableOffline={unavailableOffline}
+          onClick={(e) => {
+            e.stopPropagation()
+            e.preventDefault()
+            if (!unavailableOffline) onPreview(patch.id)
+          }}
+        />
+      </div>
       <div className="patch-card-meta flex flex-1 flex-col gap-1">
         <div className="patch-card-title font-display text-sm font-medium text-text">
           {patch.name}
@@ -99,6 +126,45 @@ export function PatchCard({
           }
         }}
       />
+    </div>
+  )
+}
+
+function PreviewButton({
+  previewing,
+  unavailableOffline,
+  onClick,
+}: {
+  previewing: boolean
+  unavailableOffline: boolean
+  onClick: (e: React.MouseEvent) => void
+}) {
+  const label = unavailableOffline
+    ? 'Offline — connect to preview'
+    : previewing
+      ? 'Stop preview'
+      : 'Preview — plays a C–G run'
+
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={label}
+      disabled={unavailableOffline}
+      onClick={onClick}
+      className="patch-card-preview cell-hit flex h-8 w-8 items-center justify-center rounded-full"
+      style={{
+        color: 'rgba(20,30,60,0.75)',
+        background: previewing
+          ? 'rgba(255,255,255,0.95)'
+          : 'rgba(255,255,255,0.72)',
+        border: '1px solid rgba(255,255,255,0.85)',
+        boxShadow: previewing
+          ? '0 0 0 3px rgba(255,255,255,0.45)'
+          : '0 1px 2px rgba(20,30,60,0.18)',
+      }}
+    >
+      {previewing ? <StopIcon /> : <PlayIcon />}
     </button>
   )
 }
@@ -159,6 +225,22 @@ function DownloadButton({
     >
       {downloaded ? <CheckIcon /> : downloading ? <SpinnerIcon /> : <DownloadIcon />}
     </button>
+  )
+}
+
+function PlayIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+      <path d="M4.5 3.2l8 4.8-8 4.8z" fill="currentColor" />
+    </svg>
+  )
+}
+
+function StopIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 16 16" aria-hidden="true">
+      <rect x="4" y="4" width="8" height="8" rx="1.2" fill="currentColor" />
+    </svg>
   )
 }
 
