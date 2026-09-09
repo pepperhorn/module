@@ -49,6 +49,9 @@ export function PatchCard({
       tabIndex={0}
       onClick={() => onSelect(patch.id)}
       onKeyDown={(e) => {
+        // Only when the card itself has focus. The preview, favourite and
+        // download buttons live inside it and must keep their own Enter/Space.
+        if (e.target !== e.currentTarget) return
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           onSelect(patch.id)

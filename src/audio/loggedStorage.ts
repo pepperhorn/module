@@ -198,11 +198,14 @@ export function createLoggedStorage(
       withFetchSlot(async () => {
       attempted++
       // Bundled patches (public/patches/**) are requested by their own URL and
-      // never match a CDN rewrite. Fetch them directly, count them as local,
-      // and still copy them into the cache so they survive going offline.
+      // never match a CDN rewrite. Serve them from this app, count them as
+      // local, and copy them into the cache so they survive going offline.
       if (isSameOriginAsset(url)) {
+        let networkError: unknown = null
+        let status = 0
         try {
           const res = await fetch(url)
+          status = res.status
           if (res.status >= 200 && res.status < 300) {
             succeeded++
             bySource.local++
@@ -210,15 +213,29 @@ export function createLoggedStorage(
             putCache(url, res)
             return res
           }
-          failed.push(`${res.status} ${url}`)
-          onEvent?.(`bundled ${res.status} ${shortUrl(url)}`)
-          return res
         } catch (err) {
-          const msg = err instanceof Error ? err.message : String(err)
+          networkError = err
+        }
+        // Offline, or the service worker is not yet controlling this page —
+        // fall back to the copy an earlier load left behind. Without this the
+        // cache we fill above would only ever be written, never read.
+        const cachedLocal = await tryCache(url)
+        if (cachedLocal) {
+          succeeded++
+          bySource.cache++
+          onEvent?.(`bundled cache ✓ ${shortUrl(url)}`)
+          return cachedLocal
+        }
+        if (networkError) {
+          const msg =
+            networkError instanceof Error ? networkError.message : String(networkError)
           failed.push(`THREW ${msg} ${url}`)
           onEvent?.(`bundled THREW ${shortUrl(url)} ${msg}`)
-          throw err
+          throw networkError
         }
+        failed.push(`${status} ${url}`)
+        onEvent?.(`bundled ${status} ${shortUrl(url)}`)
+        return new Response(null, { status: status || 502 })
       }
       const localPath = rewriteToLocal(url)
       if (localPath) {

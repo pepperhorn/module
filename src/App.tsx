@@ -39,7 +39,6 @@ export default function App() {
   const loadingPatchId = useStore((s) => s.loadingPatchId)
   const currentSource = useStore((s) => s.currentSource)
   const markDownloaded = useStore((s) => s.markDownloaded)
-  const unmarkDownloaded = useStore((s) => s.unmarkDownloaded)
   const setPreviewPatchId = useStore((s) => s.setPreviewPatchId)
   const setDownloadingPatchId = useStore((s) => s.setDownloadingPatchId)
   const downloadingPatchId = useStore((s) => s.downloadingPatchId)
@@ -92,18 +91,24 @@ export default function App() {
   }, [displayPatch?.id])
 
   /**
+   * Record that a patch's samples are now cached.
+   *
+   * Only ever adds. Revoking on a load that came back short would throw away a
+   * download the user deliberately performed because of one flaky request, and
+   * a cache hit reports the flag from the patch's original load, not from any
+   * fresh evidence.
+   *
    * A user preset shares its base patch's samples, so caching either one makes
-   * both playable offline. Mark them together or the picker greys out presets
-   * whose audio is right there in the cache.
+   * both playable offline — mark them together, or the picker greys out
+   * presets whose audio is right there in the cache.
    */
   const markOfflineReady = useCallback(
-    (id: string, ready: boolean) => {
-      const apply = ready ? markDownloaded : unmarkDownloaded
-      apply(id)
+    (id: string) => {
+      markDownloaded(id)
       const user = useStore.getState().userPatches.find((u) => u.id === id)
-      if (user) apply(user.basePatchId)
+      if (user) markDownloaded(user.basePatchId)
     },
-    [markDownloaded, unmarkDownloaded],
+    [markDownloaded],
   )
 
   // Wire engine load callbacks → store
@@ -117,13 +122,19 @@ export default function App() {
       setLoadingPatchId(null)
       setLoadingProgress(null)
       setCurrentPatchId(id)
-      setPendingPatchId(null)
-      setLoadError(null)
       setCurrentSource(outcome.source)
+      // Clear the request marker only for the patch that was actually asked
+      // for. An earlier selection finishing late (a cache hit resolves almost
+      // instantly) must not retire a newer request still in flight, or that
+      // one's failure would arrive with nothing left to report it against.
+      if (useStore.getState().pendingPatchId === id) {
+        setPendingPatchId(null)
+        setLoadError(null)
+      }
       // A clean active load fills the persistent caches, so the patch is now
       // genuinely available offline. A load with missing samples is not, and
       // marking it would lie to the picker's offline greyout.
-      markOfflineReady(id, outcome.offlineReady)
+      if (outcome.offlineReady) markOfflineReady(id)
     }
     engine.onError = (id) => {
       // Ignore a failure for anything but the patch we are still waiting on.
@@ -250,7 +261,7 @@ export default function App() {
       void engine.previewPatch(patch).then((result) => {
         // The audition fetches the same samples a real load would, so a clean
         // one leaves the patch cached for offline exactly like playing it does.
-        if (result.offlineReady) markOfflineReady(id, true)
+        if (result.offlineReady) markOfflineReady(id)
       })
     },
     [engine, ensureAudio, markOfflineReady],
@@ -266,7 +277,7 @@ export default function App() {
       void engine
         .preloadPatch(patch)
         .then((result) => {
-          if (result.ok && result.failed.length === 0) markOfflineReady(id, true)
+          if (result.ok && result.failed.length === 0) markOfflineReady(id)
         })
         .finally(() => setDownloadingPatchId(null))
     },

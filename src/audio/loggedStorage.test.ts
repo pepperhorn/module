@@ -104,6 +104,41 @@ describe('createLoggedStorage CDN caching', () => {
     expect(isOfflineReady(storage.snapshot())).toBe(true)
   })
 
+  it('serves a bundled patch sample from the cache when the network is gone', async () => {
+    // Fill the cache from a first, online load...
+    const online = await freshStorage()
+    await online.fetch('/patches/poly-bass/C3.wav')
+    await vi.waitFor(() => expect(put).toHaveBeenCalledTimes(1))
+    const cached = stored[0]
+
+    // ...then go offline. The cache write above is only worth making if a
+    // later load actually reads it back.
+    stubFetch(() => {
+      throw new TypeError('Failed to fetch')
+    })
+    vi.stubGlobal('caches', {
+      open: vi.fn(
+        () =>
+          new Promise((resolve) =>
+            setTimeout(
+              () =>
+                resolve({
+                  match: async (url: string) =>
+                    url === cached.url ? new Response(new Uint8Array(cached.bytes)) : undefined,
+                  put: vi.fn(),
+                }),
+              0,
+            ),
+          ),
+      ),
+    })
+    const offline = await freshStorage()
+    const res = await offline.fetch('/patches/poly-bass/C3.wav')
+    expect(res.ok).toBe(true)
+    expect((await res.arrayBuffer()).byteLength).toBe(5)
+    expect(isOfflineReady(offline.snapshot())).toBe(true)
+  })
+
   it('does not report a load with a missing sample as offline-ready', async () => {
     stubFetch(() => new Response(null, { status: 404 }))
     const storage = await freshStorage()
