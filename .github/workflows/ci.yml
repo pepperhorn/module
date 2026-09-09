@@ -1,0 +1,92 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A newer push to the same branch makes the in-flight run irrelevant.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Typecheck · test · build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          # Matches the Dockerfile's build stage, so CI and the deployed image
+          # never disagree about what the toolchain supports.
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Test
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
+      - name: Check PWA output
+        # A build can succeed while silently dropping the service worker or the
+        # manifest, which breaks installability and the whole offline story —
+        # the one thing this app is built around. Fail loudly instead.
+        run: |
+          set -euo pipefail
+          for f in dist/index.html dist/sw.js dist/manifest.webmanifest; do
+            test -s "$f" || { echo "::error::missing or empty build output: $f"; exit 1; }
+          done
+          echo "PWA output present: $(du -sh dist | cut -f1) total"
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 7
+
+  docker:
+    name: Docker image builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # The Dockerfile is the deploy artifact, so a break here is a broken
+      # deploy. Built but never pushed — this only proves it still assembles
+      # and that nginx serves what the app needs.
+      - name: Build image
+        run: docker build -t module:ci .
+
+      - name: Smoke-test the served image
+        run: |
+          set -euo pipefail
+          docker run -d --name module-ci -p 8080:80 module:ci
+          for _ in $(seq 1 30); do
+            if curl -fsS -o /dev/null http://localhost:8080/; then
+              # The offline story depends on all three being reachable, and the
+              # SPA fallback means an unknown route must serve index.html, not 404.
+              curl -fsS -o /dev/null http://localhost:8080/sw.js
+              curl -fsS -o /dev/null http://localhost:8080/manifest.webmanifest
+              curl -fsS -o /dev/null http://localhost:8080/some/deep/route
+              echo "app, sw.js, manifest and SPA fallback all served"
+              docker rm -f module-ci > /dev/null
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::the image never started serving"
+          docker logs module-ci || true
+          docker rm -f module-ci > /dev/null || true
+          exit 1
