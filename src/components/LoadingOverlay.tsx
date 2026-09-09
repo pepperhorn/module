@@ -1,9 +1,12 @@
 import { useStore } from '../state/useStore'
+import { useFullCatalog } from '../state/useFullCatalog'
 
 export function LoadingOverlay() {
   const loadingPatchId = useStore((s) => s.loadingPatchId)
   const loadingProgress = useStore((s) => s.loadingProgress)
-  const catalog = useStore((s) => s.catalog)
+  // User presets live outside the raw catalog, so resolve against the merged
+  // one — otherwise loading a saved patch showed its raw id.
+  const catalog = useFullCatalog()
 
   if (!loadingPatchId) return null
 

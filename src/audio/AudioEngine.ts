@@ -2,7 +2,14 @@ import type { PatchManifest, PatchSource } from '../patches/types'
 import { buildEffectChain, DOUBLER_SNAPS } from './effects'
 import type { EffectId } from './effects'
 import { instantiatePatch, type LoadedInstrument, type LoadProgress } from './loadPatch'
-import { createLoggedStorage, clearCdnCache, computeSourceTag, type PatchSourceTag } from './loggedStorage'
+import { previewSequence, previewDurationMs, previewRootMidi } from './preview'
+import {
+  createLoggedStorage,
+  clearCdnCache,
+  computeSourceTag,
+  isOfflineReady,
+  type PatchSourceTag,
+} from './loggedStorage'
 
 const MAX_CACHED_INSTRUMENTS = 3
 
@@ -28,7 +35,15 @@ function sourceKey(src: PatchSource): string {
 interface CachedInstrument {
   instrument: LoadedInstrument
   source: PatchSourceTag
+  offlineReady: boolean
   loadedAt: number
+}
+
+/** What a finished load tells the UI about the patch it just produced. */
+export interface LoadOutcome {
+  source: PatchSourceTag
+  /** Every sample resolved — the patch is safe to mark as cached for offline. */
+  offlineReady: boolean
 }
 
 export type { PatchSourceTag } from './loggedStorage'
@@ -206,9 +221,8 @@ export class AudioEngine {
   private chain: ReturnType<typeof buildEffectChain> | null = null
   private current: LoadedInstrument | null = null
   private currentId: string | null = null
-  private loadingId: string | null = null
   private loadSeq = 0
-  onLoaded?: (id: string, source: PatchSourceTag) => void
+  onLoaded?: (id: string, outcome: LoadOutcome) => void
   onLoading?: (id: string | null) => void
   onProgress?: (id: string, progress: LoadProgress) => void
   onError?: (id: string, err: unknown) => void
@@ -220,6 +234,15 @@ export class AudioEngine {
   // to a single cached instrument. Map iteration order is insertion order, so
   // re-inserting on access promotes to most-recently-used.
   private instrumentCache: Map<string, CachedInstrument> = new Map()
+
+  // Library auditions run on their own dry bus so previewing a patch never
+  // disturbs the instrument you are playing and never inherits its FX.
+  private previewBus: GainNode | null = null
+  private previewEntry: { key: string; instrument: LoadedInstrument; offlineReady: boolean } | null =
+    null
+  private previewSeq = 0
+  private previewTimers: number[] = []
+  onPreviewChange?: (id: string | null) => void
 
   private doublerState = {
     doubler1: { enabled: false, pitch: 0, mix: 0 },
@@ -311,15 +334,16 @@ export class AudioEngine {
       this.current = cached.instrument
       this.currentId = patch.id
       this.currentSource = cached.source
-      this.loadingId = null
       this.loadSeq += 1 // bump so any in-flight load is superseded
       this.onLoading?.(null)
-      this.onLoaded?.(patch.id, cached.source)
+      this.onLoaded?.(patch.id, {
+        source: cached.source,
+        offlineReady: cached.offlineReady,
+      })
       return
     }
 
     const seq = ++this.loadSeq
-    this.loadingId = patch.id
     this.onLoading?.(patch.id)
     resetDecodeCounters()
     log('loadPatch start', { id: patch.id, seq, kind: patch.source.kind, key: cacheKey })
@@ -342,9 +366,10 @@ export class AudioEngine {
       })
     } catch (err) {
       log('instantiate failed', patch.id, err)
-      this.onError?.(patch.id, err)
-      this.onLoading?.(null)
-      this.loadingId = null
+      if (seq === this.loadSeq) {
+        this.onError?.(patch.id, err)
+        this.onLoading?.(null)
+      }
       return
     }
     log('instantiated, awaiting load', patch.id)
@@ -353,10 +378,11 @@ export class AudioEngine {
       await instrument.load
     } catch (err) {
       log('load rejected', patch.id, err)
-      this.onError?.(patch.id, err)
-      if (this.loadingId === patch.id) {
+      // A load that has already been superseded must stay silent: reporting its
+      // failure would clear the state of the newer load still in flight.
+      if (seq === this.loadSeq) {
+        this.onError?.(patch.id, err)
         this.onLoading?.(null)
-        this.loadingId = null
       }
       try {
         instrument.disconnect()
@@ -407,19 +433,20 @@ export class AudioEngine {
     }
     this.current = instrument
     this.currentId = patch.id
-    this.loadingId = null
     this.currentSource = computeSourceTag(stats)
     // Add to LRU cache and evict the oldest non-current entries if over cap.
+    const offlineReady = isOfflineReady(stats)
     const cacheEntry: CachedInstrument = {
       instrument,
       source: this.currentSource,
+      offlineReady,
       loadedAt: Date.now(),
     }
     this.instrumentCache.set(cacheKey, cacheEntry)
     this.evictCacheIfNeeded()
-    log('current set', patch.id, this.currentSource)
+    log('current set', patch.id, this.currentSource, { offlineReady })
     this.onLoading?.(null)
-    this.onLoaded?.(patch.id, this.currentSource)
+    this.onLoaded?.(patch.id, { source: this.currentSource, offlineReady })
   }
 
   private evictCacheIfNeeded(): void {
@@ -447,6 +474,15 @@ export class AudioEngine {
 
   /** Drop the in-memory instrument cache (used by purgeAndReload). */
   private clearInstrumentCache(): void {
+    this.stopPreview()
+    if (this.previewEntry) {
+      try {
+        this.previewEntry.instrument.disconnect()
+      } catch {
+        // noop
+      }
+      this.previewEntry = null
+    }
     for (const [key, entry] of this.instrumentCache) {
       try {
         entry.instrument.stop()
@@ -568,6 +604,133 @@ export class AudioEngine {
       attempted: stats.attempted,
       failed: stats.failed,
     }
+  }
+
+  private ensurePreviewBus(): GainNode {
+    if (!this.previewBus) {
+      this.previewBus = this.context.createGain()
+      this.previewBus.gain.value = 0.85
+      this.previewBus.connect(this.context.destination)
+    }
+    return this.previewBus
+  }
+
+  /** Silence and forget any audition in flight. Safe to call at any time. */
+  stopPreview(): void {
+    this.previewSeq += 1
+    for (const timer of this.previewTimers) window.clearTimeout(timer)
+    this.previewTimers = []
+    if (this.previewEntry) {
+      try {
+        this.previewEntry.instrument.stop()
+      } catch {
+        // noop
+      }
+    }
+    this.onPreviewChange?.(null)
+  }
+
+  /**
+   * Audition a patch from the library without making it the active instrument:
+   * loads its samples (which fills the offline caches, so a later select is
+   * fast and works offline) and plays a C–G run into a dry bus.
+   */
+  async previewPatch(patch: PatchManifest): Promise<{
+    ok: boolean
+    offlineReady: boolean
+  }> {
+    this.stopPreview()
+    const seq = ++this.previewSeq
+    await this.resume()
+    if (seq !== this.previewSeq) return { ok: false, offlineReady: false }
+
+    const key = sourceKey(patch.source)
+    if (!this.previewEntry || this.previewEntry.key !== key) {
+      if (this.previewEntry) {
+        try {
+          this.previewEntry.instrument.disconnect()
+        } catch {
+          // noop
+        }
+        this.previewEntry = null
+      }
+      this.onPreviewChange?.(patch.id)
+      const storage = createLoggedStorage((line) => log(`[preview ${patch.id}] ${line}`))
+      let instrument: LoadedInstrument
+      try {
+        instrument = instantiatePatch({
+          context: this.context,
+          destination: this.ensurePreviewBus(),
+          patch,
+          storage,
+        })
+      } catch (err) {
+        log('preview instantiate failed', patch.id, err)
+        this.onPreviewChange?.(null)
+        return { ok: false, offlineReady: false }
+      }
+      try {
+        await instrument.load
+      } catch (err) {
+        log('preview load rejected', patch.id, err)
+        try {
+          instrument.disconnect()
+        } catch {
+          // noop
+        }
+        if (seq === this.previewSeq) this.onPreviewChange?.(null)
+        return { ok: false, offlineReady: false }
+      }
+      const offlineReady = isOfflineReady(storage.snapshot())
+      if (seq !== this.previewSeq) {
+        try {
+          instrument.disconnect()
+        } catch {
+          // noop
+        }
+        // The samples still landed in the caches, so the download is real even
+        // though this audition was cancelled.
+        return { ok: false, offlineReady }
+      }
+      this.previewEntry = { key, instrument, offlineReady }
+    }
+
+    const entry = this.previewEntry
+    const events = previewSequence(previewRootMidi(patch))
+    this.onPreviewChange?.(patch.id)
+    for (const event of events) {
+      this.previewTimers.push(
+        window.setTimeout(() => {
+          if (seq !== this.previewSeq) return
+          for (const note of event.notes) {
+            try {
+              entry.instrument.start({ note, velocity: 96 })
+            } catch {
+              // noop
+            }
+          }
+          this.previewTimers.push(
+            window.setTimeout(() => {
+              if (seq !== this.previewSeq) return
+              for (const note of event.notes) {
+                try {
+                  entry.instrument.stop(note)
+                } catch {
+                  // noop
+                }
+              }
+            }, event.hold),
+          )
+        }, event.at),
+      )
+    }
+    this.previewTimers.push(
+      window.setTimeout(() => {
+        if (seq !== this.previewSeq) return
+        this.onPreviewChange?.(null)
+      }, previewDurationMs(events) + 60),
+    )
+    return { ok: true, offlineReady: entry.offlineReady }
   }
 
   /** Trigger middle C through the current instrument — independent of touch input. */
