@@ -1,5 +1,7 @@
 # MODULE
 
+[![CI](https://github.com/pepperhorn/module/actions/workflows/ci.yml/badge.svg)](https://github.com/pepperhorn/module/actions/workflows/ci.yml)
+
 A browser-based **Roland JV‑style sound module**. Plug in a MIDI keyboard (or use the
 on-screen / Ableton-style computer keyboard), pull up a patch from the full
 [smplr](https://github.com/danigb/smplr) instrument family, and jam through a
@@ -53,6 +55,27 @@ samples lazily from the upstream CDNs the first time you pick it. Subsequent
 loads in the same session are instant (LRU cache); subsequent reloads are fast
 (persistent browser Cache API). To eliminate the CDN dependency entirely, see
 [Vendoring samples](#vendoring-samples) below.
+
+---
+
+## Checks
+
+```bash
+npm run typecheck   # tsc --noEmit
+npm test            # vitest run
+npm run build       # tsc -b && vite build
+```
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all three on
+every push to `main` and every pull request, on Node 22 to match the
+Dockerfile's build stage. It then asserts the build actually emitted
+`sw.js` and `manifest.webmanifest` — a build can succeed while silently
+dropping them, which breaks installability and the whole offline story.
+
+A second job builds the Docker image and curls the running container for the
+app, the service worker, the manifest and an unknown route (which must hit the
+SPA fallback rather than 404). The image is the deploy artifact, so a break
+there is a broken deploy.
 
 ---
 
