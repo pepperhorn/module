@@ -28,6 +28,11 @@ interface LoadProgressLike {
   total: number
 }
 
+/** The subset of the shared storage cascade this sampler needs. */
+interface SampleStorage {
+  fetch(url: string): Promise<Response>
+}
+
 const NOTE_OFFSETS: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 }
 
 function noteNameToMidi(name: string): number | null {
@@ -55,6 +60,7 @@ export class CustomSampler {
   private destination?: AudioNode
 
   private onLoadProgress?: (progress: LoadProgressLike) => void
+  private storage?: SampleStorage
   private totalSamples = 0
   private loadedSamples = 0
 
@@ -64,12 +70,14 @@ export class CustomSampler {
       source: SamplerSource
       destination?: AudioNode
       onLoadProgress?: (progress: LoadProgressLike) => void
+      storage?: SampleStorage
     },
   ) {
     this.context = context
     this.output = context.createGain()
     this.destination = options.destination
     this.onLoadProgress = options.onLoadProgress
+    this.storage = options.storage
     if (this.destination) this.output.connect(this.destination)
     this.load = this.loadSource(options.source).then(() => this)
   }
@@ -125,7 +133,10 @@ export class CustomSampler {
   }
 
   private async fetchBuffer(url: string): Promise<AudioBuffer> {
-    const res = await fetch(url)
+    // Go through the shared cascade when one is supplied: it copies every
+    // sample into the persistent cache, which is what makes a bundled patch
+    // available offline and lets the LCD report where the audio came from.
+    const res = await (this.storage ? this.storage.fetch(url) : fetch(url))
     if (!res.ok) throw new Error(`sample fetch failed: ${url} (${res.status})`)
     const buf = await res.arrayBuffer()
     const decoded = await this.context.decodeAudioData(buf)
