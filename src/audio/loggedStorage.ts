@@ -11,6 +11,8 @@
 // the moment it loads successfully. The download button in the picker just
 // pre-fills this cache without making the patch the active one.
 
+import { withFetchSlot } from './fetchSlots'
+
 export type SourceTier = 'local' | 'localAlt' | 'cache' | 'cdn'
 
 export interface LoggedStorageStats {
@@ -46,14 +48,33 @@ export function computeSourceTag(stats: LoggedStorageStats): PatchSourceTag {
 }
 
 /**
+ * How much of a patch actually arrived.
+ *
+ * This matters because smplr's loader resolves whatever happens: a sample that
+ * 404s or fails to decode is dropped with a `console.warn` and the load
+ * promise still fulfils (see `loadAudioBuffer` in smplr, and its own comment
+ * "Failed samples are silently omitted"). So "the load resolved" says nothing
+ * about whether the instrument can make a sound — only these counts do.
+ */
+export type LoadCompleteness = 'complete' | 'degraded' | 'empty'
+
+export function classifyLoad(stats: LoggedStorageStats): LoadCompleteness {
+  // Nothing was ever requested — no evidence of trouble.
+  if (stats.attempted === 0) return 'complete'
+  // Every request failed: the instrument exists but is entirely silent.
+  if (stats.succeeded === 0) return 'empty'
+  if (stats.failed.length > 0 || stats.succeeded < stats.attempted) return 'degraded'
+  return 'complete'
+}
+
+/**
  * True when a completed load left the patch genuinely playable offline: every
  * sample request was satisfied and at least one actually resolved. A load with
  * missing samples still makes noise, but marking it "downloaded" would lie to
  * the picker's offline greyout, so it does not count.
  */
 export function isOfflineReady(stats: LoggedStorageStats): boolean {
-  if (stats.failed.length > 0) return false
-  return stats.attempted > 0 && stats.succeeded === stats.attempted
+  return stats.attempted > 0 && classifyLoad(stats) === 'complete'
 }
 
 export interface LoggedStorage {
@@ -159,27 +180,6 @@ export async function clearCdnCache(): Promise<void> {
   }
 }
 
-// Mobile Firefox / Android: too many concurrent decodeAudioData calls cause
-// silent decode failures. Throttle storage fetches so decodes happen in waves
-// instead of an 81-wide thunderclap.
-const MAX_CONCURRENT_FETCHES = 4
-let activeFetches = 0
-const fetchQueue: Array<() => void> = []
-
-async function withFetchSlot<T>(fn: () => Promise<T>): Promise<T> {
-  if (activeFetches >= MAX_CONCURRENT_FETCHES) {
-    await new Promise<void>((resolve) => fetchQueue.push(resolve))
-  }
-  activeFetches += 1
-  try {
-    return await fn()
-  } finally {
-    activeFetches -= 1
-    const next = fetchQueue.shift()
-    if (next) next()
-  }
-}
-
 export function createLoggedStorage(
   onEvent?: (line: string) => void,
 ): LoggedStorage {
@@ -203,15 +203,25 @@ export function createLoggedStorage(
       if (isSameOriginAsset(url)) {
         let networkError: unknown = null
         let status = 0
+        let notAudio = false
         try {
           const res = await fetch(url)
           status = res.status
           if (res.status >= 200 && res.status < 300) {
-            succeeded++
-            bySource.local++
-            onEvent?.(`bundled ✓ ${shortUrl(url)}`)
-            putCache(url, res)
-            return res
+            if (isAudioResponse(res)) {
+              succeeded++
+              bySource.local++
+              onEvent?.(`bundled ✓ ${shortUrl(url)}`)
+              putCache(url, res)
+              return res
+            }
+            // A missing sample on a host with an SPA catch-all rewrite comes
+            // back as index.html with a 200. Counting that as a sample would
+            // pin HTML in both caches — where it is read back in preference to
+            // the network, so the sample stays broken even after a fixed
+            // deploy. Treat it as a miss instead.
+            notAudio = true
+            onEvent?.(`bundled ✗ not audio ${shortUrl(url)}`)
           }
         } catch (err) {
           networkError = err
@@ -233,9 +243,9 @@ export function createLoggedStorage(
           onEvent?.(`bundled THREW ${shortUrl(url)} ${msg}`)
           throw networkError
         }
-        failed.push(`${status} ${url}`)
-        onEvent?.(`bundled ${status} ${shortUrl(url)}`)
-        return new Response(null, { status: status || 502 })
+        failed.push(notAudio ? `NOT AUDIO ${url}` : `${status} ${url}`)
+        onEvent?.(`bundled ${notAudio ? 'not audio' : status} ${shortUrl(url)}`)
+        return new Response(null, { status: notAudio ? 502 : status || 502 })
       }
       const localPath = rewriteToLocal(url)
       if (localPath) {

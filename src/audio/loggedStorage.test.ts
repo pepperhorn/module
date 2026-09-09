@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { isOfflineReady, type LoggedStorageStats } from './loggedStorage'
+import { classifyLoad, isOfflineReady, type LoggedStorageStats } from './loggedStorage'
 
 function stats(partial: Partial<LoggedStorageStats>): LoggedStorageStats {
   return {
@@ -10,6 +10,34 @@ function stats(partial: Partial<LoggedStorageStats>): LoggedStorageStats {
     ...partial,
   }
 }
+
+describe('classifyLoad', () => {
+  // smplr resolves its load promise even when every sample was dropped, so
+  // these counts are the only evidence of whether a patch can make a sound.
+  it('calls a load with no successes empty', () => {
+    expect(classifyLoad(stats({ attempted: 81, succeeded: 0, failed: ['429 a'] }))).toBe(
+      'empty',
+    )
+  })
+
+  it('calls a partial load degraded', () => {
+    expect(classifyLoad(stats({ attempted: 81, succeeded: 60, failed: ['404 a'] }))).toBe(
+      'degraded',
+    )
+  })
+
+  it('calls a load degraded when samples went missing without a recorded failure', () => {
+    expect(classifyLoad(stats({ attempted: 81, succeeded: 80 }))).toBe('degraded')
+  })
+
+  it('calls a whole load complete', () => {
+    expect(classifyLoad(stats({ attempted: 81, succeeded: 81 }))).toBe('complete')
+  })
+
+  it('does not call a patch that requested nothing empty', () => {
+    expect(classifyLoad(stats({}))).toBe('complete')
+  })
+})
 
 describe('isOfflineReady', () => {
   it('is true when every sample resolved', () => {
@@ -137,6 +165,30 @@ describe('createLoggedStorage CDN caching', () => {
     expect(res.ok).toBe(true)
     expect((await res.arrayBuffer()).byteLength).toBe(5)
     expect(isOfflineReady(offline.snapshot())).toBe(true)
+  })
+
+  it('rejects an SPA fallback served in place of a missing bundled sample', async () => {
+    // A host with a catch-all rewrite answers a missing /patches/** file with
+    // index.html and a 200. Accepting it would count HTML as a resolved sample
+    // and pin it in the cache, which is read in preference to the network — so
+    // the sample would stay broken even after the correct file was deployed.
+    stubFetch(
+      () =>
+        new Response('<!doctype html><title>MODULE</title>', {
+          status: 200,
+          headers: { 'content-type': 'text/html' },
+        }),
+    )
+    const storage = await freshStorage()
+    const res = await storage.fetch('/patches/poly-bass/typo.wav')
+
+    expect(res.ok).toBe(false)
+    const snapshot = storage.snapshot()
+    expect(snapshot.succeeded).toBe(0)
+    expect(snapshot.failed).toEqual(['NOT AUDIO /patches/poly-bass/typo.wav'])
+    expect(isOfflineReady(snapshot)).toBe(false)
+    // Nothing may reach the offline cache.
+    expect(put).not.toHaveBeenCalled()
   })
 
   it('does not report a load with a missing sample as offline-ready', async () => {
