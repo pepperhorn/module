@@ -6,6 +6,7 @@ import { previewSequence, previewDurationMs, previewRootMidi } from './preview'
 import {
   createLoggedStorage,
   clearCdnCache,
+  classifyLoad,
   computeSourceTag,
   isOfflineReady,
   type PatchSourceTag,
@@ -418,6 +419,30 @@ export class AudioEngine {
       } catch {
         // noop
       }
+      return
+    }
+
+    // smplr resolves its load promise even when every single sample was
+    // dropped, so "it resolved" is not success. An instrument with no buffers
+    // is silent, and adopting it would stop the patch that IS working, report
+    // a successful load, and cache the silence under this source key for the
+    // rest of the session — so a later reselect would stay silent even after
+    // the CDN recovered. Treat it as the failure it is and keep what we have.
+    if (classifyLoad(stats) === 'empty') {
+      log('every sample failed — keeping the previous patch', patch.id, {
+        attempted: stats.attempted,
+        failed: stats.failed.length,
+      })
+      try {
+        instrument.disconnect()
+      } catch {
+        // noop
+      }
+      this.onLoading?.(null)
+      this.onError?.(
+        patch.id,
+        new Error(`no samples loaded (${stats.failed.length}/${stats.attempted} failed)`),
+      )
       return
     }
 

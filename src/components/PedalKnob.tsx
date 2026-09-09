@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface PedalKnobProps {
   label: string
@@ -51,6 +51,7 @@ export function PedalKnob({
   disabled = false,
   onChange,
 }: PedalKnobProps) {
+  const bodyRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<{ startY: number; startValue: number } | null>(null)
   const [dragging, setDragging] = useState(false)
 
@@ -106,7 +107,7 @@ export function PedalKnob({
   }, [])
 
   const onWheel = useCallback(
-    (e: React.WheelEvent) => {
+    (e: WheelEvent) => {
       if (disabled) return
       e.preventDefault()
       const direction = e.deltaY > 0 ? -1 : 1
@@ -115,6 +116,22 @@ export function PedalKnob({
     },
     [disabled, step, range, value, commit],
   )
+
+  // React registers `wheel` on its root container as a PASSIVE listener, so
+  // preventDefault() inside an onWheel prop is silently ignored and turning a
+  // knob also scrolls the pedalboard and the page. Only a listener we attach
+  // ourselves, explicitly non-passive, can cancel the scroll.
+  const wheelRef = useRef(onWheel)
+  useEffect(() => {
+    wheelRef.current = onWheel
+  })
+  useEffect(() => {
+    const el = bodyRef.current
+    if (!el) return
+    const handler = (e: WheelEvent) => wheelRef.current(e)
+    el.addEventListener('wheel', handler, { passive: false })
+    return () => el.removeEventListener('wheel', handler)
+  }, [])
 
   const onDoubleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -133,6 +150,7 @@ export function PedalKnob({
       style={{ opacity: disabled ? 0.45 : 1 }}
     >
       <div
+        ref={bodyRef}
         role="slider"
         aria-label={label}
         aria-valuemin={min}
@@ -152,7 +170,6 @@ export function PedalKnob({
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onDoubleClick={onDoubleClick}
-        onWheel={onWheel}
         onKeyDown={(e) => {
           if (disabled) return
           if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
