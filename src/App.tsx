@@ -7,6 +7,7 @@ import { PatchPicker } from './components/PatchPicker'
 import { PatchStrip } from './components/PatchStrip'
 import { KeyboardHud } from './components/KeyboardHud'
 import { TouchKeyboard } from './components/TouchKeyboard'
+import { TouchControls } from './components/TouchControls'
 import { DebugPanel } from './components/DebugPanel'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import { LoadErrorToast } from './components/LoadErrorToast'
@@ -381,7 +382,8 @@ export default function App() {
 
       <LoadingOverlay />
 
-      <LoadErrorToast onRetry={selectPatchId} />
+      {/* Keyboard mode renders its own inline copy in the column. */}
+      {!keyboardMode && <LoadErrorToast onRetry={selectPatchId} />}
 
       <SaveDialog />
 
@@ -392,7 +394,7 @@ export default function App() {
   if (keyboardMode) {
     return (
       <div
-        className="app app-keyboard-mode flex h-[100dvh] flex-col gap-2 p-2 sm:p-3"
+        className="app app-keyboard-mode flex h-[100dvh] flex-col gap-2 overflow-hidden p-2 sm:p-3"
         onClick={() => {
           if (needsGesture) void ensureAudio()
         }}
@@ -405,14 +407,21 @@ export default function App() {
           source={currentSource}
           onStep={handleStep}
           onBrowse={openPicker}
-          onExitKeyboardMode={() => setKeyboardMode(false)}
         />
+
+        <LoadErrorToast onRetry={selectPatchId} inline />
 
         <EffectsRow collapsible />
 
         <div className="app-keyboard-stage min-h-0 flex-1">
           <TouchKeyboard noteOn={noteOn} noteOff={noteOff} fill />
         </div>
+
+        <TouchControls
+          onPanic={panic}
+          onToggleKeyboardMode={() => setKeyboardMode(false)}
+          keyboardMode
+        />
 
         {overlays}
       </div>
@@ -619,7 +628,17 @@ export default function App() {
           <EffectsRow />
         </div>
 
-        <div className="rack-row-3 mt-4">
+        <div className="rack-row-touch mt-4">
+          <TouchControls
+            onPanic={panic}
+            onToggleKeyboardMode={() => {
+              void ensureAudio()
+              setKeyboardMode(true)
+            }}
+          />
+        </div>
+
+        <div className="rack-row-3 mt-3">
           <TouchKeyboard noteOn={noteOn} noteOff={noteOff} />
         </div>
 

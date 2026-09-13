@@ -14,7 +14,9 @@ export function KeyboardHud() {
         border: '1px solid var(--color-rack-edge)',
       }}
     >
-      <div className="keyboard-hud-keys flex items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-text/60">
+      {/* Pure computer-keyboard legend — meaningless on a touch device, where
+          TouchControls provides the same actions as buttons. */}
+      <div className="keyboard-hud-keys hidden items-center gap-3 font-mono text-[10px] uppercase tracking-wider text-text/60 sm:flex">
         <span className="keyboard-hud-row">
           <kbd className="hud-kbd">A</kbd>
           <kbd className="hud-kbd">S</kbd>

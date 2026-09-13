@@ -5,7 +5,18 @@ import { useStore } from '../state/useStore'
  * LCD showing a patch that was never actually loaded, with no clue why the keys
  * were silent — the single most confusing failure mode of the loader.
  */
-export function LoadErrorToast({ onRetry }: { onRetry: (id: string) => void }) {
+export function LoadErrorToast({
+  onRetry,
+  inline = false,
+}: {
+  onRetry: (id: string) => void
+  /**
+   * Sit in the layout instead of floating. Keyboard mode fills the viewport and
+   * ends in the touch controls, so a floating toast would cover panic and the
+   * octave buttons no matter which edge it was pinned to.
+   */
+  inline?: boolean
+}) {
   const loadError = useStore((s) => s.loadError)
   const setLoadError = useStore((s) => s.setLoadError)
   const online = useStore((s) => s.online)
@@ -14,7 +25,11 @@ export function LoadErrorToast({ onRetry }: { onRetry: (id: string) => void }) {
 
   return (
     <div
-      className="load-error-toast pop-in fixed bottom-4 left-1/2 z-[70] flex w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2 items-center gap-3 rounded-xl px-4 py-3"
+      className={`load-error-toast pop-in flex items-center gap-3 rounded-xl px-4 py-3 ${
+        inline
+          ? 'w-full shrink-0'
+          : 'fixed bottom-4 left-1/2 z-[70] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2'
+      }`}
       role="alert"
       style={{
         background: 'linear-gradient(180deg, #2A1220 0%, #1C0F1A 100%)',
