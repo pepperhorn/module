@@ -96,7 +96,8 @@ interface PersistedUi {
 }
 
 function loadUi(): PersistedUi {
-  const fallback: PersistedUi = { keyboardMode: false, fxVisible: true }
+  // Hidden by default: keyboard mode exists to give the keys the screen.
+  const fallback: PersistedUi = { keyboardMode: false, fxVisible: false }
   try {
     const raw = localStorage.getItem(UI_KEY)
     if (!raw) return fallback

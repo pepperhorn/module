@@ -24,7 +24,7 @@ export function EffectsRow({ collapsible = false }: EffectsRowProps) {
 
   return (
     <section
-      className={`effects-row rack-panel flex flex-col gap-2 rounded-xl ${
+      className={`effects-row rack-panel flex shrink-0 flex-col gap-2 rounded-xl ${
         shown ? 'p-3 sm:p-4' : 'px-3 py-2'
       }`}
       aria-label="Effects chain"
@@ -62,7 +62,14 @@ export function EffectsRow({ collapsible = false }: EffectsRowProps) {
         )}
       </header>
       {shown && (
-        <div className="effects-row-pedals scroll-clean flex gap-3 overflow-x-auto pb-1">
+        <div
+          className={`effects-row-pedals scroll-clean flex gap-3 overflow-x-auto pb-1 ${
+            // In keyboard mode the pedals are a guest on a screen that belongs
+            // to the keys: cap them and let them scroll rather than pushing the
+            // keyboard off the bottom of a phone.
+            collapsible ? 'max-h-[34dvh] overflow-y-auto' : ''
+          }`}
+        >
           {EFFECT_DEFS.map((def) => (
             <EffectPedal
               key={def.id}

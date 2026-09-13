@@ -1,7 +1,6 @@
 import type { PatchManifest } from '../patches/types'
 import { BANK_LABELS } from '../patches/types'
 import type { PatchSourceTag } from '../audio/AudioEngine'
-import { useStore } from '../state/useStore'
 
 interface PatchStripProps {
   patch: PatchManifest | undefined
@@ -11,7 +10,6 @@ interface PatchStripProps {
   source: PatchSourceTag | null
   onStep: (delta: number) => void
   onBrowse: () => void
-  onExitKeyboardMode: () => void
 }
 
 const SOURCE_COLORS: Record<PatchSourceTag['tier'], string> = {
@@ -42,16 +40,12 @@ export function PatchStrip({
   source,
   onStep,
   onBrowse,
-  onExitKeyboardMode,
 }: PatchStripProps) {
-  const octave = useStore((s) => s.octave)
-  const velocity = useStore((s) => s.velocity)
-  const shiftOctave = useStore((s) => s.shiftOctave)
   const tier = source?.tier ?? 'unknown'
 
   return (
     <header
-      className="patch-strip flex flex-wrap items-center gap-2 rounded-xl px-3 py-2"
+      className="patch-strip flex shrink-0 flex-wrap items-center gap-2 rounded-xl px-3 py-2"
       style={{
         background: 'linear-gradient(180deg, #0F1024 0%, #161A33 100%)',
         border: '1px solid rgba(91,192,235,0.28)',
@@ -87,8 +81,12 @@ export function PatchStrip({
         <button
           type="button"
           aria-label="Previous patch"
-          className="patch-strip-step cell-hit rounded-md px-2.5 py-1.5 font-mono text-[11px]"
-          style={{ background: 'rgba(91,192,235,0.12)', color: 'var(--color-lcd-text)' }}
+          className="patch-strip-step cell-hit flex h-11 min-w-11 items-center justify-center rounded-lg font-mono text-sm"
+          style={{
+            background: 'rgba(91,192,235,0.12)',
+            color: 'var(--color-lcd-text)',
+            touchAction: 'manipulation',
+          }}
           onClick={(e) => {
             e.stopPropagation()
             onStep(-1)
@@ -100,8 +98,12 @@ export function PatchStrip({
         <button
           type="button"
           aria-label="Next patch"
-          className="patch-strip-step cell-hit rounded-md px-2.5 py-1.5 font-mono text-[11px]"
-          style={{ background: 'rgba(91,192,235,0.12)', color: 'var(--color-lcd-text)' }}
+          className="patch-strip-step cell-hit flex h-11 min-w-11 items-center justify-center rounded-lg font-mono text-sm"
+          style={{
+            background: 'rgba(91,192,235,0.12)',
+            color: 'var(--color-lcd-text)',
+            touchAction: 'manipulation',
+          }}
           onClick={(e) => {
             e.stopPropagation()
             onStep(1)
@@ -110,40 +112,12 @@ export function PatchStrip({
           ▶
         </button>
 
-        <div className="patch-strip-octave flex items-center gap-1 font-mono text-[10px] uppercase tracking-widest text-lcd-dim">
-          <button
-            type="button"
-            aria-label="Octave down"
-            className="cell-hit rounded-md px-2 py-1.5"
-            style={{ background: 'rgba(91,192,235,0.12)', color: 'var(--color-lcd-text)' }}
-            onClick={(e) => {
-              e.stopPropagation()
-              shiftOctave(-1)
-            }}
-          >
-            −
-          </button>
-          <span className="tabular-nums">OCT {octave}</span>
-          <button
-            type="button"
-            aria-label="Octave up"
-            className="cell-hit rounded-md px-2 py-1.5"
-            style={{ background: 'rgba(91,192,235,0.12)', color: 'var(--color-lcd-text)' }}
-            onClick={(e) => {
-              e.stopPropagation()
-              shiftOctave(1)
-            }}
-          >
-            +
-          </button>
-          <span className="tabular-nums">VEL {velocity}</span>
-        </div>
-
         <button
           type="button"
-          className="patch-strip-browse cell-hit rounded-md px-3 py-1.5 font-display text-[11px] font-medium uppercase tracking-widest text-bg"
+          className="patch-strip-browse cell-hit flex h-11 items-center rounded-lg px-4 font-display text-xs font-medium uppercase tracking-widest text-bg"
           style={{
             background: 'linear-gradient(180deg, var(--color-sky) 0%, #4AA8D2 100%)',
+            touchAction: 'manipulation',
           }}
           onClick={(e) => {
             e.stopPropagation()
@@ -153,21 +127,6 @@ export function PatchStrip({
           Library
         </button>
 
-        <button
-          type="button"
-          title="Back to the full rack"
-          className="patch-strip-exit cell-hit rounded-md px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest"
-          style={{
-            background: 'rgba(91,192,235,0.12)',
-            color: 'var(--color-lcd-text)',
-          }}
-          onClick={(e) => {
-            e.stopPropagation()
-            onExitKeyboardMode()
-          }}
-        >
-          ⌸ Rack
-        </button>
       </div>
     </header>
   )
