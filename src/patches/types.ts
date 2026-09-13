@@ -71,5 +71,7 @@ export interface UserPatch {
   color: PatchColor
   fxEnabled: Record<string, boolean>
   fxParams: Record<string, Record<string, number>>
+  /** Chain order at save time. Absent on presets saved before ordering existed. */
+  fxOrder?: string[]
   createdAt: number
 }

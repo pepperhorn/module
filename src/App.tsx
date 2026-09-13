@@ -22,6 +22,7 @@ import { useWakeLock } from './input/useWakeLock'
 import { getEngine } from './audio/AudioEngine'
 import type { Bank, PatchManifest } from './patches/types'
 import type { EffectId as EngineEffectId } from './audio/effects'
+import { normalizeFxOrder } from './audio/effects'
 
 export default function App() {
   // Mount the patch sync hook so it pulls/merges on login and pushes on save.
@@ -51,6 +52,7 @@ export default function App() {
   const userPatches = useStore((s) => s.userPatches)
   const setFxParam = useStore((s) => s.setFxParam)
   const setFxEnabled = useStore((s) => s.toggleFxEnabled)
+  const setFxOrder = useStore((s) => s.setFxOrder)
   const debugMode = useStore((s) => s.debugMode)
   const keyboardMode = useStore((s) => s.keyboardMode)
   const setKeyboardMode = useStore((s) => s.setKeyboardMode)
@@ -190,8 +192,13 @@ export default function App() {
           engine.setEffectParam(fxId as EngineEffectId, paramId, value)
         }
       }
+      // Presets saved before ordering existed carry no order; normalize gives
+      // them the default rather than leaving the chain on the previous patch's.
+      const order = normalizeFxOrder(u.fxOrder)
+      setFxOrder(order)
+      engine.setEffectOrder(order)
     },
-    [engine, userPatches, setFxEnabled, setFxParam],
+    [engine, userPatches, setFxEnabled, setFxParam, setFxOrder],
   )
 
   /** Resume the AudioContext and push the stored FX state into the chain. */
@@ -199,7 +206,10 @@ export default function App() {
     if (!needsGesture) return
     setNeedsGesture(false)
     await engine.resume()
-    const { fxEnabled, fxParams } = useStore.getState()
+    const { fxEnabled, fxParams, fxOrder } = useStore.getState()
+    // Order first: the chain is built fresh on resume, so it starts on the
+    // default wiring until the stored order is applied.
+    engine.setEffectOrder(fxOrder)
     for (const [id, on] of Object.entries(fxEnabled)) {
       engine.setEffectEnabled(id as EngineEffectId, on)
     }

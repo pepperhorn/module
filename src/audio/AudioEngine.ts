@@ -1,5 +1,6 @@
 import type { PatchManifest, PatchSource } from '../patches/types'
 import { buildEffectChain, DOUBLER_SNAPS } from './effects'
+import type { ChainEffectId } from './effects'
 import type { EffectId } from './effects'
 import { instantiatePatch, type LoadedInstrument, type LoadProgress } from './loadPatch'
 import { previewSequence, previewDurationMs, previewRootMidi } from './preview'
@@ -930,6 +931,11 @@ export class AudioEngine {
       return
     }
     this.chain?.setParam(id, paramId, value)
+  }
+
+  /** Rewire the audio chain into this order. Note-level effects are unaffected. */
+  setEffectOrder(order: ChainEffectId[]): void {
+    this.chain?.setOrder(order)
   }
 
   setEffectEnabled(id: EffectId, on: boolean): void {

@@ -19,8 +19,12 @@ fixed Distortion → Chorus → Delay → Reverb effects chain.
   computer keyboard (`A–L` rows), and a multitouch on-screen keyboard
 - **Effects chain** wired in raw Web Audio: WaveShaper distortion, LFO chorus,
   feedback delay, ConvolverNode reverb. No Tone.js dependency. Each effect is a
-  stompbox — status LED, pots two to a row, and a footswitch that stomps it in
-  and out
+  stompbox — a painted enclosure carrying a footswitch and `◀ ▶` chain-order
+  arrows, opening on demand to its pots (two to a row)
+- **Reorderable chain**: the arrows rewire the audio graph live, and the order
+  persists and is captured in saved presets. The doublers sit ahead of the
+  chain and have no arrows — they are note-level triggers rather than nodes in
+  the graph, so they have no position to move
 - **Local-first storage cascade**: vendored files → alt-format fallback → persistent
   Cache API → live CDN, with a coloured **LOCAL / CACHE / CDN / MIX** badge in the
   LCD so you always know where the audio came from

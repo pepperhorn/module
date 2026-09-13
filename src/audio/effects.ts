@@ -20,6 +20,58 @@ export interface EffectDef {
   params: EffectParamDef[]
 }
 
+/**
+ * The effects that actually exist as audio nodes, in their default order.
+ *
+ * The doublers are deliberately absent: they are note-level triggers fired in
+ * AudioEngine.noteOn, not nodes in the graph, so "where they sit in the chain"
+ * has no meaning and they cannot be reordered.
+ */
+export const CHAIN_EFFECT_IDS = ['distortion', 'chorus', 'delay', 'reverb'] as const
+
+export type ChainEffectId = (typeof CHAIN_EFFECT_IDS)[number]
+
+export function isChainEffectId(id: string): id is ChainEffectId {
+  return (CHAIN_EFFECT_IDS as readonly string[]).includes(id)
+}
+
+/**
+ * Coerce anything — persisted state, a saved preset from an older build — into
+ * a usable chain order: every effect exactly once. Unknown ids are dropped and
+ * missing ones appended in default order, so a stored order can never leave an
+ * effect silently unwired.
+ */
+export function normalizeFxOrder(input: unknown): ChainEffectId[] {
+  const out: ChainEffectId[] = []
+  if (Array.isArray(input)) {
+    for (const entry of input) {
+      if (typeof entry !== 'string' || !isChainEffectId(entry)) continue
+      if (out.includes(entry)) continue
+      out.push(entry)
+    }
+  }
+  for (const id of CHAIN_EFFECT_IDS) {
+    if (!out.includes(id)) out.push(id)
+  }
+  return out
+}
+
+/** The order with `id` moved by `delta` places, clamped at the ends. */
+export function moveInOrder(
+  order: ChainEffectId[],
+  id: ChainEffectId,
+  delta: number,
+): ChainEffectId[] {
+  const from = order.indexOf(id)
+  if (from === -1) return order
+  const to = from + delta
+  if (to < 0 || to >= order.length) return order
+  const next = [...order]
+  next.splice(from, 1)
+  next.splice(to, 0, id)
+  return next
+}
+
 export const DOUBLER_SNAPS = [
   { st: -12, label: '-OCT' },
   { st: -11, label: '-M7' },
@@ -439,10 +491,18 @@ function makeReverb(ctx: AudioContext): FxNode {
 }
 
 export interface EffectChain {
+  /**
+   * Where instruments connect. This node's identity never changes, including
+   * across a reorder — instruments are wired to it at construction and kept in
+   * the engine's LRU cache, so a chain whose input was the first effect would
+   * silence every cached instrument the moment the order changed.
+   */
   inputNode: AudioNode
   master: GainNode
   setEnabled: (id: EffectId, on: boolean) => void
   setParam: (id: EffectId, paramId: string, value: number) => void
+  setOrder: (order: ChainEffectId[]) => void
+  getOrder: () => ChainEffectId[]
   dispose: () => void
 }
 
@@ -453,23 +513,45 @@ export function buildEffectChain(context: AudioContext): EffectChain {
   const reverb = makeReverb(context)
   const master = context.createGain()
   master.gain.value = 0.85
-
-  // Wire: input → DIST → CHORUS → DELAY → REVERB → master → out
-  // (Doublers are handled at note level in AudioEngine, not as audio FX)
-  distortion.output.connect(chorus.input)
-  chorus.output.connect(delay.input)
-  delay.output.connect(reverb.input)
-  reverb.output.connect(master)
   master.connect(context.destination)
 
-  const inputNode = distortion.input
+  // A fixed entry point, so instruments keep a stable destination no matter how
+  // the effects behind it are reordered.
+  const entry = context.createGain()
 
-  const fxMap: Partial<Record<EffectId, FxNode>> = {
+  const chainMap: Record<ChainEffectId, FxNode> = {
     distortion,
     chorus,
     delay,
     reverb,
   }
+  const fxMap: Partial<Record<EffectId, FxNode>> = chainMap
+
+  let order: ChainEffectId[] = normalizeFxOrder(null)
+
+  // Rewire entry → … → master. Every node between them is disconnected first;
+  // each effect's output only ever feeds the next stage, so a bare disconnect()
+  // cannot tear down any of an effect's internal wet/dry routing.
+  const setOrder = (next: ChainEffectId[]) => {
+    const wanted = normalizeFxOrder(next)
+    try {
+      entry.disconnect()
+      for (const id of CHAIN_EFFECT_IDS) chainMap[id].output.disconnect()
+    } catch {
+      // noop
+    }
+    let previous: AudioNode = entry
+    for (const id of wanted) {
+      previous.connect(chainMap[id].input)
+      previous = chainMap[id].output
+    }
+    previous.connect(master)
+    order = wanted
+  }
+
+  setOrder(order)
+
+  const inputNode = entry
 
   const setEnabled = (id: EffectId, on: boolean) => {
     fxMap[id]?.setEnabled(on)
@@ -484,6 +566,11 @@ export function buildEffectChain(context: AudioContext): EffectChain {
   }
 
   const dispose = () => {
+    try {
+      entry.disconnect()
+    } catch {
+      // noop
+    }
     distortion.dispose()
     chorus.dispose()
     delay.dispose()
@@ -495,5 +582,5 @@ export function buildEffectChain(context: AudioContext): EffectChain {
     }
   }
 
-  return { inputNode, master, setEnabled, setParam, dispose }
+  return { inputNode, master, setEnabled, setParam, setOrder, getOrder: () => [...order], dispose }
 }
