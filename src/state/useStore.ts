@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import type { EffectId } from '../audio/effects'
-import { defaultParams } from '../audio/effects'
+import { defaultParams, moveInOrder, normalizeFxOrder } from '../audio/effects'
+import type { ChainEffectId } from '../audio/effects'
 import type { PatchSourceTag } from '../audio/AudioEngine'
 import type { PatchManifest, UserPatch } from '../patches/types'
 import { getCatalog, findPatch } from '../patches/catalog'
@@ -18,6 +19,7 @@ interface PersistedSlice {
   velocity: number
   fxEnabled: Record<EffectId, boolean>
   fxParams: Record<EffectId, Record<string, number>>
+  fxOrder: ChainEffectId[]
 }
 
 function loadPersisted(): Partial<PersistedSlice> {
@@ -163,6 +165,8 @@ interface State {
   velocity: number
   fxEnabled: Record<EffectId, boolean>
   fxParams: Record<EffectId, Record<string, number>>
+  /** Order of the audio effects in the chain. Doublers are note-level, so absent. */
+  fxOrder: ChainEffectId[]
   favourites: Set<string>
   downloaded: Set<string>
   downloadingPatchId: string | null
@@ -199,6 +203,8 @@ interface State {
   shiftVelocity: (delta: number) => void
   toggleFxEnabled: (id: EffectId) => void
   setFxParam: (id: EffectId, paramId: string, value: number) => void
+  setFxOrder: (order: ChainEffectId[]) => void
+  moveFx: (id: ChainEffectId, delta: number) => void
   toggleFavourite: (id: string) => void
   setMidiConnected: (b: boolean) => void
   flashMidiActivity: () => void
@@ -226,6 +232,7 @@ const initialFxEnabled: Record<EffectId, boolean> = {
   reverb: persisted.fxEnabled?.reverb ?? true,
 }
 const initialFxParams = persisted.fxParams ?? defaultParams()
+const initialFxOrder = normalizeFxOrder(persisted.fxOrder)
 // Default reverb mix to a noticeable value if no persisted state
 if (!persisted.fxParams) initialFxParams.reverb.mix = 0.25
 
@@ -236,6 +243,7 @@ function persist(state: State) {
     velocity: state.velocity,
     fxEnabled: state.fxEnabled,
     fxParams: state.fxParams,
+    fxOrder: state.fxOrder,
   }
   try {
     localStorage.setItem(STATE_KEY, JSON.stringify(slice))
@@ -256,6 +264,7 @@ export const useStore = create<State>((set, get) => ({
   velocity: persisted.velocity ?? 100,
   fxEnabled: initialFxEnabled,
   fxParams: initialFxParams,
+  fxOrder: initialFxOrder,
   favourites: loadFavourites(),
   downloaded: loadDownloaded(),
   downloadingPatchId: null,
@@ -332,6 +341,16 @@ export const useStore = create<State>((set, get) => ({
     set({ fxParams: params })
     persist(get())
   },
+  setFxOrder: (order) => {
+    set({ fxOrder: normalizeFxOrder(order) })
+    persist(get())
+  },
+  moveFx: (id, delta) => {
+    const next = moveInOrder(get().fxOrder, id, delta)
+    if (next === get().fxOrder) return
+    set({ fxOrder: next })
+    persist(get())
+  },
   toggleFavourite: (id) => {
     const fav = new Set(get().favourites)
     if (fav.has(id)) fav.delete(id)
@@ -384,6 +403,7 @@ export const useStore = create<State>((set, get) => ({
       fxParams: Object.fromEntries(
         Object.entries(state.fxParams).map(([k, v]) => [k, { ...v }]),
       ),
+      fxOrder: [...state.fxOrder],
       createdAt: Date.now(),
     }
     const next = [userPatch, ...state.userPatches]
