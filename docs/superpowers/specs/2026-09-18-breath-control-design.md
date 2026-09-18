@@ -46,38 +46,93 @@ question with a real answer rather than an accident of wiring order — see
 problem: the breath path can be designed into the router from the first commit
 instead of being threaded through a mapping table that already shipped.
 
-**Safari still has no Web MIDI.** See *Platform reality* — this materially limits
-who can use the feature and needs saying out loud before anyone builds it.
+**Chrome now gates Web MIDI behind a permission prompt.** Since Chrome 124 this
+applies to all MIDI access, not just SysEx — which the current `useWebMidi` is
+not written for. See *Target platform*.
 
 ---
 
-## Platform reality (verify before committing effort)
+## Target platform: Android, plus desktop Chrome
+
+**Android Chrome is the target.** A Travel Sax is class-compliant USB-C MIDI and
+an Android phone is USB-C, so phone + cable is the whole rig — no interface, no
+laptop. That is the setup worth designing for. Desktop Chrome/Edge comes along
+free and is where this gets developed and debugged.
 
 | Browser | Web MIDI |
 |---|---|
 | Chrome / Edge desktop | Yes |
-| Chrome Android | Yes (from v152) |
-| **Safari macOS** | **No** |
-| **Safari iOS / iPadOS** | **No** |
+| Chrome Android | Yes |
+| Everything else | Out of scope |
 
 Source: [caniuse.com/midi](https://caniuse.com/midi).
 
-This is the single most important fact in this document. MODULE is an installable
-PWA and a large part of its point is playing on a phone — but on iOS, where a PWA
-is *only* ever Safari's engine, `navigator.requestMIDIAccess` does not exist. An
-iPhone user cannot drive MODULE from a Travel Sax at all, however the app is
-written. The Odisei devices are marketed heavily around an iOS companion app,
-so this mismatch is exactly the one a user will walk into.
+iOS is out of scope and not pursued: no browser on iOS has Web MIDI, Chrome
+included, because every iOS browser runs on WebKit. Recorded once here so nobody
+re-opens it; it has no further bearing on this design.
 
-Consequences for this design:
+### Permission gating — the current code is wrong for this
 
-- The target platforms are **desktop Chrome/Edge and Android Chrome**. Say so in
-  the UI rather than letting an iOS user hunt for a setting that cannot work.
-- `useWebMidi` already feature-detects and degrades silently. That silence is now
-  wrong: the MIDI settings entry point should render an explicit *"Web MIDI isn't
-  available in this browser"* state on Safari rather than an empty device list.
-- Nothing here is worth building **for iOS** without a different transport, and
-  there isn't one worth having (Web Bluetooth is also absent on iOS Safari).
+Since **Chrome 124**, `navigator.requestMIDIAccess()` is gated behind a
+permission prompt for *all* MIDI access, not only SysEx. A denied request
+rejects with a `SecurityError`.
+([Chrome for Developers](https://developer.chrome.com/blog/web-midi-permission-prompt))
+
+`useWebMidi` today calls `requestMIDIAccess({ sysex: false })` **from a mount
+effect**, and swallows any rejection into `setMidiConnected(false)`. On current
+Chrome that means:
+
+- Every visit raises a MIDI permission prompt on page load, before the user has
+  touched anything — on a phone, an immediate modal for a feature they may not
+  be using.
+- Denying it is indistinguishable, in the UI, from having no MIDI device
+  plugged in. The user sees "MIDI none" forever with nothing to act on, and the
+  recovery lives in Chrome's site settings where they will not look.
+
+**Decisions:**
+
+- **Request on demand, not on mount.** Access is requested when the user opens
+  MIDI settings or enables MIDI — a deliberate action, so the prompt has context
+  and arrives already explained.
+- **Three distinct states, never one.** `unsupported` (no `requestMIDIAccess`),
+  `denied` (`SecurityError` — offer the recovery path), and `granted, no devices`
+  (the genuine "plug something in"). The current single silent state hides two of
+  them.
+- Keep `sysex: false`. Nothing here needs SysEx, and asking for it makes the
+  prompt scarier for no gain.
+
+### Latency is the go/no-go
+
+This is the risk that should be settled before the rest is built. A wind player
+articulates against the sound; latency that a keyboard player tolerates is
+unplayable on a sax. Android's audio path is the weak link — not Web MIDI, which
+is just bytes.
+
+MODULE currently constructs `new AudioContext()` with no options, so it takes
+whatever the platform defaults to.
+
+**Decisions:**
+
+- Construct with an explicit `latencyHint: 'interactive'`.
+- Report `context.baseLatency + context.outputLatency` in the MIDI panel, beside
+  the breath meter. It is the number that explains "this feels laggy" and costs
+  two properties to surface.
+- **Measure before building.** The first milestone is a throwaway spike on the
+  actual target phone: breath in, note out, measured round trip. If Android's
+  output latency makes it unplayable, that changes what is worth building here
+  — better to learn it from a spike than from a finished feature.
+
+No target figure is set here on purpose. Setting one from memory would be
+inventing a number; measure the real device and decide against that.
+
+### Connection notes
+
+- USB-C to USB-C, or OTG for older handsets. Android has exposed USB MIDI to
+  apps since Marshmallow, and Chrome's Web MIDI sits on that, so a
+  class-compliant device needs no driver.
+- A bus-powered MIDI device draws from the phone. Expect a battery cost on long
+  sessions; the existing wake lock already keeps the screen on, which compounds
+  it. Worth a line in the UI, not a feature.
 
 ---
 
@@ -335,8 +390,13 @@ table, because for these users it *is* the feature:
 - **Velocity mode** as a two-state switch with a plain-language explanation of
   why `fixed` is the default.
 
-On Safari, this panel is replaced by the unsupported-browser notice described in
-*Platform reality*. Not a disabled form — an explanation.
+The panel has three empty states rather than one blank list, matching the
+permission states above: *not supported here*, *permission denied* (with the
+recovery path), and *granted, nothing plugged in*. Each is an explanation, not a
+disabled form — and the second is the one the current code cannot express at all.
+
+The measured output latency sits beside the breath meter: the other number a
+player needs when it "feels wrong".
 
 Touch sizing follows the rules already established: 44px primary targets, 36px
 minimum for dense secondary controls.
@@ -386,7 +446,8 @@ defaults feel right, and every Travel Clarinet row marked unverified above.
   less: the Travel Sax 2 has no pitch or bite sensor at all. EWI-only.
 - **Per-voice breath.** Needs a per-voice gain smplr does not expose. The global
   stage is the honest approximation.
-- **iOS.** No Web MIDI, no workaround worth having.
+- **iOS and every non-Chromium browser.** Android Chrome and desktop
+  Chrome/Edge are the target; see *Target platform*.
 - **Bluetooth MIDI.** Not established as a MIDI transport on either Odisei device;
   both do USB-C class-compliant MIDI, which Web MIDI already sees.
 - **Breath → filter cutoff.** There is still no filter in the chain.
@@ -409,6 +470,10 @@ defaults feel right, and every Travel Clarinet row marked unverified above.
 5. **What happens with a keyboard and a wind controller connected together?**
    Currently: breath ducks both. Per-channel routing (April's deferred v2) is the
    real fix.
+6. **Is Android's round-trip latency actually playable for a wind controller?**
+   The open question this design is most exposed to, and the first milestone
+   answers it. Everything below the router is unaffected either way; how much
+   polish the feature deserves is not.
 
 ---
 
@@ -424,4 +489,7 @@ defaults feel right, and every Travel Clarinet row marked unverified above.
 | Three named curves, no curve editor | Covers real preference without becoming a modulation matrix |
 | Device presets are the primary UX; Learn is the fallback | Nobody should read a CC table to play a saxophone |
 | Pitch bend stays deferred | The Travel Sax 2 has no pitch sensor; EWI-only, so it does not gate this work |
-| Safari gets an explanation, not a disabled form | Web MIDI is absent on both macOS and iOS Safari, and silence looks like a bug |
+| Android Chrome is the target platform | Phone plus a USB-C cable is the whole rig for a class-compliant wind controller; desktop Chrome comes free |
+| MIDI access is requested on demand, not on mount | Chrome 124+ gates all Web MIDI behind a prompt; requesting at page load prompts before the user has asked for anything |
+| Denied, unsupported and no-devices are three separate states | They are one silent state today, so a denied prompt is indistinguishable from an unplugged cable and unrecoverable in the UI |
+| Latency is measured on a real device before the rest is built | Android's audio path is the weak link and a wind player feels it; a spike answers it cheaply, a finished feature answers it expensively |
