@@ -138,3 +138,74 @@ describe('BreathController multi-source', () => {
     expect(calls).toEqual(['on 61 100', 'off 61'])
   })
 })
+
+describe('BreathController.setConfig', () => {
+  it('re-targets the breath CC without dropping held notes', () => {
+    const { ctrl, calls } = setup()
+    ctrl.controlChange(2, 80)
+    ctrl.noteOn(62, 90)
+    ctrl.setConfig({ ...WIND_BREATH_DEFAULTS, cc: 11 })
+    expect(calls).toEqual(['on 62 100'])
+    expect(ctrl.controlChange(2, 0)).toBe(false) // old CC no longer gates
+    expect(calls).toEqual(['on 62 100'])
+    expect(ctrl.controlChange(11, 0)).toBe(true) // new CC does
+    expect(calls).toEqual(['on 62 100', 'off 62'])
+  })
+
+  it('disabling mid-phrase flushes gated notes and restores gain 1', () => {
+    const { ctrl, calls, out } = setup()
+    ctrl.controlChange(2, 0) // armed, gate shut
+    ctrl.noteOn(61, 40)
+    expect(calls).toEqual([])
+    ctrl.setConfig(WIND_BREATH_DEFAULTS, false)
+    expect(out.setBreath).toHaveBeenLastCalledWith(1, 8, true)
+    expect(out.setBreath.mock.invocationCallOrder.at(-1)!).toBeLessThan(
+      out.noteOn.mock.invocationCallOrder[0],
+    )
+    expect(calls).toEqual(['on 61 40']) // device velocity once breath is off
+    expect(ctrl.isActive).toBe(false)
+    // Breath CCs are now ignored entirely: no gating, no gain writes.
+    out.setBreath.mockClear()
+    expect(ctrl.controlChange(2, 0)).toBe(false)
+    expect(out.setBreath).not.toHaveBeenCalled()
+    ctrl.noteOn(64, 55)
+    expect(calls.at(-1)).toBe('on 64 55')
+  })
+
+  it('re-enabling arms again on the next breath CC', () => {
+    const { ctrl, calls } = setup()
+    ctrl.setConfig(WIND_BREATH_DEFAULTS, false)
+    ctrl.setConfig(WIND_BREATH_DEFAULTS, true)
+    ctrl.noteOn(60, 50)
+    expect(calls).toEqual(['on 60 50']) // still pass-through until breath arrives
+    ctrl.controlChange(2, 0)
+    expect(calls).toEqual(['on 60 50', 'off 60'])
+  })
+
+  it('a curve change re-shapes the current breath level', () => {
+    vi.useFakeTimers()
+    try {
+      const { ctrl, out, advance } = setup()
+      ctrl.controlChange(2, 64)
+      const expBefore = out.setBreath.mock.calls.at(-1)![0]
+      advance(10)
+      ctrl.setConfig({ ...WIND_BREATH_DEFAULTS, curve: 'logarithmic' })
+      vi.runAllTimers()
+      const after = out.setBreath.mock.calls.at(-1)![0]
+      expect(after).toBeCloseTo(breathToGain(64, cfg({ curve: 'logarithmic' })))
+      expect(after).toBeGreaterThan(expBefore)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('raising the gate above the current breath closes it', () => {
+    const { ctrl, calls } = setup()
+    ctrl.controlChange(2, 10)
+    ctrl.noteOn(62, 90)
+    ctrl.setConfig({ ...WIND_BREATH_DEFAULTS, gateThreshold: 20 })
+    expect(calls).toEqual(['on 62 100', 'off 62'])
+    ctrl.controlChange(2, 30)
+    expect(calls).toEqual(['on 62 100', 'off 62', 'on 62 100'])
+  })
+})

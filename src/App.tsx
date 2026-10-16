@@ -12,6 +12,7 @@ import { DebugPanel } from './components/DebugPanel'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import { LoadErrorToast } from './components/LoadErrorToast'
 import { SaveDialog } from './components/SaveDialog'
+import { MidiPanel } from './components/MidiPanel'
 import { OutputPicker } from './components/OutputPicker'
 import { useUserPatchSync } from './state/useUserPatchSync'
 import { useStore } from './state/useStore'
@@ -345,6 +346,7 @@ export default function App() {
   )
   useComputerKeyboard({ noteOn: uiNoteOn, noteOff, panic })
   const wakeLock = useWakeLock()
+  const getLatency = useCallback(() => engine.latencyInfo(), [engine])
 
   // Browse hotkey
   useEffect(() => {
@@ -436,6 +438,8 @@ export default function App() {
       {!keyboardMode && <LoadErrorToast onRetry={selectPatchId} />}
 
       <SaveDialog />
+
+      <MidiPanel getLatency={getLatency} />
 
       {debugMode && <DebugPanel />}
     </>

@@ -5,6 +5,32 @@ import type { ChainEffectId } from '../audio/effects'
 import type { PatchSourceTag } from '../audio/AudioEngine'
 import type { PatchManifest, UserPatch } from '../patches/types'
 import { getCatalog, findPatch } from '../patches/catalog'
+import {
+  loadMidiProfile,
+  normalizeMidiProfile,
+  presetProfile,
+  saveMidiProfile,
+  type MidiPresetId,
+  type MidiProfile,
+} from '../input/midiProfile'
+import type { BreathConfig } from '../input/breath'
+
+/**
+ * Web MIDI access, as three user-visible outcomes plus the pre-request states:
+ * - `unsupported`: no requestMIDIAccess (iOS, Firefox without the add-on…)
+ * - `idle`: supported, not requested yet (we ask on demand)
+ * - `pending`: prompt showing
+ * - `denied`: SecurityError — recoverable only via Chrome's site settings
+ * - `granted`: access held (devices may or may not be plugged in)
+ * - `error`: any other failure
+ */
+export type MidiAccessStatus = 'unsupported' | 'idle' | 'pending' | 'denied' | 'granted' | 'error'
+
+export interface MidiDeviceInfo {
+  id: string
+  name: string
+  manufacturer: string
+}
 
 const FAVOURITES_KEY = 'module:favourites:v1'
 const STATE_KEY = 'module:state:v1'
@@ -176,6 +202,20 @@ interface State {
   pickerOpen: boolean
   midiConnected: boolean
   midiActivity: boolean
+  midiStatus: MidiAccessStatus
+  midiDevices: MidiDeviceInfo[]
+  midiProfile: MidiProfile
+  midiPanelOpen: boolean
+  /** Learn mode: the next swept CC on any input becomes the breath CC. */
+  midiLearning: boolean
+  setMidiStatus: (s: MidiAccessStatus) => void
+  setMidiDevices: (d: MidiDeviceInfo[]) => void
+  setMidiProfile: (p: MidiProfile) => void
+  applyMidiPreset: (id: MidiPresetId) => void
+  updateBreath: (patch: Partial<BreathConfig>) => void
+  setBreathEnabled: (v: boolean) => void
+  setMidiPanelOpen: (open: boolean) => void
+  setMidiLearning: (v: boolean) => void
   debugMode: boolean
   online: boolean
   keyboardMode: boolean
@@ -274,6 +314,33 @@ export const useStore = create<State>((set, get) => ({
   pickerOpen: false,
   midiConnected: false,
   midiActivity: false,
+  midiStatus:
+    typeof navigator !== 'undefined' && 'requestMIDIAccess' in navigator ? 'idle' : 'unsupported',
+  midiDevices: [],
+  midiProfile: loadMidiProfile(),
+  midiPanelOpen: false,
+  midiLearning: false,
+  setMidiStatus: (s) => set({ midiStatus: s }),
+  setMidiDevices: (d) => {
+    const cur = get().midiDevices
+    const same =
+      cur.length === d.length &&
+      cur.every((c, i) => c.id === d[i].id && c.name === d[i].name && c.manufacturer === d[i].manufacturer)
+    if (!same) set({ midiDevices: d })
+  },
+  setMidiProfile: (p) => {
+    const next = normalizeMidiProfile(p)
+    set({ midiProfile: next })
+    saveMidiProfile(next)
+  },
+  applyMidiPreset: (id) => get().setMidiProfile(presetProfile(id)),
+  updateBreath: (patch) => {
+    const cur = get().midiProfile
+    get().setMidiProfile({ ...cur, breath: { ...cur.breath, ...patch } })
+  },
+  setBreathEnabled: (v) => get().setMidiProfile({ ...get().midiProfile, enabled: v }),
+  setMidiPanelOpen: (open) => set(open ? { midiPanelOpen: true } : { midiPanelOpen: false, midiLearning: false }),
+  setMidiLearning: (v) => set({ midiLearning: v }),
   debugMode: loadDebug(),
   online: typeof navigator === 'undefined' ? true : navigator.onLine,
   keyboardMode: initialUi.keyboardMode,

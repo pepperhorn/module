@@ -86,22 +86,64 @@ export class BreathController {
   private sounding = new Set<number>()
   private lastWriteAt = -Infinity
   private pendingWrite: ReturnType<typeof setTimeout> | null = null
+  /** Last raw breath value (0..127), so config changes can re-evaluate it. */
+  private lastRaw = 0
+  private enabled: boolean
+  private config: BreathConfig
   private readonly outputs: BreathOutputs
-  private readonly config: BreathConfig
   private readonly now: () => number
 
   constructor(
     outputs: BreathOutputs,
     config: BreathConfig = WIND_BREATH_DEFAULTS,
     now: () => number = () => performance.now(),
+    enabled = true,
   ) {
     this.outputs = outputs
     this.config = config
     this.now = now
+    this.enabled = enabled
   }
 
   get isActive(): boolean {
     return this.active
+  }
+
+  get isEnabled(): boolean {
+    return this.enabled
+  }
+
+  /**
+   * Apply a new breath config at runtime without dropping held notes.
+   *
+   * - Disabling while active opens the gate for good: held-but-gated keys start
+   *   (so the player is not left with silent keys) and the shared gain returns
+   *   to 1, after which this input is pure pass-through.
+   * - Any other change re-evaluates the last breath value under the new config,
+   *   so a gate/curve/floor tweak is heard immediately. A CC change just
+   *   re-targets which controller is listened to; the gate keeps its state until
+   *   the new CC speaks.
+   */
+  setConfig(config: BreathConfig, enabled = true): void {
+    const wasEnabled = this.enabled
+    this.config = config
+    this.enabled = enabled
+    if (!enabled) {
+      if (wasEnabled && this.active) {
+        if (this.pendingWrite) clearTimeout(this.pendingWrite)
+        this.pendingWrite = null
+        this.active = false
+        this.open = true
+        this.level = 1
+        // Gain first so the flushed notes are not softened by smoothing.
+        this.outputs.setBreath(1, config.smoothingMs, true)
+        for (const [midi, vel] of this.held) {
+          if (!this.sounding.has(midi)) this.start(midi, vel)
+        }
+      }
+      return
+    }
+    if (this.active) this.breath(this.lastRaw)
   }
 
   noteOn(midi: number, velocity: number): void {
@@ -117,12 +159,14 @@ export class BreathController {
 
   /** Feed a Control Change. Returns true if it was the breath CC. */
   controlChange(cc: number, value: number): boolean {
-    if (cc !== this.config.cc) return false
+    if (!this.enabled || cc !== this.config.cc) return false
     this.breath(value)
     return true
   }
 
   breath(value: number): void {
+    if (!this.enabled) return
+    this.lastRaw = value
     this.active = true
     const wasOpen = this.open
     this.open = value >= this.config.gateThreshold
