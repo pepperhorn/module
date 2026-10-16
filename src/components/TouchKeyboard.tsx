@@ -6,7 +6,7 @@ interface TouchKeyboardProps {
   noteOff: (midi: number) => void
   /** Notes currently sounding from ANY source (computer keyboard, MIDI, touch) —
    *  used to light the on-screen keys. Touch also feeds this via App.noteOn. */
-  activeNotes?: Set<number>
+  activeNotes?: ReadonlySet<number>
   octaves?: number
 }
 

@@ -307,7 +307,9 @@ export const useStore = create<State>((set, get) => ({
   flashMidiActivity: (() => {
     let timer: ReturnType<typeof setTimeout> | null = null
     return () => {
-      set({ midiActivity: true })
+      // Wind/breath controllers stream CC + aftertouch at hundreds of msgs/s;
+      // only touch the store on the off→on edge so subscribers don't churn.
+      if (!get().midiActivity) set({ midiActivity: true })
       if (timer) clearTimeout(timer)
       timer = setTimeout(() => set({ midiActivity: false }), 80)
     }

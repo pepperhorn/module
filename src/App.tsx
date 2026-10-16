@@ -16,6 +16,7 @@ import { useComputerKeyboard } from './input/useComputerKeyboard'
 import { useWebMidi } from './input/useWebMidi'
 import { useWakeLock } from './input/useWakeLock'
 import { getEngine } from './audio/AudioEngine'
+import { addActiveNote, clearActiveNotes, removeActiveNote, useActiveNotes } from './state/activeNotes'
 import { findPatch } from './patches/catalog'
 import type { Bank, PatchManifest } from './patches/types'
 import type { EffectId as EngineEffectId } from './audio/effects'
@@ -179,41 +180,34 @@ export default function App() {
     }
   }, [engine, currentPatch])
 
-  // Notes currently sounding, from ANY input source (computer keyboard, MIDI,
-  // on-screen touch). All three route through these handlers, so tracking here
-  // lets the on-screen keyboard light up regardless of what triggered the note.
-  const [activeNotes, setActiveNotes] = useState<Set<number>>(new Set())
-
+  // Note handlers shared by every input source. Audio is triggered first;
+  // the on-screen keyboard highlight goes through the activeNotes store so
+  // only the keyboard re-renders per note (see state/activeNotes.ts).
   const noteOn = useCallback(
     (midi: number, vel: number) => {
       engine.noteOn(midi, vel)
-      setActiveNotes((prev) => {
-        if (prev.has(midi)) return prev
-        const next = new Set(prev)
-        next.add(midi)
-        return next
-      })
+      addActiveNote(midi)
     },
     [engine],
   )
   const noteOff = useCallback(
     (midi: number) => {
       engine.noteOff(midi)
-      setActiveNotes((prev) => {
-        if (!prev.has(midi)) return prev
-        const next = new Set(prev)
-        next.delete(midi)
-        return next
-      })
+      removeActiveNote(midi)
     },
     [engine],
   )
   const panic = useCallback(() => {
     engine.panic()
-    setActiveNotes(new Set())
+    clearActiveNotes()
   }, [engine])
   useComputerKeyboard({ noteOn, noteOff, panic })
-  useWebMidi(useMemo(() => ({ noteOn, noteOff }), [noteOn, noteOff]))
+  const setBreath = useCallback(
+    (level: number, smoothingMs: number, immediate: boolean) =>
+      engine.setBreath(level, smoothingMs, immediate),
+    [engine],
+  )
+  useWebMidi(useMemo(() => ({ noteOn, noteOff, setBreath }), [noteOn, noteOff, setBreath]))
   const wakeLock = useWakeLock()
 
   // Browse hotkey
@@ -468,7 +462,7 @@ export default function App() {
             {keyboardOpen ? 'Hide keyboard ▾' : 'Show keyboard ▸'}
           </button>
           <div className={`${keyboardOpen ? 'mt-2.5 block' : 'hidden'} lg:mt-0 lg:block`}>
-            <TouchKeyboard noteOn={noteOn} noteOff={noteOff} activeNotes={activeNotes} />
+            <LiveTouchKeyboard noteOn={noteOn} noteOff={noteOff} />
           </div>
         </div>
 
@@ -528,4 +522,12 @@ export default function App() {
       {debugMode && <DebugPanel />}
     </div>
   )
+}
+
+function LiveTouchKeyboard(props: {
+  noteOn: (midi: number, vel: number) => void
+  noteOff: (midi: number) => void
+}) {
+  const activeNotes = useActiveNotes()
+  return <TouchKeyboard {...props} activeNotes={activeNotes} />
 }
