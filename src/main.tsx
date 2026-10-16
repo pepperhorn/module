@@ -15,23 +15,13 @@ import '@fontsource/jetbrains-mono/500.css'
 import './index.css'
 import App from './App'
 
-// Apply the saved theme before React renders. This runs even if a stale
-// service-worker-cached index.html omits the inline pre-paint script, so the
-// dark/light choice is always honoured. Default: dark brushed-metal faceplate.
-;(() => {
-  let theme = 'dark'
-  try {
-    if (localStorage.getItem('module-theme') === 'light') theme = 'light'
-  } catch {
-    // storage unavailable — keep default
-  }
-  if (document.documentElement.getAttribute('data-theme') !== theme) {
-    document.documentElement.setAttribute('data-theme', theme)
-  }
-})()
+import { applyStoredTheme } from './state/useTheme'
 import { UpdateToast } from './components/UpdateToast'
 import { warmVendored } from './pwa/warmVendored'
 import { useStore } from './state/useStore'
+
+// Before React renders; see applyStoredTheme.
+applyStoredTheme()
 
 function Root() {
   const [needRefresh, setNeedRefresh] = useState(false)

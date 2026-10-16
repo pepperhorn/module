@@ -82,6 +82,24 @@ export function EffectsRow({ collapsible = false }: EffectsRowProps) {
     window.addEventListener('pointercancel', onUp)
   }
 
+  // Keyboard reorder (grip + arrow keys / Home / End). Same result as a drag:
+  // store first, then wire the settled order into the audio graph.
+  const onMove = (id: ChainEffectId) => (to: number | 'start' | 'end') => {
+    const st = useStore.getState()
+    const from = st.fxOrder.indexOf(id)
+    if (from < 0) return
+    const delta = to === 'start' ? -from : to === 'end' ? st.fxOrder.length - 1 - from : to
+    if (delta === 0) return
+    st.moveFx(id, delta)
+    getEngine().setEffectOrder(useStore.getState().fxOrder)
+    // Re-ordering moves the DOM node, which can drop focus; put it back.
+    requestAnimationFrame(() => {
+      document
+        .querySelector<HTMLElement>(`[data-fx-id="${id}"] .effect-pedal-grip`)
+        ?.focus()
+    })
+  }
+
   const onToggle = (id: EffectId) => {
     toggleFxEnabled(id)
     getEngine().setEffectEnabled(id, !fxEnabled[id])
@@ -169,6 +187,8 @@ export function EffectsRow({ collapsible = false }: EffectsRowProps) {
                   params={fxParams[id]}
                   dragging={dragId === id}
                   onDragStart={onDragStart(id)}
+                  onMove={onMove(id)}
+                  position={{ index: chainDefs.indexOf(def) + 1, total: chainDefs.length }}
                   onToggle={onToggle}
                   onParamChange={onParamChange}
                 />

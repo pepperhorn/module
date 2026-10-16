@@ -12,6 +12,13 @@ interface EffectPedalProps {
    * Absent for the note-level doublers, which have no position in the chain.
    */
   onDragStart?: (e: React.PointerEvent) => void
+  /**
+   * Keyboard reorder from the grip: a relative step (±1) or 'start' / 'end'.
+   * Keeps reordering reachable without a pointer.
+   */
+  onMove?: (to: number | 'start' | 'end') => void
+  /** 1-based position in the audio chain, and the chain length, for the label. */
+  position?: { index: number; total: number }
   /** This pedal is the one currently being dragged. */
   dragging?: boolean
 }
@@ -32,8 +39,11 @@ export function EffectPedal({
   onToggle,
   onParamChange,
   onDragStart,
+  onMove,
+  position,
   dragging = false,
 }: EffectPedalProps) {
+  const gripHintId = `effect-pedal-grip-hint-${def.id}`
   const hex = COLOR_HEX[def.color] ?? COLOR_HEX.sky
   return (
     <div
@@ -53,13 +63,39 @@ export function EffectPedal({
           {onDragStart ? (
             <button
               type="button"
-              aria-label={`Reorder ${def.name}`}
-              title="Drag to reorder"
+              aria-label={
+                position
+                  ? `Reorder ${def.name}, position ${position.index} of ${position.total}`
+                  : `Reorder ${def.name}`
+              }
+              aria-describedby={gripHintId}
+              title="Drag, or use arrow keys, to reorder"
               onPointerDown={onDragStart}
+              onKeyDown={(e) => {
+                if (!onMove) return
+                const to =
+                  e.key === 'ArrowLeft' || e.key === 'ArrowUp'
+                    ? -1
+                    : e.key === 'ArrowRight' || e.key === 'ArrowDown'
+                      ? 1
+                      : e.key === 'Home'
+                        ? 'start'
+                        : e.key === 'End'
+                          ? 'end'
+                          : null
+                if (to === null) return
+                e.preventDefault()
+                e.stopPropagation()
+                onMove(to)
+              }}
               className="effect-pedal-grip shrink-0 leading-none text-legend"
               style={{ cursor: 'grab', touchAction: 'none', fontSize: '13px' }}
             >
               ⠿
+              <span id={gripHintId} className="effect-pedal-grip-hint sr-only">
+                Arrow keys move this effect earlier or later in the chain; Home and End move it to
+                the start or end.
+              </span>
             </button>
           ) : (
             <span

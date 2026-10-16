@@ -339,7 +339,7 @@ export default function App() {
   // shared breath gain so an idle wind controller doesn't leave them silent.
   const uiNoteOn = useCallback(
     (midi: number, vel: number) => {
-      engine.setBreath(1, 8, true)
+      engine.liftBreath()
       noteOn(midi, vel)
     },
     [engine, noteOn],
@@ -727,7 +727,7 @@ export default function App() {
           >
             {keyboardOpen ? 'Hide keyboard ▾' : 'Show keyboard ▸'}
           </button>
-          <div className={`${keyboardOpen ? 'mt-2.5 block' : 'hidden'} lg:mt-0 lg:block`}>
+          <div className={`rack-keyboard-drawer ${keyboardOpen ? 'mt-2.5 block' : 'hidden'} lg:mt-0 lg:block`}>
             <LiveTouchKeyboard noteOn={uiNoteOn} noteOff={noteOff} />
           </div>
         </div>

@@ -88,6 +88,8 @@ export class BreathController {
   private pendingWrite: ReturnType<typeof setTimeout> | null = null
   /** Last raw breath value (0..127), so config changes can re-evaluate it. */
   private lastRaw = 0
+  /** A breath CC has been seen at least once (even while disabled). */
+  private hasRaw = false
   private enabled: boolean
   private config: BreathConfig
   private readonly outputs: BreathOutputs
@@ -150,6 +152,16 @@ export class BreathController {
       }
       return
     }
+    if (!wasEnabled && this.hasRaw) {
+      // Re-enabled after breath was seen: re-arm from the last known breath
+      // instead of waiting for the next CC, so an idle note (Travel Sax C#4)
+      // held through the toggle is gated immediately. Start from "open" so a
+      // closed gate releases what pass-through started.
+      this.active = true
+      this.open = true
+      this.breath(this.lastRaw)
+      return
+    }
     if (this.active) this.breath(this.lastRaw)
   }
 
@@ -166,7 +178,13 @@ export class BreathController {
 
   /** Feed a Control Change. Returns true if it was the breath CC. */
   controlChange(cc: number, value: number): boolean {
-    if (!this.enabled || cc !== this.config.cc) return false
+    if (cc !== this.config.cc) return false
+    if (!this.enabled) {
+      // Track it anyway so re-enabling can restore the gate immediately.
+      this.lastRaw = value
+      this.hasRaw = true
+      return false
+    }
     this.breath(value)
     return true
   }
@@ -174,6 +192,7 @@ export class BreathController {
   breath(value: number): void {
     if (!this.enabled) return
     this.lastRaw = value
+    this.hasRaw = true
     this.active = true
     const wasOpen = this.open
     this.open = value >= this.config.gateThreshold
@@ -194,6 +213,10 @@ export class BreathController {
       this.writeNow(false)
       return
     }
+    // Gate stays shut (e.g. CC2 noise at 0/1): the gain is already at the
+    // gated level, and writing it again would re-silence keyboard/touch notes
+    // that lifted the shared gain back to 1.
+    if (!this.open) return
     this.writeThrottled()
   }
 

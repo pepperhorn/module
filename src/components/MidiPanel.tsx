@@ -440,7 +440,7 @@ function BreathSection({ profile, getLatency }: { profile: MidiProfile } & MidiP
               label="GATE"
               value={b.gateThreshold}
               min={BREATH_LIMITS.gateThreshold.min}
-              max={64}
+              max={BREATH_LIMITS.gateThreshold.max}
               step={1}
               defaultValue={2}
               color="var(--color-coral)"

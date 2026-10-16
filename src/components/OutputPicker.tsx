@@ -215,7 +215,7 @@ export function OutputPicker() {
                 />
               ))}
               {devices.every((d) => !d.label) && (
-                <p className="mt-2 font-mono text-[10px] leading-snug text-legend">
+                <p className="output-picker-names-hint mt-2 font-mono text-[10px] leading-snug text-legend">
                   Device names are hidden by the browser until you grant
                   microphone permission once. The OS default and any
                   connected USB interface will still work when selected.

@@ -220,3 +220,45 @@ describe('BreathController.setConfig', () => {
     expect(calls).toEqual(['on 62 100', 'off 62', 'on 62 100'])
   })
 })
+
+describe('BreathController review fixes', () => {
+  it('does not rewrite the gain while the gate stays shut (CC noise)', () => {
+    vi.useFakeTimers()
+    try {
+      const { ctrl, out, advance } = setup()
+      ctrl.controlChange(2, 0) // open → shut: one write
+      out.setBreath.mockClear()
+      for (const v of [1, 0, 1, 0]) {
+        advance(10)
+        ctrl.controlChange(2, v)
+      }
+      vi.runAllTimers()
+      expect(out.setBreath).not.toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('re-enabling restores the gate from the last breath seen', () => {
+    const { ctrl, calls } = setup()
+    ctrl.controlChange(2, 80)
+    ctrl.setConfig(WIND_BREATH_DEFAULTS, false)
+    ctrl.controlChange(2, 0) // tracked while disabled
+    ctrl.noteOn(61, 30) // pass-through while disabled (idle C#4)
+    expect(calls).toEqual(['on 61 30'])
+    ctrl.setConfig(WIND_BREATH_DEFAULTS, true)
+    expect(ctrl.isActive).toBe(true)
+    expect(calls).toEqual(['on 61 30', 'off 61']) // gated immediately
+    ctrl.controlChange(2, 90)
+    expect(calls.at(-1)).toBe('on 61 100')
+  })
+
+  it('re-enabling with no breath ever seen stays pass-through', () => {
+    const { ctrl, calls } = setup()
+    ctrl.setConfig(WIND_BREATH_DEFAULTS, false)
+    ctrl.setConfig(WIND_BREATH_DEFAULTS, true)
+    expect(ctrl.isActive).toBe(false)
+    ctrl.noteOn(60, 50)
+    expect(calls).toEqual(['on 60 50'])
+  })
+})

@@ -2,8 +2,33 @@ import { useSyncExternalStore } from 'react'
 
 export type Theme = 'light' | 'dark'
 
-const STORAGE_KEY = 'module-theme'
+/** localStorage key for the theme. index.html's pre-paint script mirrors it. */
+export const STORAGE_KEY = 'module-theme'
 const listeners = new Set<() => void>()
+
+function subscribe(cb: () => void): () => void {
+  listeners.add(cb)
+  return () => {
+    listeners.delete(cb)
+  }
+}
+
+/**
+ * Apply the saved theme to <html data-theme> (default dark). Called before
+ * React renders so a stale SW-cached index.html without the pre-paint script
+ * still honours the choice.
+ */
+export function applyStoredTheme(): void {
+  let theme: Theme = 'dark'
+  try {
+    if (localStorage.getItem(STORAGE_KEY) === 'light') theme = 'light'
+  } catch {
+    // storage unavailable — keep default
+  }
+  if (document.documentElement.getAttribute('data-theme') !== theme) {
+    document.documentElement.setAttribute('data-theme', theme)
+  }
+}
 
 function currentTheme(): Theme {
   return document.documentElement.getAttribute('data-theme') === 'light'
@@ -31,10 +56,7 @@ export function toggleTheme(): void {
  *  truth (set pre-paint by the inline script in index.html). */
 export function useTheme(): Theme {
   return useSyncExternalStore(
-    (cb) => {
-      listeners.add(cb)
-      return () => listeners.delete(cb)
-    },
+    subscribe,
     currentTheme,
     () => 'dark',
   )

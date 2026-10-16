@@ -38,7 +38,14 @@ export function requestMidi(): Promise<void> {
     store.setMidiStatus('unsupported')
     return Promise.resolve()
   }
-  if (access) return Promise.resolve()
+  if (access) {
+    // Already held (e.g. status went stale after a site-settings change):
+    // reflect it and re-attach rather than silently doing nothing.
+    const a = access
+    store.setMidiStatus('granted')
+    for (const fn of listeners) fn(a)
+    return Promise.resolve()
+  }
   if (inFlight) return inFlight
   store.setMidiStatus('pending')
   inFlight = navigator
@@ -88,5 +95,7 @@ export async function autoRequestMidi(): Promise<void> {
     useStore.getState().setMidiStatus('denied')
     return
   }
-  if (state === 'granted' || loadMidiEnabledFlag()) await requestMidi()
+  // The persisted flag is only a stand-in for a Permissions API that cannot
+  // answer; a definite 'prompt' means requesting now would prompt on load.
+  if (state === 'granted' || (state === null && loadMidiEnabledFlag())) await requestMidi()
 }

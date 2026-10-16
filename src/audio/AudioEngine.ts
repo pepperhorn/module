@@ -961,6 +961,14 @@ export class AudioEngine {
     this.chain?.setBreath(level, smoothingMs, immediate)
   }
 
+  /**
+   * Jump the shared breath gain to full, for notes that are not breath
+   * controlled (touch / computer keyboard). Immediate, so smoothing is moot.
+   */
+  liftBreath(): void {
+    this.chain?.setBreath(1, 0, true)
+  }
+
   setEffectParam(id: EffectId, paramId: string, value: number): void {
     if (id === 'doubler1' || id === 'doubler2') {
       const dbl = this.doublerState[id]

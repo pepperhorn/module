@@ -11,6 +11,7 @@
       // the dark brushed-metal faceplate.
       (function () {
         try {
+          // Key must match STORAGE_KEY in src/state/useTheme.ts.
           var t = localStorage.getItem('module-theme');
           document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
         } catch (e) {
