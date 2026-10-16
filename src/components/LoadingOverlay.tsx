@@ -22,8 +22,8 @@ export function LoadingOverlay() {
 
   return (
     <div
-      className="loading-overlay fade-in fixed inset-0 z-[60] flex items-center justify-center bg-text/55 backdrop-blur-sm"
-      style={{ pointerEvents: 'auto' }}
+      className="loading-overlay fade-in fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-sm"
+      style={{ pointerEvents: 'auto', background: 'var(--scrim)' }}
       onClick={(e) => e.stopPropagation()}
     >
       <div
@@ -89,7 +89,7 @@ export function LoadingOverlay() {
           )}
         </div>
 
-        <div className="loading-card-hint font-mono text-[9px] uppercase tracking-widest text-lcd-dim/60">
+        <div className="loading-card-hint font-mono text-[10px] uppercase tracking-widest text-lcd-dim/60">
           first load fetches samples over the network · subsequent loads use the cache
         </div>
       </div>

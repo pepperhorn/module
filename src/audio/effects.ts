@@ -164,6 +164,27 @@ export function defaultParams(): Record<EffectId, Record<string, number>> {
   return out
 }
 
+// Connects/disconnects an effect's wet send. Web Audio processes every
+// connected node each render quantum even when its wet gain is 0, and on a
+// phone the always-on convolver/waveshaper eats the CPU headroom a small
+// (low-latency) output buffer needs. Cutting the send lets idle branches
+// go quiet; tails (delay feedback, reverb) still decay naturally.
+function makeSendGate(from: AudioNode, to: AudioNode) {
+  let connected = true
+  return (on: boolean) => {
+    if (on === connected) return
+    connected = on
+    if (on) from.connect(to)
+    else {
+      try {
+        from.disconnect(to)
+      } catch {
+        // noop
+      }
+    }
+  }
+}
+
 interface FxNode {
   input: AudioNode
   output: AudioNode
@@ -213,11 +234,13 @@ function makeDistortion(ctx: AudioContext): FxNode {
   shaper.connect(tone)
   tone.connect(wet)
   wet.connect(output)
+  const gateSend = makeSendGate(input, shaper)
 
   const apply = () => {
     const effectiveMix = bypass ? 0 : mix
     wet.gain.value = effectiveMix
     dry.gain.value = 1 - effectiveMix * 0.5
+    gateSend(effectiveMix > 0)
   }
 
   return {
@@ -286,11 +309,14 @@ function makeChorus(ctx: AudioContext): FxNode {
   input.connect(delay)
   delay.connect(wet)
   wet.connect(output)
+  const gateSend = makeSendGate(input, delay)
 
   let mix = 0
   let bypass = false
   const apply = () => {
-    wet.gain.value = bypass ? 0 : mix
+    const effectiveMix = bypass ? 0 : mix
+    wet.gain.value = effectiveMix
+    gateSend(effectiveMix > 0)
   }
 
   return {
@@ -358,11 +384,14 @@ function makeDelay(ctx: AudioContext): FxNode {
   feedback.connect(delay)
   delay.connect(wet)
   wet.connect(output)
+  const gateSend = makeSendGate(input, delay)
 
   let mix = 0
   let bypass = false
   const apply = () => {
-    wet.gain.value = bypass ? 0 : mix
+    const effectiveMix = bypass ? 0 : mix
+    wet.gain.value = effectiveMix
+    gateSend(effectiveMix > 0)
   }
 
   return {
@@ -440,12 +469,15 @@ function makeReverb(ctx: AudioContext): FxNode {
   preDelay.connect(convolver)
   convolver.connect(wet)
   wet.connect(output)
+  const gateSend = makeSendGate(input, preDelay)
 
   let mix = 0
   let bypass = false
   let pendingIR: number | null = null
   const apply = () => {
-    wet.gain.value = bypass ? 0 : mix
+    const effectiveMix = bypass ? 0 : mix
+    wet.gain.value = effectiveMix
+    gateSend(effectiveMix > 0)
   }
 
   return {
@@ -501,8 +533,18 @@ export interface EffectChain {
   master: GainNode
   setEnabled: (id: EffectId, on: boolean) => void
   setParam: (id: EffectId, paramId: string, value: number) => void
-  setOrder: (order: ChainEffectId[]) => void
+  /**
+   * Reorder the audio-graph effects in series. Non-chain ids (the note-level
+   * doublers) are ignored and missing ones appended — see normalizeFxOrder.
+   */
+  setOrder: (order: readonly EffectId[]) => void
   getOrder: () => ChainEffectId[]
+  /**
+   * Pre-FX breath/expression gain (0..1), applied on inputNode itself: ahead
+   * of the FX so reverb/delay tails ring out when breath stops, and untouched
+   * by setOrder (which only rewires inputNode's outputs).
+   */
+  setBreath: (level: number, smoothingMs: number, immediate?: boolean) => void
   dispose: () => void
 }
 
@@ -516,8 +558,10 @@ export function buildEffectChain(context: AudioContext): EffectChain {
   master.connect(context.destination)
 
   // A fixed entry point, so instruments keep a stable destination no matter how
-  // the effects behind it are reordered.
-  const entry = context.createGain()
+  // the effects behind it are reordered. It doubles as the breath/expression
+  // gain stage (setBreath), so breath sits ahead of every effect. (Doublers are
+  // handled at note level in AudioEngine, never as nodes in this graph.)
+  const inputNode = context.createGain()
 
   const chainMap: Record<ChainEffectId, FxNode> = {
     distortion,
@@ -529,18 +573,19 @@ export function buildEffectChain(context: AudioContext): EffectChain {
 
   let order: ChainEffectId[] = normalizeFxOrder(null)
 
-  // Rewire entry → … → master. Every node between them is disconnected first;
-  // each effect's output only ever feeds the next stage, so a bare disconnect()
-  // cannot tear down any of an effect's internal wet/dry routing.
-  const setOrder = (next: ChainEffectId[]) => {
+  // Rewire inputNode → … → master. Every node between them is disconnected
+  // first; each effect's output only ever feeds the next stage, so a bare
+  // disconnect() cannot tear down any of an effect's internal wet/dry routing
+  // (nor the idle-send gates, which live on each effect's own input).
+  const setOrder = (next: readonly EffectId[]) => {
     const wanted = normalizeFxOrder(next)
     try {
-      entry.disconnect()
+      inputNode.disconnect()
       for (const id of CHAIN_EFFECT_IDS) chainMap[id].output.disconnect()
     } catch {
       // noop
     }
-    let previous: AudioNode = entry
+    let previous: AudioNode = inputNode
     for (const id of wanted) {
       previous.connect(chainMap[id].input)
       previous = chainMap[id].output
@@ -550,8 +595,6 @@ export function buildEffectChain(context: AudioContext): EffectChain {
   }
 
   setOrder(order)
-
-  const inputNode = entry
 
   const setEnabled = (id: EffectId, on: boolean) => {
     fxMap[id]?.setEnabled(on)
@@ -565,16 +608,25 @@ export function buildEffectChain(context: AudioContext): EffectChain {
     for (const p of def.params) setParam(def.id, p.id, p.default)
   }
 
+  const setBreath = (level: number, smoothingMs: number, immediate = false) => {
+    const g = inputNode.gain
+    const now = context.currentTime
+    const target = Math.min(1, Math.max(0, level))
+    g.cancelScheduledValues(now)
+    if (immediate) g.setValueAtTime(target, now)
+    else g.setTargetAtTime(target, now, Math.max(0.001, smoothingMs / 1000))
+  }
+
   const dispose = () => {
-    try {
-      entry.disconnect()
-    } catch {
-      // noop
-    }
     distortion.dispose()
     chorus.dispose()
     delay.dispose()
     reverb.dispose()
+    try {
+      inputNode.disconnect()
+    } catch {
+      // noop
+    }
     try {
       master.disconnect()
     } catch {
@@ -582,5 +634,14 @@ export function buildEffectChain(context: AudioContext): EffectChain {
     }
   }
 
-  return { inputNode, master, setEnabled, setParam, setOrder, getOrder: () => [...order], dispose }
+  return {
+    inputNode,
+    master,
+    setEnabled,
+    setParam,
+    setOrder,
+    getOrder: () => [...order],
+    setBreath,
+    dispose,
+  }
 }

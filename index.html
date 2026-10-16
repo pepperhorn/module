@@ -3,9 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#FAFBFC" />
+    <meta name="theme-color" content="#0B0E15" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <title>MODULE — JV smplr</title>
+    <title>The Module — JV smplr</title>
+    <script>
+      // Apply the saved theme before first paint to avoid a flash. Defaults to
+      // the dark brushed-metal faceplate.
+      (function () {
+        try {
+          // Key must match STORAGE_KEY in src/state/useTheme.ts.
+          var t = localStorage.getItem('module-theme');
+          document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+        } catch (e) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      })();
+    </script>
     <script>
       // Catch any top-level error that would otherwise produce a silent white screen.
       // Shows a visible diagnostic so the user knows what broke.

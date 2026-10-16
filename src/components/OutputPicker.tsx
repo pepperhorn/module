@@ -152,37 +152,37 @@ export function OutputPicker() {
           e.stopPropagation()
           void handleClick()
         }}
-        className="rack-display-output cell-hit flex max-w-[10rem] items-center gap-1.5 overflow-hidden rounded-md px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest"
-        style={{
-          background: '#FFFFFF',
-          border: '1px solid var(--color-rack-edge)',
-          color: 'var(--color-text)',
-        }}
+        className="rack-display-output hw-btn legend flex max-w-[10rem] items-center gap-1.5 overflow-hidden px-3 py-1.5"
       >
         <span
           aria-hidden="true"
-          style={{
-            display: 'inline-block',
-            width: 6,
-            height: 6,
-            borderRadius: 9999,
-            background: sinkId ? 'var(--color-sky)' : 'rgba(20,30,60,0.35)',
-            boxShadow: sinkId ? '0 0 6px rgba(91,192,235,0.6)' : 'none',
-            flexShrink: 0,
-          }}
+          className="rack-display-output-led hw-btn-led"
+          style={
+            sinkId
+              ? {
+                  background: 'var(--color-sky)',
+                  boxShadow: '0 0 5px rgba(91,192,235,0.8)',
+                }
+              : {}
+          }
         />
-        <span className="truncate">OUT · {deviceLabel}</span>
+        <span className="rack-display-output-label truncate">OUT · {deviceLabel}</span>
       </button>
 
       {open && (
         <div
-          className="output-picker-backdrop fixed inset-0 z-50 flex items-start justify-center bg-text/40 p-4 backdrop-blur-sm"
+          className="output-picker-backdrop fixed inset-0 z-50 flex items-start justify-center p-4 backdrop-blur-sm"
+          style={{ background: 'var(--scrim)' }}
           onClick={() => setOpen(false)}
         >
           <div
-            className="output-picker-sheet pop-in mt-24 w-full max-w-sm rounded-xl bg-bg p-4 shadow-2xl"
+            className="output-picker-sheet pop-in mt-24 w-full max-w-sm rounded-xl p-4"
             onClick={(e) => e.stopPropagation()}
-            style={{ border: '1px solid var(--color-rack-edge)' }}
+            style={{
+              background: 'var(--card-bg)',
+              border: '1px solid var(--card-border)',
+              boxShadow: 'var(--card-shadow)',
+            }}
           >
             <div className="mb-3 flex items-center justify-between">
               <div className="font-display text-sm font-medium text-text">
@@ -191,7 +191,11 @@ export function OutputPicker() {
               <button
                 type="button"
                 onClick={() => setOpen(false)}
-                className="cell-hit rounded-md border border-rack-edge bg-white px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-text/60 hover:text-text"
+                className="cell-hit rounded-md px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-legend hover:text-text"
+                style={{
+                  background: 'var(--pill-bg)',
+                  border: '1px solid var(--pill-border)',
+                }}
               >
                 Close
               </button>
@@ -211,7 +215,7 @@ export function OutputPicker() {
                 />
               ))}
               {devices.every((d) => !d.label) && (
-                <p className="mt-2 font-mono text-[10px] leading-snug text-text/50">
+                <p className="output-picker-names-hint mt-2 font-mono text-[10px] leading-snug text-legend">
                   Device names are hidden by the browser until you grant
                   microphone permission once. The OS default and any
                   connected USB interface will still work when selected.
@@ -240,11 +244,11 @@ function DeviceRow({
       onClick={onClick}
       className="cell-hit flex w-full items-center justify-between gap-2 rounded-md px-3 py-2 text-left"
       style={{
-        background: selected ? 'var(--color-sky)' : '#FFFFFF',
+        background: selected ? 'var(--color-sky)' : 'var(--card-solid)',
         color: selected ? 'var(--color-bg)' : 'var(--color-text)',
         border: selected
           ? '1px solid transparent'
-          : '1px solid var(--color-rack-edge)',
+          : '1px solid var(--card-border)',
       }}
     >
       <span className="truncate">{label}</span>

@@ -47,11 +47,15 @@ export function PatchCard({
     <div
       role="button"
       tabIndex={0}
-      onClick={() => onSelect(patch.id)}
+      onClick={() => {
+        if (unavailableOffline) return
+        onSelect(patch.id)
+      }}
       onKeyDown={(e) => {
         // Only when the card itself has focus. The preview, favourite and
         // download buttons live inside it and must keep their own Enter/Space.
         if (e.target !== e.currentTarget) return
+        if (unavailableOffline) return
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault()
           onSelect(patch.id)
@@ -62,10 +66,9 @@ export function PatchCard({
         active ? 'patch-card-active ring-2 ring-coral' : ''
       } ${unavailableOffline ? 'patch-card-offline' : ''}`}
       style={{
-        background: 'linear-gradient(180deg, #FFFFFF 0%, #F4F6F9 100%)',
-        border: '1px solid var(--color-rack-edge)',
-        boxShadow:
-          'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 2px rgba(20,30,60,0.06)',
+        background: 'var(--card-bg)',
+        border: '1px solid var(--card-border)',
+        boxShadow: 'var(--card-shadow)',
         opacity: unavailableOffline ? 0.42 : 1,
         filter: unavailableOffline ? 'grayscale(0.6)' : 'none',
       }}
@@ -88,13 +91,13 @@ export function PatchCard({
         />
       </div>
       <div className="patch-card-meta flex flex-1 flex-col gap-1">
-        <div className="patch-card-title font-display text-sm font-medium text-text">
+        <div className="patch-card-title font-display text-[15px] font-medium text-text">
           {patch.name}
         </div>
-        <div className="patch-card-cat font-mono text-[10px] uppercase tracking-wider text-text/50">
+        <div className="patch-card-cat font-mono text-[11px] uppercase tracking-wider text-legend">
           {patch.category} · {patch.bank}
           {unavailableOffline && (
-            <span className="ml-1 text-text/60"> · offline</span>
+            <span className="patch-card-offline ml-1 text-text/75"> · offline</span>
           )}
         </div>
       </div>
@@ -106,10 +109,10 @@ export function PatchCard({
           e.preventDefault()
           onToggleFavourite(patch.id)
         }}
-        className="patch-card-fav absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-base leading-none"
+        className="patch-card-fav absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full text-base leading-none"
         style={{
           color: favourited ? '#FF6B6B' : 'rgba(20,30,60,0.25)',
-          background: favourited ? 'rgba(255,107,107,0.1)' : 'rgba(255,255,255,0.6)',
+          background: favourited ? 'rgba(255,107,107,0.1)' : 'var(--pill-bg)',
         }}
       >
         {favourited ? '♥' : '♡'}
@@ -180,6 +183,7 @@ function DownloadButton({
   unavailableOffline: boolean
   onClick: (e: React.MouseEvent) => void
 }) {
+  // Full phrasing for screen readers / tooltip; short glyph-label on the pill.
   const label = downloaded
     ? 'Cached for offline'
     : downloading
@@ -187,6 +191,13 @@ function DownloadButton({
       : unavailableOffline
         ? 'Offline — connect to download'
         : 'Download for offline'
+  const short = downloaded
+    ? 'Saved'
+    : downloading
+      ? 'Saving…'
+      : unavailableOffline
+        ? 'Unavailable'
+        : 'Download'
 
   return (
     <button
@@ -195,35 +206,35 @@ function DownloadButton({
       title={label}
       disabled={downloading || downloaded || unavailableOffline}
       onClick={onClick}
-      className="patch-card-dl absolute left-2 top-2 flex h-7 w-7 items-center justify-center rounded-full"
+      className="patch-card-dl cell-hit mt-0.5 flex w-full items-center justify-center gap-1.5 rounded-md px-2 py-1.5 font-mono text-[10px] uppercase tracking-wider"
       style={{
         color: downloaded
-          ? 'var(--color-bg)'
+          ? '#3f6a0f'
           : downloading
-            ? '#5BC0EB'
+            ? '#2f7fa0'
             : unavailableOffline
-              ? 'rgba(20,30,60,0.35)'
-              : '#FFFFFF',
+              ? 'rgba(20,30,60,0.42)'
+              : '#2f7fa0',
         background: downloaded
-          ? 'var(--color-lime)'
+          ? 'rgba(181,232,83,0.22)'
           : downloading
-            ? 'rgba(91,192,235,0.15)'
+            ? 'rgba(91,192,235,0.12)'
             : unavailableOffline
-              ? 'rgba(255,255,255,0.7)'
-              : 'linear-gradient(180deg, #5BC0EB 0%, #4AA8D2 100%)',
-        border: downloaded || (!downloading && !unavailableOffline)
-          ? 'none'
-          : '1px solid var(--color-rack-edge)',
-        boxShadow: downloaded
-          ? '0 0 8px rgba(181,232,83,0.5)'
-          : downloading
+              ? 'transparent'
+              : 'var(--btn-bg)',
+        border: downloaded
+          ? '1px solid rgba(181,232,83,0.55)'
+          : downloading || unavailableOffline
+            ? '1px solid var(--card-border)'
+            : '1px solid var(--btn-border)',
+        boxShadow:
+          downloaded || downloading || unavailableOffline
             ? 'none'
-            : unavailableOffline
-              ? 'none'
-              : '0 0 8px rgba(91,192,235,0.35), inset 0 -1px 0 rgba(0,0,0,0.12)',
+            : 'var(--btn-shadow)',
       }}
     >
       {downloaded ? <CheckIcon /> : downloading ? <SpinnerIcon /> : <DownloadIcon />}
+      <span>{short}</span>
     </button>
   )
 }

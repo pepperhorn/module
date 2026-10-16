@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useStore } from '../state/useStore'
+import { MidiStatus } from './MidiStatus'
 
 /** Matches the computer-keyboard shortcuts: Z/X shift by an octave, C/V by 12. */
 const OCTAVE_STEP = 1
@@ -39,8 +40,9 @@ export function TouchControls({
     <div
       // Four controls never fit one phone row, so lay them out deliberately —
       // two per row — rather than letting flex-wrap strand one on its own line.
-      className="touch-controls rack-panel grid shrink-0 grid-cols-2 gap-2 rounded-xl p-2 sm:flex sm:flex-wrap sm:items-center"
+      className="touch-controls rack-panel grid shrink-0 grid-cols-2 gap-2 rounded-lg p-3 sm:flex sm:flex-wrap sm:items-center"
     >
+      <span className="touch-controls-title group-legend legend">PERFORM</span>
       <Stepper
         label="OCT"
         value={octave}
@@ -66,17 +68,22 @@ export function TouchControls({
       <TouchButton
         label="Panic — stop all notes"
         onClick={onPanic}
-        className="touch-controls-panic"
+        className={`touch-controls-panic ${keyboardMode ? 'col-span-2 sm:col-span-1' : ''}`}
         accent="coral"
       >
         ✖ PANIC
       </TouchButton>
 
+      {/* Keyboard mode hides the rack header, so the MIDI pill lives here. */}
+      {keyboardMode && (
+        <MidiStatus className="touch-controls-midi h-11 min-w-11 justify-center sm:ml-auto" />
+      )}
+
       {onToggleKeyboardMode && (
         <TouchButton
-            label={keyboardMode ? 'Back to the full rack' : 'Give the keyboard the whole screen'}
+          label={keyboardMode ? 'Back to the full rack' : 'Give the keyboard the whole screen'}
           onClick={onToggleKeyboardMode}
-          className="touch-controls-mode sm:ml-auto"
+          className={`touch-controls-mode ${keyboardMode ? '' : 'sm:ml-auto'}`}
           accent="sky"
         >
           {keyboardMode ? '⌸ RACK' : '⌨ KEYS'}
@@ -110,10 +117,7 @@ function Stepper({
       <TouchButton label={decLabel} onClick={onDecrease} disabled={!canDecrease}>
         −
       </TouchButton>
-      <span
-        className="touch-controls-readout min-w-0 flex-1 text-center font-mono text-[11px] uppercase tracking-widest tabular-nums"
-        style={{ color: 'var(--color-text)' }}
-      >
+      <span className="touch-controls-readout legend-strong min-w-0 flex-1 text-center tabular-nums">
         {label} {value}
       </span>
       <TouchButton label={incLabel} onClick={onIncrease} disabled={!canIncrease}>
@@ -139,6 +143,7 @@ function TouchButton({
   accent?: 'coral' | 'sky'
 }) {
   const accentColor = accent === 'coral' ? 'var(--color-coral)' : 'var(--color-sky)'
+  const accentInk = accent === 'coral' ? 'var(--ink-coral)' : 'var(--ink-sky)'
   return (
     <button
       type="button"
@@ -146,14 +151,11 @@ function TouchButton({
       title={label}
       disabled={disabled}
       // The tap target is 44px square — below that, thumbs miss on a phone.
-      className={`touch-controls-btn cell-hit flex h-11 min-w-11 items-center justify-center rounded-lg px-3 font-mono text-sm uppercase tracking-widest ${className}`}
+      className={`touch-controls-btn hw-btn ${
+        accent ? 'hw-btn-accent' : ''
+      } flex h-11 min-w-11 items-center justify-center gap-2 px-3 ${className}`}
       style={{
-        color: accent ? 'var(--color-bg)' : 'var(--color-text)',
-        background: accent
-          ? `linear-gradient(180deg, ${accentColor} 0%, color-mix(in srgb, ${accentColor} 82%, #000000) 100%)`
-          : 'linear-gradient(180deg, #FFFFFF 0%, #F2F4F8 100%)',
-        border: accent ? '1px solid transparent' : '1px solid var(--color-rack-edge)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(20,30,60,0.1)',
+        ...(accent ? { ['--hw-accent' as string]: accentColor } : {}),
         opacity: disabled ? 0.35 : 1,
         // Stops the double-tap-to-zoom delay swallowing rapid taps.
         touchAction: 'manipulation',
@@ -163,7 +165,19 @@ function TouchButton({
         onClick()
       }}
     >
-      {children}
+      {accent && (
+        <span
+          aria-hidden="true"
+          className="touch-controls-btn-led hw-btn-led"
+          style={{ background: accentColor, boxShadow: `0 0 5px ${accentColor}` }}
+        />
+      )}
+      <span
+        className="touch-controls-btn-label legend-strong"
+        style={accent ? { color: accentInk } : undefined}
+      >
+        {children}
+      </span>
     </button>
   )
 }

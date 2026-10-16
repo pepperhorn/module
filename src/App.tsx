@@ -12,6 +12,7 @@ import { DebugPanel } from './components/DebugPanel'
 import { LoadingOverlay } from './components/LoadingOverlay'
 import { LoadErrorToast } from './components/LoadErrorToast'
 import { SaveDialog } from './components/SaveDialog'
+import { MidiPanel } from './components/MidiPanel'
 import { OutputPicker } from './components/OutputPicker'
 import { useUserPatchSync } from './state/useUserPatchSync'
 import { useStore } from './state/useStore'
@@ -20,6 +21,7 @@ import { useComputerKeyboard } from './input/useComputerKeyboard'
 import { useWebMidi } from './input/useWebMidi'
 import { useWakeLock } from './input/useWakeLock'
 import { getEngine } from './audio/AudioEngine'
+import { addActiveNote, clearActiveNotes, removeActiveNote, useActiveNotes } from './state/activeNotes'
 import type { Bank, PatchManifest } from './patches/types'
 import type { EffectId as EngineEffectId } from './audio/effects'
 import { normalizeFxOrder } from './audio/effects'
@@ -59,6 +61,9 @@ export default function App() {
 
   const [activeBank, setActiveBank] = useState<Bank>('PNO')
   const [needsGesture, setNeedsGesture] = useState(true)
+  // On-screen keyboard is hidden by default on mobile (revealed via a toggle);
+  // always shown on desktop (lg+) where screen space isn't scarce.
+  const [keyboardOpen, setKeyboardOpen] = useState(false)
 
   // The catalog with user presets merged in. Every id lookup goes through this;
   // using the raw catalog is what used to make USR patches unselectable.
@@ -300,16 +305,48 @@ export default function App() {
     if (!pickerOpen) engine.stopPreview()
   }, [pickerOpen, engine])
 
-  // Computer keyboard input
+  // Note handlers shared by every input source. Audio is triggered first;
+  // the on-screen keyboard highlight goes through the activeNotes store so
+  // only the keyboard re-renders per note (see state/activeNotes.ts).
   const noteOn = useCallback(
-    (midi: number, vel: number) => engine.noteOn(midi, vel),
+    (midi: number, vel: number) => {
+      engine.noteOn(midi, vel)
+      addActiveNote(midi)
+    },
     [engine],
   )
-  const noteOff = useCallback((midi: number) => engine.noteOff(midi), [engine])
-  const panic = useCallback(() => engine.panic(), [engine])
-  useComputerKeyboard({ noteOn, noteOff, panic })
-  useWebMidi(useMemo(() => ({ noteOn, noteOff }), [noteOn, noteOff]))
+  const noteOff = useCallback(
+    (midi: number) => {
+      engine.noteOff(midi)
+      removeActiveNote(midi)
+    },
+    [engine],
+  )
+  const setBreath = useCallback(
+    (level: number, smoothingMs: number, immediate: boolean) =>
+      engine.setBreath(level, smoothingMs, immediate),
+    [engine],
+  )
+  const midiPanic = useWebMidi(
+    useMemo(() => ({ noteOn, noteOff, setBreath }), [noteOn, noteOff, setBreath]),
+  )
+  const panic = useCallback(() => {
+    midiPanic()
+    engine.panic()
+    clearActiveNotes()
+  }, [engine, midiPanic])
+  // On-screen and computer-keyboard notes aren't breath-controlled: lift the
+  // shared breath gain so an idle wind controller doesn't leave them silent.
+  const uiNoteOn = useCallback(
+    (midi: number, vel: number) => {
+      engine.liftBreath()
+      noteOn(midi, vel)
+    },
+    [engine, noteOn],
+  )
+  useComputerKeyboard({ noteOn: uiNoteOn, noteOff, panic })
   const wakeLock = useWakeLock()
+  const getLatency = useCallback(() => engine.latencyInfo(), [engine])
 
   // Browse hotkey
   useEffect(() => {
@@ -357,15 +394,20 @@ export default function App() {
     <>
       {needsGesture && (
         <div
-          className="gesture-overlay fade-in fixed inset-0 z-40 flex items-center justify-center bg-text/50 backdrop-blur-sm"
+          className="gesture-overlay fade-in fixed inset-0 z-40 flex items-center justify-center backdrop-blur-sm"
+          style={{ background: 'var(--scrim)' }}
           onClick={(e) => {
             e.stopPropagation()
             void ensureAudio()
           }}
         >
           <div
-            className="gesture-card pop-in flex flex-col items-center gap-3 rounded-2xl bg-bg px-8 py-6 text-center shadow-2xl"
-            style={{ border: '1px solid var(--color-rack-edge)' }}
+            className="gesture-card pop-in flex flex-col items-center gap-3 rounded-2xl px-8 py-6 text-center"
+            style={{
+              background: 'var(--card-bg)',
+              border: '1px solid var(--card-border)',
+              boxShadow: 'var(--card-shadow)',
+            }}
           >
             <span
               className="gesture-mark inline-block h-3 w-3 rounded-sm"
@@ -377,7 +419,7 @@ export default function App() {
             <div className="gesture-title font-display text-lg font-semibold text-text">
               tap to power on
             </div>
-            <div className="gesture-sub max-w-xs font-mono text-[10px] uppercase tracking-wider text-text/50">
+            <div className="gesture-sub legend max-w-xs">
               browser audio needs a user gesture · click anywhere
             </div>
           </div>
@@ -397,6 +439,8 @@ export default function App() {
 
       <SaveDialog />
 
+      <MidiPanel getLatency={getLatency} />
+
       {debugMode && <DebugPanel />}
     </>
   )
@@ -404,7 +448,10 @@ export default function App() {
   if (keyboardMode) {
     return (
       <div
-        className="app app-keyboard-mode flex h-[100dvh] flex-col gap-2 overflow-hidden p-2 sm:p-3"
+        className="app app-keyboard-mode flex h-[100dvh] flex-col gap-3 overflow-hidden p-2 pt-3 sm:p-3 sm:pt-4"
+        // Keyboard mode drops the rack chassis but keeps its brushed faceplate,
+        // so the screened group legends knock out against the right metal.
+        style={{ background: 'var(--face-bg)' }}
         onClick={() => {
           if (needsGesture) void ensureAudio()
         }}
@@ -424,7 +471,7 @@ export default function App() {
         <EffectsRow collapsible />
 
         <div className="app-keyboard-stage min-h-0 flex-1">
-          <TouchKeyboard noteOn={noteOn} noteOff={noteOff} fill />
+          <LiveTouchKeyboard noteOn={uiNoteOn} noteOff={noteOff} fill />
         </div>
 
         <TouchControls
@@ -446,71 +493,86 @@ export default function App() {
       }}
     >
       <Rack>
-        <div className="rack-row-1 grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
-          <div className="rack-bank rack-panel rounded-xl p-4">
+        <div className="rack-row-1 grid grid-cols-1 gap-2.5 lg:grid-cols-[minmax(0,1fr)_minmax(0,2.4fr)]">
+          <div className="rack-bank rack-panel rounded-lg p-3">
+            <span className="rack-bank-title group-legend legend">BANK / SELECT</span>
             <ButtonBank active={activeBank} onSelect={handleBankSelect} />
-            <div className="rack-bank-hint mt-3 font-mono text-[9px] uppercase tracking-widest text-text/40">
+            <div className="rack-bank-hint legend-strong mt-3">
               {currentBankPatches.length} patches in bank
             </div>
             <div className="rack-bank-spacer h-2" />
             <button
               type="button"
-              className="rack-bank-browse cell-hit w-full rounded-md font-display text-xs font-medium uppercase tracking-widest text-bg"
-              style={{
-                padding: '8px 0',
-                background:
-                  'linear-gradient(180deg, var(--color-sky) 0%, #4AA8D2 100%)',
-                boxShadow:
-                  'inset 0 -2px 0 rgba(0,0,0,0.18), 0 0 12px rgba(91,192,235,0.35)',
-              }}
+              className="rack-bank-browse hw-btn hw-btn-accent flex w-full items-center justify-center gap-2"
+              style={{ padding: '8px 0', ['--hw-accent' as string]: 'var(--color-sky)' }}
               onClick={(e) => {
                 e.stopPropagation()
                 openPicker()
               }}
             >
-              BROWSE LIBRARY
+              <span
+                aria-hidden="true"
+                className="rack-bank-browse-led hw-btn-led"
+                style={{
+                  background: 'var(--color-sky)',
+                  boxShadow: '0 0 5px rgba(91,192,235,0.8)',
+                }}
+              />
+              <span className="rack-bank-browse-label legend" style={{ color: 'var(--ink-sky)' }}>
+                BROWSE LIBRARY
+              </span>
             </button>
             <div className="rack-bank-save-spacer h-2" />
             <button
               type="button"
-              className="rack-bank-save cell-hit w-full rounded-md font-display text-xs font-medium uppercase tracking-widest text-bg"
-              style={{
-                padding: '8px 0',
-                background:
-                  'linear-gradient(180deg, var(--color-coral) 0%, #E55A5A 100%)',
-                boxShadow:
-                  'inset 0 -2px 0 rgba(0,0,0,0.18), 0 0 12px rgba(255,107,107,0.35)',
-              }}
+              className="rack-bank-save hw-btn hw-btn-accent flex w-full items-center justify-center gap-2"
+              style={{ padding: '8px 0', ['--hw-accent' as string]: 'var(--color-coral)' }}
               onClick={(e) => {
                 e.stopPropagation()
                 void ensureAudio()
                 setSaveDialogOpen(true)
               }}
             >
-              ★ SAVE PATCH
+              <span
+                aria-hidden="true"
+                className="rack-bank-save-led hw-btn-led"
+                style={{
+                  background: 'var(--color-coral)',
+                  boxShadow: '0 0 5px rgba(255,107,107,0.8)',
+                }}
+              />
+              <span className="rack-bank-save-label legend" style={{ color: 'var(--ink-coral)' }}>
+                SAVE PATCH
+              </span>
             </button>
             <div className="rack-bank-kb-spacer h-2" />
             <button
               type="button"
               title="Give the keyboard the whole screen"
-              className="rack-bank-keyboard cell-hit w-full rounded-md font-display text-xs font-medium uppercase tracking-widest"
-              style={{
-                padding: '8px 0',
-                background: 'linear-gradient(180deg, #FFFFFF 0%, #F2F4F8 100%)',
-                border: '1px solid var(--color-rack-edge)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.9)',
-              }}
+              className="rack-bank-keyboard hw-btn hw-btn-accent flex w-full items-center justify-center gap-2"
+              style={{ padding: '8px 0', ['--hw-accent' as string]: 'var(--color-lavender)' }}
               onClick={(e) => {
                 e.stopPropagation()
                 void ensureAudio()
                 setKeyboardMode(true)
               }}
             >
-              ⌨ KEYBOARD MODE
+              <span
+                aria-hidden="true"
+                className="rack-bank-keyboard-led hw-btn-led"
+                style={{
+                  background: 'var(--color-lavender)',
+                  boxShadow: '0 0 5px rgba(181,156,217,0.8)',
+                }}
+              />
+              <span className="rack-bank-keyboard-label legend" style={{ color: 'var(--ink-lavender)' }}>
+                KEYBOARD MODE
+              </span>
             </button>
           </div>
 
-          <div className="rack-display rack-panel rounded-xl p-4">
+          <div className="rack-display rack-panel rounded-lg p-4">
+            <span className="rack-display-title group-legend legend">DISPLAY</span>
             <Lcd
               patch={displayPatch}
               index={displayIndex < 0 ? 0 : displayIndex}
@@ -520,10 +582,10 @@ export default function App() {
               loading={isLoading}
               source={currentSource}
             />
-            <div className="rack-display-controls mt-3 flex flex-wrap items-center justify-between gap-2 font-mono text-[10px] uppercase tracking-widest text-text/50">
+            <div className="rack-display-controls legend mt-3 flex flex-wrap items-center justify-between gap-2">
               <button
                 type="button"
-                className="rack-display-step cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                className="rack-display-step hw-btn legend px-3 py-1.5"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleStep(-1)
@@ -535,7 +597,7 @@ export default function App() {
                 <>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       void ensureAudio()
@@ -546,7 +608,7 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       void ensureAudio()
@@ -557,7 +619,7 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       void ensureAudio()
@@ -568,7 +630,7 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       void ensureAudio()
@@ -579,7 +641,7 @@ export default function App() {
                   </button>
                   <button
                     type="button"
-                    className="rack-display-test cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                    className="rack-display-test hw-btn legend px-3 py-1.5"
                     onClick={(e) => {
                       e.stopPropagation()
                       void ensureAudio()
@@ -600,29 +662,37 @@ export default function App() {
                       ? 'Screen stay-on: on'
                       : 'Keep the screen awake while playing'
                   }
-                  className="rack-display-wake cell-hit rounded-md px-3 py-1.5 font-mono text-[10px] uppercase tracking-widest"
-                  style={{
-                    background: wakeLock.enabled ? 'var(--color-lime)' : '#FFFFFF',
-                    color: wakeLock.enabled ? 'var(--color-bg)' : 'var(--color-text)',
-                    border: wakeLock.enabled
-                      ? '1px solid transparent'
-                      : '1px solid var(--color-rack-edge)',
-                    boxShadow: wakeLock.enabled
-                      ? '0 0 10px rgba(181,232,83,0.5)'
-                      : 'none',
-                  }}
+                  className="rack-display-wake hw-btn flex items-center gap-1.5 px-3 py-1.5"
                   onClick={(e) => {
                     e.stopPropagation()
                     void ensureAudio()
                     void wakeLock.toggle()
                   }}
                 >
-                  ☀ STAY ON
+                  <span
+                    aria-hidden="true"
+                    className="rack-display-wake-led hw-btn-led"
+                    style={
+                      wakeLock.enabled
+                        ? {
+                            background: 'var(--color-lime)',
+                            boxShadow: '0 0 5px rgba(181,232,83,0.8)',
+                          }
+                        : {}
+                    }
+                  />
+                  <span
+                    className={`rack-display-wake-label ${
+                      wakeLock.enabled ? 'legend-strong' : 'legend'
+                    }`}
+                  >
+                    STAY ON
+                  </span>
                 </button>
               )}
               <button
                 type="button"
-                className="rack-display-step cell-hit rounded-md border border-rack-edge bg-white px-3 py-1.5 hover:text-text"
+                className="rack-display-step hw-btn legend px-3 py-1.5"
                 onClick={(e) => {
                   e.stopPropagation()
                   handleStep(1)
@@ -634,11 +704,11 @@ export default function App() {
           </div>
         </div>
 
-        <div className="rack-row-2 mt-4">
+        <div className="rack-row-2 mt-2.5">
           <EffectsRow />
         </div>
 
-        <div className="rack-row-touch mt-4">
+        <div className="rack-row-touch mt-2.5">
           <TouchControls
             onPanic={panic}
             onToggleKeyboardMode={() => {
@@ -648,11 +718,21 @@ export default function App() {
           />
         </div>
 
-        <div className="rack-row-3 mt-3">
-          <TouchKeyboard noteOn={noteOn} noteOff={noteOff} />
+        <div className="rack-row-3 mt-2.5">
+          <button
+            type="button"
+            onClick={() => setKeyboardOpen((v) => !v)}
+            aria-expanded={keyboardOpen}
+            className="rack-keyboard-toggle hw-btn legend-strong flex w-full items-center justify-center gap-2 py-2.5 lg:hidden"
+          >
+            {keyboardOpen ? 'Hide keyboard ▾' : 'Show keyboard ▸'}
+          </button>
+          <div className={`rack-keyboard-drawer ${keyboardOpen ? 'mt-2.5 block' : 'hidden'} lg:mt-0 lg:block`}>
+            <LiveTouchKeyboard noteOn={uiNoteOn} noteOff={noteOff} />
+          </div>
         </div>
 
-        <div className="rack-row-4 mt-3">
+        <div className="rack-row-4 mt-2.5">
           <KeyboardHud />
         </div>
       </Rack>
@@ -660,4 +740,13 @@ export default function App() {
       {overlays}
     </div>
   )
+}
+
+function LiveTouchKeyboard(props: {
+  noteOn: (midi: number, vel: number) => void
+  noteOff: (midi: number) => void
+  fill?: boolean
+}) {
+  const activeNotes = useActiveNotes()
+  return <TouchKeyboard {...props} activeNotes={activeNotes} />
 }

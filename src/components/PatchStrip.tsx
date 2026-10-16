@@ -17,7 +17,7 @@ const SOURCE_COLORS: Record<PatchSourceTag['tier'], string> = {
   cache: 'var(--color-sky)',
   cdn: 'var(--color-amber)',
   mixed: 'var(--color-lavender)',
-  unknown: 'rgba(91, 192, 235, 0.4)',
+  unknown: 'var(--color-lcd-dim)',
 }
 
 const SOURCE_LABELS: Record<PatchSourceTag['tier'], string> = {
@@ -44,36 +44,49 @@ export function PatchStrip({
   const tier = source?.tier ?? 'unknown'
 
   return (
-    <header
-      className="patch-strip flex shrink-0 flex-wrap items-center gap-2 rounded-xl px-3 py-2"
-      style={{
-        background: 'linear-gradient(180deg, #0F1024 0%, #161A33 100%)',
-        border: '1px solid rgba(91,192,235,0.28)',
-        boxShadow: 'inset 0 0 20px rgba(0,0,0,0.55)',
-        color: 'var(--color-lcd-text)',
-      }}
-    >
-      <div className="patch-strip-readout order-1 flex w-full min-w-0 flex-col sm:order-none sm:w-auto sm:flex-1">
-        <div className="patch-strip-name lcd-glow truncate font-mono text-base font-medium uppercase tracking-wide">
-          {loading ? 'LOADING…' : (patch?.name ?? '— — —')}
-        </div>
-        <div className="patch-strip-meta flex items-center gap-2 truncate font-mono text-[9px] uppercase tracking-widest text-lcd-dim">
-          <span className="truncate">
-            {patch ? BANK_LABELS[patch.bank] : ''}
-            {patch?.category ? ` · ${patch.category}` : ''}
-          </span>
-          <span className="shrink-0 tabular-nums">
-            {index + 1}/{total}
-          </span>
-          <span
-            className="patch-strip-source shrink-0 rounded px-1.5 py-0.5 text-[8px]"
-            style={{
-              color: SOURCE_COLORS[tier],
-              border: `1px solid ${SOURCE_COLORS[tier]}`,
-            }}
-          >
-            {SOURCE_LABELS[tier]}
-          </span>
+    <header className="patch-strip rack-panel flex shrink-0 flex-wrap items-center gap-2 rounded-lg p-2">
+      <div
+        className="patch-strip-bezel order-1 w-full min-w-0 sm:order-none sm:w-auto sm:flex-1"
+        style={{
+          padding: 5,
+          borderRadius: 6,
+          background: 'var(--lcd-bezel-bg)',
+          boxShadow: 'var(--lcd-bezel-shadow)',
+        }}
+      >
+        <div
+          className="patch-strip-readout relative flex min-w-0 flex-col overflow-hidden px-3 py-1.5 font-mono text-lcd-text"
+          style={{
+            borderRadius: 3,
+            background: 'linear-gradient(180deg, #051B19 0%, #0A2B27 50%, #051B19 100%)',
+            boxShadow: 'inset 0 0 18px rgba(0, 0, 0, 0.6)',
+          }}
+        >
+          <div className="patch-strip-name lcd-glow truncate text-base font-medium uppercase tracking-wide">
+            {loading ? 'LOADING…' : (patch?.name ?? '— — —')}
+          </div>
+          <div className="patch-strip-meta flex items-center gap-2 truncate text-[9px] uppercase tracking-widest text-lcd-dim">
+            <span className="patch-strip-bank truncate">
+              {patch ? BANK_LABELS[patch.bank] : ''}
+              {patch?.category ? ` · ${patch.category}` : ''}
+            </span>
+            <span className="patch-strip-counter shrink-0 tabular-nums">
+              {index + 1}/{total}
+            </span>
+            <span className="patch-strip-source inline-flex shrink-0 items-center gap-1">
+              <span
+                aria-hidden="true"
+                className="patch-strip-source-dot inline-block rounded-full"
+                style={{
+                  width: 5,
+                  height: 5,
+                  background: SOURCE_COLORS[tier],
+                  boxShadow: tier === 'unknown' ? 'none' : `0 0 4px ${SOURCE_COLORS[tier]}`,
+                }}
+              />
+              {SOURCE_LABELS[tier]}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -81,12 +94,8 @@ export function PatchStrip({
         <button
           type="button"
           aria-label="Previous patch"
-          className="patch-strip-step cell-hit flex h-11 min-w-11 items-center justify-center rounded-lg font-mono text-sm"
-          style={{
-            background: 'rgba(91,192,235,0.12)',
-            color: 'var(--color-lcd-text)',
-            touchAction: 'manipulation',
-          }}
+          className="patch-strip-step hw-btn legend-strong flex h-11 min-w-11 items-center justify-center"
+          style={{ touchAction: 'manipulation' }}
           onClick={(e) => {
             e.stopPropagation()
             onStep(-1)
@@ -98,12 +107,8 @@ export function PatchStrip({
         <button
           type="button"
           aria-label="Next patch"
-          className="patch-strip-step cell-hit flex h-11 min-w-11 items-center justify-center rounded-lg font-mono text-sm"
-          style={{
-            background: 'rgba(91,192,235,0.12)',
-            color: 'var(--color-lcd-text)',
-            touchAction: 'manipulation',
-          }}
+          className="patch-strip-step hw-btn legend-strong flex h-11 min-w-11 items-center justify-center"
+          style={{ touchAction: 'manipulation' }}
           onClick={(e) => {
             e.stopPropagation()
             onStep(1)
@@ -114,19 +119,22 @@ export function PatchStrip({
 
         <button
           type="button"
-          className="patch-strip-browse cell-hit flex h-11 items-center rounded-lg px-4 font-display text-xs font-medium uppercase tracking-widest text-bg"
-          style={{
-            background: 'linear-gradient(180deg, var(--color-sky) 0%, #4AA8D2 100%)',
-            touchAction: 'manipulation',
-          }}
+          className="patch-strip-browse hw-btn hw-btn-accent flex h-11 items-center gap-2 px-4"
+          style={{ ['--hw-accent' as string]: 'var(--color-sky)', touchAction: 'manipulation' }}
           onClick={(e) => {
             e.stopPropagation()
             onBrowse()
           }}
         >
-          Library
+          <span
+            aria-hidden="true"
+            className="patch-strip-browse-led hw-btn-led"
+            style={{ background: 'var(--color-sky)', boxShadow: '0 0 5px rgba(91,192,235,0.8)' }}
+          />
+          <span className="patch-strip-browse-label legend" style={{ color: 'var(--ink-sky)' }}>
+            Library
+          </span>
         </button>
-
       </div>
     </header>
   )

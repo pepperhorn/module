@@ -2,9 +2,11 @@ import { StrictMode, useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { registerSW } from 'virtual:pwa-register'
 import vendoredUrls from 'virtual:vendored-samples'
-import '@fontsource/fredoka/400.css'
-import '@fontsource/fredoka/500.css'
-import '@fontsource/fredoka/600.css'
+import '@fontsource/michroma/400.css'
+import '@fontsource/chakra-petch/400.css'
+import '@fontsource/chakra-petch/500.css'
+import '@fontsource/chakra-petch/600.css'
+import '@fontsource/chakra-petch/700.css'
 import '@fontsource/inter/400.css'
 import '@fontsource/inter/500.css'
 import '@fontsource/inter/600.css'
@@ -12,9 +14,14 @@ import '@fontsource/jetbrains-mono/400.css'
 import '@fontsource/jetbrains-mono/500.css'
 import './index.css'
 import App from './App'
+
+import { applyStoredTheme } from './state/useTheme'
 import { UpdateToast } from './components/UpdateToast'
 import { warmVendored } from './pwa/warmVendored'
 import { useStore } from './state/useStore'
+
+// Before React renders; see applyStoredTheme.
+applyStoredTheme()
 
 function Root() {
   const [needRefresh, setNeedRefresh] = useState(false)

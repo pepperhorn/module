@@ -36,6 +36,11 @@ function isTextTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || el.isContentEditable
 }
 
+/** A modal dialog (MIDI sheet, save dialog…) owns the keyboard while open. */
+export function isModalOpen(): boolean {
+  return typeof document !== 'undefined' && document.querySelector('[aria-modal="true"]') !== null
+}
+
 export function useComputerKeyboard(callbacks: KeyboardCallbacks): void {
   const heldRef = useRef<Set<string>>(new Set())
   const cbRef = useRef(callbacks)
@@ -45,6 +50,8 @@ export function useComputerKeyboard(callbacks: KeyboardCallbacks): void {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.repeat) return
       if (isTextTarget(e.target)) return
+      // Escape there closes the dialog; it must not also panic held notes.
+      if (isModalOpen()) return
       const key = e.key
       if (key === 'Escape') {
         cbRef.current.panic()

@@ -218,6 +218,24 @@ function contextSupportsSinkId(): boolean {
   return 'setSinkId' in AudioContext.prototype
 }
 
+// On Android, ask for the smallest output buffer the device allows: a numeric
+// hint of 0 is clamped to the hardware minimum, typically below the
+// 'interactive' default there. Desktop keeps 'interactive' — its default is
+// already low and the minimum risks underruns under a heavy patch + reverb.
+// Leave sampleRate unset: forcing a rate that differs from the hardware
+// disables Android's fast path.
+function createLowLatencyContext(): AudioContext {
+  const android = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+  if (android) {
+    try {
+      return new AudioContext({ latencyHint: 0 })
+    } catch {
+      // fall through
+    }
+  }
+  return new AudioContext({ latencyHint: 'interactive' })
+}
+
 export class AudioEngine {
   readonly context: AudioContext
   private chain: ReturnType<typeof buildEffectChain> | null = null
@@ -254,16 +272,20 @@ export class AudioEngine {
 
   constructor() {
     installConsoleShim()
-    this.context = new AudioContext()
+    this.context = createLowLatencyContext()
     serializeDecodeAudioData(this.context)
-    log('ctor', { state: this.context.state, sampleRate: this.context.sampleRate })
+    log('ctor', {
+      state: this.context.state,
+      sampleRate: this.context.sampleRate,
+      ...this.latencyInfo(),
+    })
   }
 
   async resume(): Promise<void> {
     if (this.context.state !== 'running') {
       try {
         await this.context.resume()
-        log('context resumed', { state: this.context.state })
+        log('context resumed', { state: this.context.state, ...this.latencyInfo() })
       } catch (err) {
         log('context resume failed', err)
       }
@@ -307,6 +329,18 @@ export class AudioEngine {
       log('testTone fired', { seconds, gain })
     } catch (err) {
       log('testTone threw', err)
+    }
+  }
+
+  /**
+   * Audio-path latency in ms. baseLatency is the Web Audio buffer; outputLatency
+   * adds the OS/device path (Bluetooth sinks typically add 150–250ms here).
+   */
+  latencyInfo(): { baseLatencyMs: number; outputLatencyMs: number | null } {
+    const ctx = this.context as AudioContext & { outputLatency?: number }
+    return {
+      baseLatencyMs: Math.round((ctx.baseLatency ?? 0) * 1000),
+      outputLatencyMs: ctx.outputLatency != null ? Math.round(ctx.outputLatency * 1000) : null,
     }
   }
 
@@ -538,10 +572,9 @@ export class AudioEngine {
       void this.context.resume()
     }
     try {
+      // No success logging here: this is the hot path, and every log line
+      // stringifies + re-renders the debug panel.
       this.current.start({ note: midi, velocity })
-      if (tag % 4 === 1) {
-        log('noteOn ✓', { tag, midi, vel: velocity, patch: this.currentId })
-      }
     } catch (err) {
       log('noteOn ✗ start threw', { tag, midi, currentId: this.currentId, err })
     }
@@ -921,6 +954,19 @@ export class AudioEngine {
       // noop
     }
     this.activeDoubles.clear()
+  }
+
+  /** Breath/expression level 0..1 on the shared pre-FX gain stage. */
+  setBreath(level: number, smoothingMs = 8, immediate = false): void {
+    this.chain?.setBreath(level, smoothingMs, immediate)
+  }
+
+  /**
+   * Jump the shared breath gain to full, for notes that are not breath
+   * controlled (touch / computer keyboard). Immediate, so smoothing is moot.
+   */
+  liftBreath(): void {
+    this.chain?.setBreath(1, 0, true)
   }
 
   setEffectParam(id: EffectId, paramId: string, value: number): void {

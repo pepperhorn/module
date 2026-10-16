@@ -4,6 +4,9 @@ import { useStore } from '../state/useStore'
 interface TouchKeyboardProps {
   noteOn: (midi: number, velocity: number) => void
   noteOff: (midi: number) => void
+  /** Notes currently sounding from ANY source (computer keyboard, MIDI, touch) —
+   *  used to light the on-screen keys. Touch also feeds this via App.noteOn. */
+  activeNotes?: ReadonlySet<number>
   octaves?: number
   /**
    * Stretch to fill the parent instead of using the fixed rack height. Used by
@@ -67,6 +70,7 @@ function midiFromPoint(x: number, y: number): number | null {
 export function TouchKeyboard({
   noteOn,
   noteOff,
+  activeNotes,
   octaves = 2,
   fill = false,
 }: TouchKeyboardProps) {
@@ -180,11 +184,12 @@ export function TouchKeyboard({
 
   return (
     <div
-      className={`touch-keyboard rack-panel rounded-xl p-3 ${
+      className={`touch-keyboard rack-panel rounded-lg p-3 ${
         fill ? 'flex h-full min-h-0 flex-col' : ''
       }`}
     >
-      <div className="touch-keyboard-header mb-2 flex items-center justify-between font-mono text-[9px] uppercase tracking-widest text-text/40">
+      <span className="touch-keyboard-title group-legend legend">KEYBOARD</span>
+      <div className="touch-keyboard-header legend mb-2 flex items-center justify-between">
         <span>
           TOUCH · OCT {octave}–{octave + octaves}
         </span>
@@ -208,12 +213,12 @@ export function TouchKeyboard({
         onPointerLeave={onPointerUp}
       >
         {whiteKeys.map((k) => {
-          const isPressed = pressed.has(k.midi)
+          const isPressed = pressed.has(k.midi) || (activeNotes?.has(k.midi) ?? false)
           return (
             <div
               key={`w-${k.midi}`}
               data-midi={k.midi}
-              className={`touch-key touch-key-white absolute bottom-0 top-0 flex flex-col items-center justify-end pb-2 font-mono text-[9px] uppercase ${
+              className={`touch-key touch-key-white absolute bottom-0 top-0 flex flex-col items-center justify-end pb-2 font-mono text-[10px] uppercase ${
                 isPressed ? 'touch-key-pressed' : ''
               }`}
               style={{
@@ -240,7 +245,7 @@ export function TouchKeyboard({
           const whiteBelow = whiteKeys.findIndex((w) => w.midi === k.midi - 1)
           if (whiteBelow < 0 || whiteBelow >= whiteKeys.length - 1) return null
           const left = (whiteBelow + 1) * whiteKeyWidth - whiteKeyWidth * 0.32
-          const isPressed = pressed.has(k.midi)
+          const isPressed = pressed.has(k.midi) || (activeNotes?.has(k.midi) ?? false)
           return (
             <div
               key={`b-${k.midi}`}

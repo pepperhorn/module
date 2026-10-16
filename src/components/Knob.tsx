@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
-interface PedalKnobProps {
+interface KnobProps {
   label: string
   value: number
   min: number
@@ -16,11 +16,6 @@ interface PedalKnobProps {
   onChange: (value: number) => void
 }
 
-/** Degrees of sweep, centred on 12 o'clock — the usual pot travel on a pedal. */
-const SWEEP = 270
-const START_ANGLE = -135
-const TICK_COUNT = 11
-
 function formatValue(
   value: number,
   step: number,
@@ -28,16 +23,15 @@ function formatValue(
   labels: string[] | undefined,
 ): string {
   if (labels) return labels[Math.round(value)] ?? String(value)
-  const decimals = step < 0.1 ? 2 : step < 1 ? 2 : 0
-  return value.toFixed(decimals) + (unit ?? '')
+  return value.toFixed(step < 1 ? 2 : 0) + (unit ?? '')
 }
 
 /**
- * A hardware-style pot: knurled cap, painted pointer, tick marks around the
- * sweep and the value printed on the chassis below. Drag up/down or scroll to
- * turn; shift for fine adjustment; double-click returns it to its default.
+ * A skeuomorphic pot: coloured value arc, skirt collar and domed cap. Drag
+ * up/down or scroll to turn (shift = fine), arrow keys step it, double-click
+ * returns it to its default.
  */
-export function PedalKnob({
+export function Knob({
   label,
   value,
   min,
@@ -45,19 +39,26 @@ export function PedalKnob({
   step,
   unit,
   color = 'var(--color-sky)',
-  size = 54,
+  size = 48,
   labels,
   defaultValue,
   disabled = false,
   onChange,
-}: PedalKnobProps) {
-  const bodyRef = useRef<HTMLDivElement>(null)
+}: KnobProps) {
+  const ref = useRef<HTMLDivElement>(null)
   const dragRef = useRef<{ startY: number; startValue: number } | null>(null)
-  const [dragging, setDragging] = useState(false)
+  const [showValue, setShowValue] = useState(false)
 
   const range = max - min
   const fraction = range === 0 ? 0 : (value - min) / range
-  const angle = START_ANGLE + fraction * SWEEP
+  const pct = fraction * 100
+  const angle = -135 + fraction * 270
+
+  // Layered geometry: colored arc (full), skirt collar (inset), domed cap (more
+  // inset). Bands scale with the knob so small effect knobs stay legible.
+  const skirtInset = Math.max(3, Math.round(size * 0.1))
+  const capInset = Math.max(6, Math.round(size * 0.19))
+  const capD = size - capInset * 2
 
   const commit = useCallback(
     (next: number) => {
@@ -80,7 +81,7 @@ export function PedalKnob({
         // noop
       }
       dragRef.current = { startY: e.clientY, startValue: value }
-      setDragging(true)
+      setShowValue(true)
     },
     [disabled, value],
   )
@@ -90,7 +91,7 @@ export function PedalKnob({
       const drag = dragRef.current
       if (!drag) return
       const dy = drag.startY - e.clientY
-      const sensitivity = e.shiftKey ? 0.0008 : 0.006
+      const sensitivity = e.shiftKey ? 0.0005 : 0.005
       commit(drag.startValue + dy * sensitivity * range)
     },
     [commit, range],
@@ -98,21 +99,30 @@ export function PedalKnob({
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     dragRef.current = null
-    setDragging(false)
     try {
       ;(e.currentTarget as Element).releasePointerCapture(e.pointerId)
     } catch {
       // noop
     }
+    setShowValue(false)
   }, [])
+
+  const onDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (disabled) return
+      e.stopPropagation()
+      onChange(defaultValue ?? min)
+    },
+    [disabled, defaultValue, min, onChange],
+  )
 
   const onWheel = useCallback(
     (e: WheelEvent) => {
       if (disabled) return
       e.preventDefault()
-      const direction = e.deltaY > 0 ? -1 : 1
-      const increment = e.shiftKey ? step : Math.max(step, range * 0.02)
-      commit(value + direction * increment)
+      const dir = e.deltaY > 0 ? -1 : 1
+      const incr = e.shiftKey ? step : Math.max(step, range * 0.02)
+      commit(value + dir * incr)
     },
     [disabled, step, range, value, commit],
   )
@@ -126,31 +136,23 @@ export function PedalKnob({
     wheelRef.current = onWheel
   })
   useEffect(() => {
-    const el = bodyRef.current
+    const el = ref.current
     if (!el) return
     const handler = (e: WheelEvent) => wheelRef.current(e)
     el.addEventListener('wheel', handler, { passive: false })
     return () => el.removeEventListener('wheel', handler)
   }, [])
 
-  const onDoubleClick = useCallback(
-    (e: React.MouseEvent) => {
-      if (disabled) return
-      e.stopPropagation()
-      onChange(defaultValue ?? min)
-    },
-    [disabled, defaultValue, min, onChange],
-  )
-
   const readout = formatValue(value, step, unit, labels)
+  const display = labels ? readout : showValue ? readout : label
 
   return (
     <div
-      className="pedal-knob flex select-none flex-col items-center gap-1"
+      className="knob flex flex-col items-center gap-1 select-none"
       style={{ opacity: disabled ? 0.45 : 1 }}
     >
       <div
-        ref={bodyRef}
+        ref={ref}
         role="slider"
         aria-label={label}
         aria-valuemin={min}
@@ -159,12 +161,8 @@ export function PedalKnob({
         aria-valuetext={readout}
         aria-disabled={disabled}
         tabIndex={disabled ? -1 : 0}
-        className="pedal-knob-body relative touch-none"
-        style={{
-          width: size,
-          height: size,
-          cursor: disabled ? 'default' : 'ns-resize',
-        }}
+        className="knob-body relative touch-none"
+        style={{ width: size, height: size, cursor: disabled ? 'default' : 'ns-resize' }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -181,62 +179,49 @@ export function PedalKnob({
           }
         }}
       >
-        {/* Tick marks silk-screened around the sweep */}
-        {Array.from({ length: TICK_COUNT }, (_, i) => {
-          const tickAngle = START_ANGLE + (i / (TICK_COUNT - 1)) * SWEEP
-          const lit = i / (TICK_COUNT - 1) <= fraction + 0.001
-          return (
-            <span
-              key={i}
-              aria-hidden="true"
-              className="pedal-knob-tick absolute left-1/2 top-0 rounded-full"
-              style={{
-                width: 1.5,
-                height: i === 0 || i === TICK_COUNT - 1 ? 5 : 3.5,
-                background: lit ? color : 'rgba(20,30,60,0.22)',
-                boxShadow: lit ? `0 0 4px ${color}` : 'none',
-                transformOrigin: `50% ${size / 2}px`,
-                transform: `translateX(-50%) rotate(${tickAngle}deg)`,
-              }}
-            />
-          )
-        })}
-        {/* Knurled cap */}
+        {/* colored value arc on the outer rim (gap at the bottom) */}
         <div
-          className="pedal-knob-cap absolute rounded-full"
+          className="knob-arc absolute inset-0 rounded-full"
           style={{
-            inset: 7,
-            background:
-              'radial-gradient(circle at 34% 26%, #FFFFFF 0%, #E4E8EE 52%, #C2C8D2 100%)',
-            border: '1px solid rgba(20,30,60,0.18)',
-            boxShadow: dragging
-              ? `inset 0 1px 0 rgba(255,255,255,0.9), 0 0 10px ${color}66, 0 1px 3px rgba(20,30,60,0.28)`
-              : 'inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 3px rgba(20,30,60,0.24)',
-            transform: `rotate(${angle}deg)`,
+            background: `conic-gradient(from -135deg, ${color} 0%, ${color} ${pct * 0.75}%, var(--knob-track) ${pct * 0.75}%, var(--knob-track) 75%, transparent 75%)`,
+          }}
+        />
+        {/* skirt collar — casts the knob's drop shadow */}
+        <div
+          className="knob-skirt absolute rounded-full"
+          style={{
+            inset: skirtInset,
+            background: 'var(--knob-skirt-bg)',
+            boxShadow: 'var(--knob-skirt-shadow)',
+          }}
+        />
+        {/* domed cap + neutral pointer line */}
+        <div
+          className="knob-cap absolute rounded-full"
+          style={{
+            inset: capInset,
+            background: 'var(--knob-bg)',
+            boxShadow: 'var(--knob-shadow)',
           }}
         >
-          <span
-            aria-hidden="true"
-            className="pedal-knob-pointer absolute left-1/2 rounded-full"
+          <div
+            className="knob-indicator absolute left-1/2 -translate-x-1/2 rounded-full"
             style={{
-              top: 3,
-              width: 2.5,
-              height: size * 0.3,
-              marginLeft: -1.25,
-              background: color,
-              boxShadow: `0 0 5px ${color}`,
+              top: Math.round(capD * 0.11),
+              width: Math.max(2, Math.round(size * 0.055)),
+              height: Math.round(capD * 0.36),
+              background: 'var(--knob-pointer)',
+              transformOrigin: `50% ${capD / 2 - Math.round(capD * 0.11)}px`,
+              transform: `translateX(-50%) rotate(${angle}deg)`,
             }}
           />
         </div>
       </div>
-      <div className="pedal-knob-label font-mono text-[9px] uppercase tracking-widest text-text/55">
-        {label}
-      </div>
       <div
-        className="pedal-knob-value font-mono text-[9px] tabular-nums tracking-wider"
-        style={{ color: dragging ? color : 'rgba(20,30,60,0.45)' }}
+        className="knob-label legend"
+        style={{ minHeight: 12 }}
       >
-        {readout}
+        {display}
       </div>
     </div>
   )

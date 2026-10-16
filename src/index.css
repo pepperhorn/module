@@ -1,11 +1,15 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #FAFBFC;
-  --color-text: #1A1A2E;
-  --color-panel: #F0F2F5;
-  --color-rack: #E8EBEF;
-  --color-rack-edge: #D4D9E0;
+  /* Poly-Rack — deep brushed-navy aluminium faceplate (Korg-inspired).
+     The faceplate is dark milled metal; legends are screened cream; the
+     recessed section wells sit *into* the metal. Section accents stay bright
+     so they read like the Polysix's coloured control groups. */
+  --color-bg: #0B0E15;          /* the room behind the rack */
+  --color-text: #ECEAE0;        /* silkscreen cream-white */
+  --color-panel: #161C28;       /* recessed well surface */
+  --color-rack: #232A3A;        /* faceplate metal base */
+  --color-rack-edge: #0B0E15;   /* dark seam / outer edge */
 
   --color-coral: #FF6B6B;
   --color-amber: #FFB84D;
@@ -16,17 +20,189 @@
   --color-mint: #96E6B3;
   --color-rose: #FFA5B8;
 
-  --color-lcd-bg: #0F1024;
-  --color-lcd-text: #5BC0EB;
-  --color-lcd-dim: #2A3A5C;
+  --color-legend: #B2BACB;         /* screened grey-cream label */
+  --color-legend-strong: #E6E8F0;  /* bright screened label */
+  --color-hairline: rgba(0, 0, 0, 0.5);
+  --color-face-hi: #242B3B;        /* faceplate mid (legend knockout bg) */
+  --color-face-lo: #161B26;        /* metal shadow */
 
-  --font-display: "Fredoka", system-ui, sans-serif;
+  --color-lcd-bg: #07211F;
+  --color-lcd-text: #55E6C8;
+  --color-lcd-dim: #1D5B50;
+
+  --font-brand: "Michroma", sans-serif;
+  --font-display: "Chakra Petch", "Inter", system-ui, sans-serif;
+  --font-legend: "Chakra Petch", sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
 }
 
+/* ---------------------------------------------------------------------------
+   Theme system. The @theme block above holds the DARK colour tokens (default).
+   Every hardware material (faceplate, wells, keycaps, knobs, pedals, LCD bezel,
+   rails, pills, HUD, dialog cards) is expressed as a CSS variable so a single
+   [data-theme] switch reskins the whole instrument. Dark = default; the
+   [data-theme="light"] block restores the original brushed-white faceplate.
+--------------------------------------------------------------------------- */
 :root {
+  color-scheme: dark;
+
+  /* the room behind the rack */
+  --room-bg: radial-gradient(ellipse at 50% 0%, #303a4c 0%, #1c2230 55%, #12151d 100%);
+
+  /* accent text that sits ON a button face — bright on dark metal, deeper on
+     cream so it stays legible in both themes */
+  --ink-sky: #5BC0EB;
+  --ink-coral: #FF6B6B;
+  --ink-lavender: #B59CD9;
+
+  /* faceplate chassis */
+  --face-bg:
+    linear-gradient(180deg, #2A3141 0%, #232A3A 46%, #1B2130 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0px, rgba(255, 255, 255, 0.022) 1px, rgba(0, 0, 0, 0.018) 1px, rgba(0, 0, 0, 0.018) 2px);
+  --face-border: #0B0E15;
+  --face-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+  --brand-border: rgba(0, 0, 0, 0.5);
+  --brand-hi: rgba(255, 255, 255, 0.06);
+  --power-border: rgba(255, 255, 255, 0.12);
+  --power-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.35);
+
+  /* recessed section wells */
+  --well-bg: linear-gradient(180deg, #171D29 0%, #1B2231 100%);
+  --well-border: rgba(0, 0, 0, 0.55);
+  --well-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* function-button keycaps */
+  --btn-bg: linear-gradient(180deg, #414B62 0%, #2E3648 100%);
+  --btn-border: #0D1119;
+  --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  --btn-shadow-active: inset 0 2px 4px rgba(0, 0, 0, 0.55);
+  --btn-led-off-bg: rgba(0, 0, 0, 0.45);
+  --btn-led-off-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  /* knobs — domed cap seated in a skirt collar, colored value arc on the rim */
+  --knob-bg: radial-gradient(circle at 50% 30%, #454F66 0%, #2A3140 48%, #141922 100%);
+  --knob-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.16), inset 0 -3px 5px rgba(0, 0, 0, 0.5);
+  --knob-track: rgba(255, 255, 255, 0.07);
+  --knob-skirt-bg: radial-gradient(circle at 50% 28%, #2E3648 0%, #10141D 100%);
+  --knob-skirt-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), inset 0 -1px 2px rgba(0, 0, 0, 0.6),
+    0 3px 7px rgba(0, 0, 0, 0.55);
+  --knob-pointer: #EAECF2;
+
+  /* effect pedal tiles */
+  --pedal-bg: linear-gradient(180deg, #2A3141 0%, #1E2432 100%);
+  --pedal-border: #10141D;
+  --pedal-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.45);
+
+  /* LCD bezel */
+  --lcd-bezel-bg: linear-gradient(180deg, #0E1219 0%, #171C26 100%);
+  --lcd-bezel-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* rack rails */
+  --rail-bg: linear-gradient(90deg, #1A202C 0%, #2C3444 48%, #1A202C 100%);
+  --rail-border: #0B0E15;
+  --rail-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.06), inset -1px 0 0 rgba(0, 0, 0, 0.5),
+    0 6px 16px rgba(0, 0, 0, 0.55);
+
+  /* status pills */
+  --pill-bg: rgba(255, 255, 255, 0.10);
+  --pill-border: rgba(255, 255, 255, 0.20);
+
+  /* shortcut HUD */
+  --hud-bg: linear-gradient(180deg, #1C2230 0%, #151A26 100%);
+  --hud-border: rgba(0, 0, 0, 0.5);
+  --hud-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --kbd-bg: linear-gradient(180deg, #2E3647 0%, #232B3A 100%);
+  --kbd-border: #10141D;
+
+  /* overlays + dialog / patch-card surfaces */
+  --scrim: rgba(0, 0, 0, 0.7);
+  --card-bg: linear-gradient(180deg, #1B2130 0%, #161B26 100%);
+  --card-solid: #161B26;
+  --card-border: rgba(255, 255, 255, 0.12);
+  --card-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="light"] {
   color-scheme: light;
+
+  /* the room → Claude cream-gray */
+  --room-bg: radial-gradient(ellipse at 50% 0%, #EFEDE4 0%, #E7E4DA 55%, #DCD9CD 100%);
+
+  --ink-sky: #226680;
+  --ink-coral: #B03B3B;
+  --ink-lavender: #6A4E9C;
+
+  /* colour tokens → warm Claude cream faceplate */
+  --color-bg: #F0EEE6;
+  --color-text: #26241F;
+  --color-panel: #E9E7DD;
+  --color-rack: #E4E1D6;
+  --color-rack-edge: #D3D0C4;
+  --color-legend: #6B675C;
+  --color-legend-strong: #3D3A32;
+  --color-hairline: rgba(40, 36, 28, 0.14);
+  --color-face-hi: #F2F0E7;
+  --color-face-lo: #E7E4DA;
+
+  /* materials → warm cream-gray */
+  --face-bg: linear-gradient(180deg, #F3F1E8 0%, #E9E6DC 100%);
+  --face-border: #D3D0C4;
+  --face-shadow: 0 10px 30px rgba(50, 45, 35, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --brand-border: rgba(40, 36, 28, 0.14);
+  --brand-hi: rgba(255, 255, 255, 0.6);
+  --power-border: rgba(40, 36, 28, 0.14);
+  --power-shadow: 0 0 transparent;
+
+  --well-bg: rgba(255, 255, 255, 0.4);
+  --well-border: rgba(40, 36, 28, 0.12);
+  --well-shadow: 0 0 transparent;
+
+  --btn-bg: linear-gradient(180deg, #FCFBF7 0%, #EFEDE3 100%);
+  --btn-border: #CFCCC0;
+  --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(50, 45, 35, 0.12);
+  --btn-shadow-active: inset 0 2px 3px rgba(50, 45, 35, 0.18);
+  --btn-led-off-bg: rgba(40, 36, 28, 0.15);
+  --btn-led-off-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+
+  --knob-bg: radial-gradient(circle at 50% 30%, #FFFFFF 0%, #F1EFE7 55%, #E1DED3 100%);
+  --knob-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 -2px 4px rgba(50, 45, 35, 0.12);
+  --knob-track: rgba(40, 36, 28, 0.10);
+  --knob-skirt-bg: radial-gradient(circle at 50% 28%, #FFFFFF 0%, #D0CDC2 55%, #B4B1A4 100%);
+  --knob-skirt-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(50, 45, 35, 0.22),
+    0 3px 7px rgba(50, 45, 35, 0.2);
+  --knob-pointer: #3B3A36;
+
+  --pedal-bg: linear-gradient(180deg, #FBFAF5 0%, #EEEBE1 100%);
+  --pedal-border: #D3D0C4;
+  --pedal-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(50, 45, 35, 0.06);
+
+  --lcd-bezel-bg: linear-gradient(180deg, #CBC7BC 0%, #DEDACF 100%);
+  --lcd-bezel-shadow: inset 0 2px 5px rgba(50, 45, 35, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.55);
+
+  --rail-bg: linear-gradient(90deg, #C2BEB2 0%, #DEDACF 48%, #C8C4B8 100%);
+  --rail-border: #ADA99C;
+  --rail-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.45), inset -1px 0 0 rgba(50, 45, 35, 0.12),
+    0 4px 12px rgba(50, 45, 35, 0.26);
+
+  --pill-bg: rgba(255, 255, 255, 0.6);
+  --pill-border: #D3D0C4;
+
+  --hud-bg: linear-gradient(180deg, #F3F1E8 0%, #E7E4DA 100%);
+  --hud-border: #D3D0C4;
+  --hud-shadow: 0 0 transparent;
+  --kbd-bg: #FCFBF7;
+  --kbd-border: #D3D0C4;
+
+  --scrim: rgba(38, 36, 31, 0.5);
+  --card-bg: #F6F4EC;
+  --card-solid: #F3F1E8;
+  --card-border: #D3D0C4;
+  --card-shadow: 0 24px 60px rgba(50, 45, 35, 0.18);
 }
 
 html, body, #root {
@@ -57,6 +233,55 @@ button {
   transform: scale(0.94);
 }
 
+/* JV function button — dark moulded keycap milled into the faceplate. A top
+   gloss + inner shadow gives it dimension; active state depresses it. The
+   label stays cream; a lit LED signals the active/engaged state. */
+.hw-btn {
+  border-radius: 4px;
+  background: var(--btn-bg);
+  border: 1px solid var(--btn-border);
+  color: var(--color-legend-strong);
+  box-shadow: var(--btn-shadow);
+  transition: transform 80ms ease-out, box-shadow 80ms ease-out;
+}
+.hw-btn:active {
+  transform: translateY(1px);
+  box-shadow: var(--btn-shadow-active);
+}
+.hw-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-sky);
+}
+
+/* Accent (keyline) function button — BROWSE / SAVE. A thin colored keyline
+   instead of a gradient fill; drive the hue with --hw-accent inline. Kept as a
+   class (not inline box-shadow) so the :active depress and :focus-visible ring
+   still work. Declared after .hw-btn so equal-specificity pseudo rules win. */
+.hw-btn-accent {
+  box-shadow: inset 0 0 0 1.5px var(--hw-accent, var(--color-sky)), var(--btn-shadow);
+}
+.hw-btn-accent:active {
+  transform: translateY(1px);
+  box-shadow: inset 0 0 0 1.5px var(--hw-accent, var(--color-sky)), var(--btn-shadow-active);
+}
+.hw-btn-accent:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1.5px var(--hw-accent, var(--color-sky)),
+    0 0 0 2px var(--color-sky);
+}
+
+/* Tiny in-button LED (5px). Default is the unlit inset dot; add .hw-btn-led-on
+   plus an accent color via inline style to light it. */
+.hw-btn-led {
+  width: 5px;
+  height: 5px;
+  border-radius: 9999px;
+  background: var(--btn-led-off-bg);
+  box-shadow: var(--btn-led-off-shadow);
+  flex-shrink: 0;
+  pointer-events: none;
+}
+
 /* JV-style LED pulse */
 @keyframes led-pulse {
   0%, 100% { opacity: 1; box-shadow: 0 0 6px 1px currentColor; }
@@ -69,28 +294,108 @@ button {
 /* LCD glow */
 .lcd-glow {
   text-shadow:
-    0 0 4px rgba(91, 192, 235, 0.9),
-    0 0 8px rgba(91, 192, 235, 0.55),
-    0 0 18px rgba(91, 192, 235, 0.25);
+    0 0 4px rgba(85, 230, 200, 0.9),
+    0 0 8px rgba(85, 230, 200, 0.55),
+    0 0 18px rgba(85, 230, 200, 0.25);
 }
 
-/* Subtle rack texture */
+/* LCD blinking block cursor (character-display cue) */
+@keyframes lcd-cursor-blink {
+  0%,
+  50% {
+    opacity: 1;
+  }
+  50.01%,
+  100% {
+    opacity: 0;
+  }
+}
+.lcd-cursor {
+  animation: lcd-cursor-blink 1.2s step-end infinite;
+}
+
+/* Silkscreen legend system (JV faceplate printing) */
+.legend {
+  font-family: var(--font-legend);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--color-legend);
+}
+.legend-strong {
+  font-family: var(--font-legend);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--color-legend-strong);
+}
+
+/* Section well — a control group recessed INTO the brushed-metal faceplate.
+   Inner shadow sinks it below the surface; a faint light lip on the bottom
+   edge is the bevel where the recess meets the metal. */
+.group-frame,
 .rack-panel {
-  background:
-    linear-gradient(180deg, #F4F6F9 0%, #E8EBEF 100%);
-  border: 1px solid var(--color-rack-edge);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.7),
-    inset 0 -1px 0 rgba(0,0,0,0.04),
-    0 1px 2px rgba(20, 30, 60, 0.06);
+  position: relative;
+  background: var(--well-bg);
+  border: 1px solid var(--well-border);
+  border-radius: 8px;
+  box-shadow: var(--well-shadow);
+}
+
+/* Group title screened ON the top edge of a well (knocks out the frame line).
+   Its background matches the surrounding faceplate metal. */
+.group-legend {
+  position: absolute;
+  top: -7px;
+  left: 12px;
+  padding: 0 6px;
+  background: var(--color-face-hi);
+  z-index: 1;
+  pointer-events: none;
 }
 
 .rack-screw {
+  position: relative;
   width: 10px;
   height: 10px;
   border-radius: 9999px;
   background: radial-gradient(circle at 35% 35%, #FFFFFF 0%, #C8CDD6 45%, #8A93A3 100%);
   box-shadow: inset 0 0 0 1px rgba(0,0,0,0.15);
+  pointer-events: none;
+}
+/* Slotted head so the screw reads as a screw, not a dot. */
+.rack-screw::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 20%;
+  width: 60%;
+  height: 1.5px;
+  border-radius: 1px;
+  background: rgba(20, 30, 60, 0.45);
+  transform: translateY(-50%) rotate(var(--slot-rot, 30deg));
+}
+
+/* Rack rail (desktop only) — a 19"/EIA-style mounting rail flanking the
+ * chassis, with a full-height column of rack holes grouped 3-per-U (4U). */
+.rack-rail {
+  background: var(--rail-bg);
+  border: 1px solid var(--rail-border);
+  border-radius: 5px;
+  box-shadow: var(--rail-shadow);
+  pointer-events: none;
+}
+/* A recessed round mounting hole punched through the rail. */
+.rack-hole {
+  width: 7px;
+  height: 7px;
+  border-radius: 9999px;
+  background: radial-gradient(circle at 50% 38%, #828A97 0%, #3B404A 58%, #23262E 100%);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.8),
+    0 1px 0 rgba(255, 255, 255, 0.55);
 }
 
 /* Knob ring */
@@ -99,8 +404,8 @@ button {
     from -135deg,
     var(--color-sky) 0%,
     var(--color-sky) var(--knob-pct, 0%),
-    rgba(20, 30, 60, 0.08) var(--knob-pct, 0%),
-    rgba(20, 30, 60, 0.08) 75%,
+    var(--knob-track) var(--knob-pct, 0%),
+    var(--knob-track) 75%,
     transparent 75%
   );
 }
@@ -120,7 +425,7 @@ button {
 
 /* hide scrollbar but keep scroll */
 .scroll-clean::-webkit-scrollbar { width: 8px; height: 8px; }
-.scroll-clean::-webkit-scrollbar-thumb { background: rgba(20,30,60,0.18); border-radius: 9999px; }
+.scroll-clean::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); border-radius: 9999px; }
 .scroll-clean::-webkit-scrollbar-track { background: transparent; }
 
 @keyframes spin {

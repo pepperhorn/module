@@ -25,45 +25,46 @@ export function LoadErrorToast({
 
   return (
     <div
-      className={`load-error-toast pop-in flex items-center gap-3 rounded-xl px-4 py-3 ${
+      className={`load-error-toast pop-in flex items-center gap-3 rounded-lg px-4 py-3 ${
         inline
           ? 'w-full shrink-0'
           : 'fixed bottom-4 left-1/2 z-[70] w-[min(24rem,calc(100vw-2rem))] -translate-x-1/2'
       }`}
       role="alert"
       style={{
-        background: 'linear-gradient(180deg, #2A1220 0%, #1C0F1A 100%)',
-        border: '1px solid rgba(255,107,107,0.45)',
-        boxShadow: '0 12px 32px rgba(0,0,0,0.35), 0 0 20px rgba(255,107,107,0.15)',
-        color: '#FFD9D9',
+        background: 'var(--card-bg)',
+        border: '1px solid color-mix(in srgb, var(--color-coral) 55%, var(--card-border))',
+        boxShadow: 'var(--card-shadow), 0 0 20px rgba(255,107,107,0.15)',
       }}
       onClick={(e) => e.stopPropagation()}
     >
       <span
         aria-hidden="true"
-        className="h-2.5 w-2.5 shrink-0 rounded-full"
-        style={{ background: '#FF6B6B', boxShadow: '0 0 8px rgba(255,107,107,0.8)' }}
+        className="load-error-toast-led led-on h-2.5 w-2.5 shrink-0 rounded-full"
+        style={{ color: 'var(--color-coral)', background: 'var(--color-coral)' }}
       />
-      <div className="flex min-w-0 flex-1 flex-col gap-0.5">
-        <span className="font-mono text-[11px] uppercase tracking-widest">
+      <div className="load-error-toast-text flex min-w-0 flex-1 flex-col gap-0.5">
+        <span className="load-error-toast-title legend-strong" style={{ color: 'var(--ink-coral)' }}>
           couldn’t load {loadError.name}
         </span>
-        <span className="font-mono text-[9px] uppercase tracking-wider opacity-60">
+        <span className="load-error-toast-detail legend">
           {online ? 'samples unavailable — still on the previous patch' : 'offline — this patch is not cached'}
         </span>
       </div>
       <button
         type="button"
-        className="cell-hit shrink-0 rounded-md px-2.5 py-1 font-mono text-[10px] uppercase tracking-widest"
-        style={{ background: 'rgba(255,107,107,0.18)', color: '#FFD9D9' }}
+        className="load-error-toast-retry hw-btn hw-btn-accent shrink-0 px-2.5 py-1"
+        style={{ ['--hw-accent' as string]: 'var(--color-coral)' }}
         onClick={() => onRetry(loadError.id)}
       >
-        retry
+        <span className="load-error-toast-retry-label legend" style={{ color: 'var(--ink-coral)' }}>
+          retry
+        </span>
       </button>
       <button
         type="button"
         aria-label="Dismiss"
-        className="cell-hit shrink-0 rounded-md px-2 py-1 font-mono text-[10px] uppercase tracking-widest opacity-60"
+        className="load-error-toast-dismiss hw-btn legend shrink-0 px-2 py-1"
         onClick={() => setLoadError(null)}
       >
         ✕

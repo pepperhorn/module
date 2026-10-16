@@ -2,6 +2,7 @@ import { useRef, type ReactNode } from 'react'
 import { ConnectionStatus } from './ConnectionStatus'
 import { MidiStatus } from './MidiStatus'
 import { UserMenu } from './UserMenu'
+import { ThemeToggle } from './ThemeToggle'
 import { useStore } from '../state/useStore'
 
 interface RackProps {
@@ -30,64 +31,105 @@ export function Rack({ children }: RackProps) {
   return (
     <div
       className="rack-outer flex min-h-full items-start justify-center p-3 sm:p-6"
-      style={{
-        background:
-          'radial-gradient(ellipse at top, #FAFBFC 0%, #EDF0F4 100%)',
-      }}
+      style={{ background: 'var(--room-bg)' }}
     >
-      <div
-        className="rack-chassis relative w-full max-w-6xl rounded-2xl"
-        style={{
-          background:
-            'linear-gradient(180deg, #F4F6F9 0%, #E8EBEF 100%)',
-          border: '1px solid var(--color-rack-edge)',
-          boxShadow:
-            '0 8px 32px rgba(20, 30, 60, 0.12), inset 0 1px 0 rgba(255,255,255,0.8), inset 0 -1px 0 rgba(20,30,60,0.05)',
-        }}
-      >
-        <div className="rack-screw absolute left-3 top-3 rack-screw" />
-        <div className="rack-screw absolute right-3 top-3 rack-screw" />
-        <div className="rack-screw absolute bottom-3 left-3 rack-screw" />
-        <div className="rack-screw absolute bottom-3 right-3 rack-screw" />
+      <div className="rack-frame flex w-full max-w-6xl items-stretch justify-center gap-2 sm:gap-3">
+        {/* Left rack rail — desktop only, decorative */}
+        <RackRail />
 
-        <div className="rack-brand-strip flex items-center justify-between px-6 pt-4 pb-2 sm:px-10">
+        <div
+          className="rack-chassis relative w-full min-w-0 max-w-6xl flex-1 rounded-[10px]"
+          style={{
+            background: 'var(--face-bg)',
+            border: '1px solid var(--face-border)',
+            boxShadow: 'var(--face-shadow)',
+          }}
+        >
+          <div
+            className="rack-brand-strip flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 pt-4 pb-3 sm:px-10"
+            style={{
+              borderBottom: '1px solid var(--brand-border)',
+              boxShadow: '0 1px 0 var(--brand-hi)',
+            }}
+          >
           <button
             type="button"
-            className="rack-brand flex items-baseline gap-2 cursor-default select-none"
+            className="rack-brand flex min-w-0 items-center gap-3 cursor-default select-none"
             onClick={(e) => {
               e.stopPropagation()
               onBrandTap()
             }}
             title={debugMode ? 'debug mode on (5 taps to toggle)' : undefined}
-            aria-label="MODULE"
+            aria-label="The Module"
           >
             <span
-              className="rack-brand-mark inline-block h-3 w-3 rounded-sm"
+              className="rack-power flex shrink-0 items-center gap-1.5"
               style={{
-                background: debugMode
-                  ? 'linear-gradient(180deg, var(--color-lime) 0%, #8BC332 100%)'
-                  : 'linear-gradient(180deg, var(--color-coral) 0%, #E55A5A 100%)',
-                boxShadow: debugMode
-                  ? '0 0 8px rgba(181, 232, 83, 0.6)'
-                  : '0 0 8px rgba(255, 107, 107, 0.5)',
+                border: '1px solid var(--power-border)',
+                borderRadius: '4px',
+                padding: '3px 6px',
+                boxShadow: 'var(--power-shadow)',
               }}
-            />
-            <span className="rack-brand-name font-display text-xl font-semibold tracking-widest text-text">
-              MODULE
+            >
+              <span
+                className="rack-brand-mark inline-block h-2.5 w-2.5 rounded-sm"
+                style={{
+                  background: debugMode
+                    ? 'linear-gradient(180deg, var(--color-lime) 0%, #8BC332 100%)'
+                    : 'linear-gradient(180deg, var(--color-coral) 0%, #E55A5A 100%)',
+                  boxShadow: debugMode
+                    ? '0 0 8px rgba(181, 232, 83, 0.6)'
+                    : '0 0 8px rgba(255, 107, 107, 0.5)',
+                }}
+              />
+              <span className="rack-power-label legend">POWER</span>
             </span>
-            <span className="rack-brand-tag font-mono text-[10px] uppercase tracking-widest text-text/40">
-              JV · smplr{debugMode ? ' · debug' : ''}
+            <span
+              className="rack-brand-name text-xl tracking-widest text-text"
+              style={{ fontFamily: 'var(--font-brand)' }}
+            >
+              The Module
+            </span>
+            <span className="rack-brand-tag legend hidden sm:inline">
+              64-PATCH SAMPLER MODULE · MDL-1080{debugMode ? ' · DEBUG' : ''}
             </span>
           </button>
-          <div className="rack-brand-status flex items-center gap-2">
+          <div className="rack-brand-status flex shrink-0 items-center gap-2">
             <ConnectionStatus />
             <MidiStatus />
+            <ThemeToggle />
             <UserMenu />
           </div>
         </div>
 
-        <div className="rack-body p-4 sm:p-6">{children}</div>
+          <div className="rack-body p-4 sm:p-6">{children}</div>
+        </div>
+
+        {/* Right rack rail — desktop only, decorative */}
+        <RackRail />
       </div>
+    </div>
+  )
+}
+
+/**
+ * A 19"/EIA-style mounting rail with a full-height column of rack holes grouped
+ * three-per-unit across 4U, matching a studio rack. Desktop only, decorative.
+ */
+function RackRail() {
+  const units = [0, 1, 2, 3] // 4U
+  return (
+    <div
+      className="rack-rail hidden w-6 shrink-0 flex-col items-center justify-around py-3 lg:flex"
+      aria-hidden="true"
+    >
+      {units.map((u) => (
+        <div key={u} className="rack-rail-unit flex flex-col items-center gap-2.5">
+          {[0, 1, 2].map((h) => (
+            <span key={h} className="rack-hole" />
+          ))}
+        </div>
+      ))}
     </div>
   )
 }
