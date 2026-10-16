@@ -54,6 +54,7 @@
      cream so it stays legible in both themes */
   --ink-sky: #5BC0EB;
   --ink-coral: #FF6B6B;
+  --ink-lavender: #B59CD9;
 
   /* faceplate chassis */
   --face-bg:
@@ -134,6 +135,7 @@
 
   --ink-sky: #226680;
   --ink-coral: #B03B3B;
+  --ink-lavender: #6A4E9C;
 
   /* colour tokens → warm Claude cream faceplate */
   --color-bg: #F0EEE6;

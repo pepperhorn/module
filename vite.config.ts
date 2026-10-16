@@ -64,6 +64,19 @@ export default defineConfig({
             },
           },
           {
+            // Bundled custom patches under public/patches/. Excluded from the
+            // precache (they are audio, not shell) but cached on first play so
+            // the CST bank works offline.
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && url.pathname.startsWith('/patches/'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'module-patches-v1',
+              expiration: { maxEntries: 500, maxAgeSeconds: 60 * 60 * 24 * 180 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
             // Cross-origin CDN sample hosts are owned entirely by
             // loggedStorage.ts (module-cdn-v1). The SW must NOT cache them.
             urlPattern: ({ url }) =>

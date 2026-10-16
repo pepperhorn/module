@@ -82,6 +82,7 @@ export function instantiatePatch(opts: InstantiateOptions): LoadedInstrument {
         source: src,
         destination,
         onLoadProgress,
+        storage,
       }) as unknown as LoadedInstrument
   }
 }

@@ -15,7 +15,9 @@ export function KeyboardHud() {
         boxShadow: 'var(--hud-shadow)',
       }}
     >
-      <div className="keyboard-hud-keys legend flex items-center gap-3">
+      {/* Pure computer-keyboard legend — meaningless on a touch device, where
+          TouchControls provides the same actions as buttons. */}
+      <div className="keyboard-hud-keys legend hidden items-center gap-3 sm:flex">
         <span className="keyboard-hud-row">
           <kbd className="hud-kbd">A</kbd>
           <kbd className="hud-kbd">S</kbd>

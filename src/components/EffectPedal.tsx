@@ -7,7 +7,10 @@ interface EffectPedalProps {
   params: Record<string, number>
   onToggle: (id: EffectId) => void
   onParamChange: (id: EffectId, paramId: string, value: number) => void
-  /** Begin a drag-reorder from the grip handle (pointer = mouse or touch). */
+  /**
+   * Begin a drag-reorder from the grip handle (pointer = mouse or touch).
+   * Absent for the note-level doublers, which have no position in the chain.
+   */
   onDragStart?: (e: React.PointerEvent) => void
   /** This pedal is the one currently being dragged. */
   dragging?: boolean
@@ -47,16 +50,26 @@ export function EffectPedal({
     >
       <header className="effect-pedal-header flex w-full items-center justify-between">
         <span className="effect-pedal-namewrap flex min-w-0 items-center gap-1.5">
-          <button
-            type="button"
-            aria-label={`Reorder ${def.name}`}
-            title="Drag to reorder"
-            onPointerDown={onDragStart}
-            className="effect-pedal-grip shrink-0 leading-none text-legend"
-            style={{ cursor: 'grab', touchAction: 'none', fontSize: '13px' }}
-          >
-            ⠿
-          </button>
+          {onDragStart ? (
+            <button
+              type="button"
+              aria-label={`Reorder ${def.name}`}
+              title="Drag to reorder"
+              onPointerDown={onDragStart}
+              className="effect-pedal-grip shrink-0 leading-none text-legend"
+              style={{ cursor: 'grab', touchAction: 'none', fontSize: '13px' }}
+            >
+              ⠿
+            </button>
+          ) : (
+            <span
+              title="Note-level effect: fires per note, ahead of the audio chain"
+              className="effect-pedal-note-tag legend shrink-0 leading-none"
+              style={{ fontSize: '8px' }}
+            >
+              NOTE
+            </span>
+          )}
           <span
             className="effect-pedal-name font-display text-xs font-semibold uppercase tracking-wider"
             style={{ color: hex }}

@@ -8,6 +8,11 @@ interface TouchKeyboardProps {
    *  used to light the on-screen keys. Touch also feeds this via App.noteOn. */
   activeNotes?: ReadonlySet<number>
   octaves?: number
+  /**
+   * Stretch to fill the parent instead of using the fixed rack height. Used by
+   * keyboard mode, where the keys take the lion's share of the viewport.
+   */
+  fill?: boolean
 }
 
 const WHITE_OFFSETS = [0, 2, 4, 5, 7, 9, 11]
@@ -67,6 +72,7 @@ export function TouchKeyboard({
   noteOff,
   activeNotes,
   octaves = 2,
+  fill = false,
 }: TouchKeyboardProps) {
   const octave = useStore((s) => s.octave)
   const velocity = useStore((s) => s.velocity)
@@ -177,7 +183,11 @@ export function TouchKeyboard({
   )
 
   return (
-    <div className="touch-keyboard rack-panel rounded-lg p-3">
+    <div
+      className={`touch-keyboard rack-panel rounded-lg p-3 ${
+        fill ? 'flex h-full min-h-0 flex-col' : ''
+      }`}
+    >
       <span className="touch-keyboard-title group-legend legend">KEYBOARD</span>
       <div className="touch-keyboard-header legend mb-2 flex items-center justify-between">
         <span>
@@ -186,7 +196,9 @@ export function TouchKeyboard({
         <span>tap or slide · vel {velocity}</span>
       </div>
       <div
-        className="touch-keyboard-body relative h-28 select-none overflow-hidden rounded-md"
+        className={`touch-keyboard-body relative select-none overflow-hidden rounded-md ${
+          fill ? 'min-h-0 flex-1' : 'h-28'
+        }`}
         style={{
           background: 'linear-gradient(180deg, #1A1A2E 0%, #2E2E4F 100%)',
           boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.4)',

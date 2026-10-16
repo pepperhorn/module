@@ -1,8 +1,13 @@
 # MIDI Mappings & Settings Overlay — Design
 
-**Status:** Draft, awaiting review
+**Status:** Draft, awaiting review — unimplemented
 **Date:** 2026-04-13
 **Author:** Brainstormed in session
+**Extended by:** [`2026-09-18-breath-control-design.md`](./2026-09-18-breath-control-design.md)
+— breath control for the Odisei Travel Sax 2 / Travel Clarinet and the Akai EWI.
+Read both before building: this document still owns the router, profile and
+overlay design; the later one owns the breath path, device presets and the
+platform limits.
 
 ## Goal
 

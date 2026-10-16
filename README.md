@@ -1,5 +1,7 @@
 # MODULE
 
+[![CI](https://github.com/pepperhorn/module/actions/workflows/ci.yml/badge.svg)](https://github.com/pepperhorn/module/actions/workflows/ci.yml)
+
 A browser-based **Roland JV‑style sound module**. Plug in a MIDI keyboard (or use the
 on-screen / Ableton-style computer keyboard), pull up a patch from the full
 [smplr](https://github.com/danigb/smplr) instrument family, and jam through a
@@ -16,7 +18,13 @@ fixed Distortion → Chorus → Delay → Reverb effects chain.
 - **Three input modes** simultaneously: MIDI controller (Web MIDI API), Ableton-style
   computer keyboard (`A–L` rows), and a multitouch on-screen keyboard
 - **Effects chain** wired in raw Web Audio: WaveShaper distortion, LFO chorus,
-  feedback delay, ConvolverNode reverb. No Tone.js dependency
+  feedback delay, ConvolverNode reverb. No Tone.js dependency. Each effect is a
+  stompbox — a painted enclosure carrying a footswitch and `◀ ▶` chain-order
+  arrows, opening on demand to its pots (two to a row)
+- **Reorderable chain**: the arrows rewire the audio graph live, and the order
+  persists and is captured in saved presets. The doublers sit ahead of the
+  chain and have no arrows — they are note-level triggers rather than nodes in
+  the graph, so they have no position to move
 - **Local-first storage cascade**: vendored files → alt-format fallback → persistent
   Cache API → live CDN, with a coloured **LOCAL / CACHE / CDN / MIX** badge in the
   LCD so you always know where the audio came from
@@ -24,8 +32,15 @@ fixed Distortion → Chorus → Delay → Reverb effects chain.
   previously-loaded patch is instant
 - **User patches**: tap `★ SAVE PATCH` to snapshot the current base patch + FX state
   to localStorage. Saved patches appear in the `USR` bank in the picker
-- **Download for offline**: per-patch download button in the picker pre-fills the
-  Cache API for any patch you'll want without an internet connection later
+- **Offline by default**: any patch you load — or preview — is cached as it
+  loads, so it stays playable with no connection. The picker's download button
+  pre-fills the cache for a patch you have not played yet. A patch is only
+  marked cached when *every* sample resolved, so the offline greyout is honest
+- **Library previews**: tap ▶ on a card to audition a patch (a C–G run and a C
+  major chord) without leaving the one you are playing. The audition fetches the
+  same samples a real load would, so it doubles as a download
+- **Keyboard mode**: `⌨ KEYBOARD MODE` hands the screen to the keys — a one-line
+  patch readout on top, the pedalboard behind a show/hide toggle
 
 ---
 
@@ -44,6 +59,27 @@ samples lazily from the upstream CDNs the first time you pick it. Subsequent
 loads in the same session are instant (LRU cache); subsequent reloads are fast
 (persistent browser Cache API). To eliminate the CDN dependency entirely, see
 [Vendoring samples](#vendoring-samples) below.
+
+---
+
+## Checks
+
+```bash
+npm run typecheck   # tsc --noEmit
+npm test            # vitest run
+npm run build       # tsc -b && vite build
+```
+
+CI ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)) runs all three on
+every push to `main` and every pull request, on Node 22 to match the
+Dockerfile's build stage. It then asserts the build actually emitted
+`sw.js` and `manifest.webmanifest` — a build can succeed while silently
+dropping them, which breaks installability and the whole offline story.
+
+A second job builds the Docker image and curls the running container for the
+app, the service worker, the manifest and an unknown route (which must hit the
+SPA fallback rather than 404). The image is the deploy artifact, so a break
+there is a broken deploy.
 
 ---
 
@@ -207,7 +243,7 @@ Hover (or long-press on mobile) the badge to see the precise per-tier counts.
   (palette, fonts, library picker pattern)
 - Effects chain pattern adapted from [pepperhorn/vocoder](https://github.com/pepperhorn/vocoder)
 - Roland JV-1080 / JV-2080 hardware silhouette: 1U-rack proportions, central
-  LCD, value dial, banked button grid
+  LCD, banked button grid
 
 ---
 

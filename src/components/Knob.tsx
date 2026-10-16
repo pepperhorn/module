@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface KnobProps {
   label: string
@@ -9,11 +9,28 @@ interface KnobProps {
   unit?: string
   color?: string
   size?: number
+  /** Discrete position names (e.g. doubler intervals) shown instead of a number. */
   labels?: string[]
   defaultValue?: number
+  disabled?: boolean
   onChange: (value: number) => void
 }
 
+function formatValue(
+  value: number,
+  step: number,
+  unit: string | undefined,
+  labels: string[] | undefined,
+): string {
+  if (labels) return labels[Math.round(value)] ?? String(value)
+  return value.toFixed(step < 1 ? 2 : 0) + (unit ?? '')
+}
+
+/**
+ * A skeuomorphic pot: coloured value arc, skirt collar and domed cap. Drag
+ * up/down or scroll to turn (shift = fine), arrow keys step it, double-click
+ * returns it to its default.
+ */
 export function Knob({
   label,
   value,
@@ -25,6 +42,7 @@ export function Knob({
   size = 48,
   labels,
   defaultValue,
+  disabled = false,
   onChange,
 }: KnobProps) {
   const ref = useRef<HTMLDivElement>(null)
@@ -32,8 +50,9 @@ export function Knob({
   const [showValue, setShowValue] = useState(false)
 
   const range = max - min
-  const pct = ((value - min) / range) * 100
-  const angle = -135 + ((value - min) / range) * 270
+  const fraction = range === 0 ? 0 : (value - min) / range
+  const pct = fraction * 100
+  const angle = -135 + fraction * 270
 
   // Layered geometry: colored arc (full), skirt collar (inset), domed cap (more
   // inset). Bands scale with the knob so small effect knobs stay legible.
@@ -41,78 +60,124 @@ export function Knob({
   const capInset = Math.max(6, Math.round(size * 0.19))
   const capD = size - capInset * 2
 
+  const commit = useCallback(
+    (next: number) => {
+      const snapped = Math.max(min, Math.min(max, Math.round(next / step) * step))
+      // Rounding to `step` can leave float noise (0.30000000000000004); compare
+      // on the rendered precision so a no-op drag does not spam the engine.
+      if (Math.abs(snapped - value) >= step / 2) onChange(snapped)
+    },
+    [min, max, step, value, onChange],
+  )
+
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
+      if (disabled) return
       e.preventDefault()
-      ;(e.target as Element).setPointerCapture(e.pointerId)
+      e.stopPropagation()
+      try {
+        ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
+      } catch {
+        // noop
+      }
       dragRef.current = { startY: e.clientY, startValue: value }
       setShowValue(true)
     },
-    [value],
+    [disabled, value],
   )
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
-      if (!dragRef.current) return
-      const dy = dragRef.current.startY - e.clientY
-      const fineMode = e.shiftKey
-      const sensitivity = fineMode ? 0.0005 : 0.005
-      const delta = dy * sensitivity * range
-      let next = dragRef.current.startValue + delta
-      next = Math.round(next / step) * step
-      next = Math.max(min, Math.min(max, next))
-      if (next !== value) onChange(next)
+      const drag = dragRef.current
+      if (!drag) return
+      const dy = drag.startY - e.clientY
+      const sensitivity = e.shiftKey ? 0.0005 : 0.005
+      commit(drag.startValue + dy * sensitivity * range)
     },
-    [value, range, step, min, max, onChange],
+    [commit, range],
   )
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
     dragRef.current = null
     try {
-      ;(e.target as Element).releasePointerCapture(e.pointerId)
+      ;(e.currentTarget as Element).releasePointerCapture(e.pointerId)
     } catch {
       // noop
     }
     setShowValue(false)
   }, [])
 
-  const onDoubleClick = useCallback(() => {
-    onChange(defaultValue ?? min)
-  }, [defaultValue, min, onChange])
-
-  const onWheel = useCallback(
-    (e: React.WheelEvent) => {
-      e.preventDefault()
-      const dir = e.deltaY > 0 ? -1 : 1
-      const fineMode = e.shiftKey
-      const incr = fineMode ? step : Math.max(step, range * 0.02)
-      let next = value + dir * incr
-      next = Math.round(next / step) * step
-      next = Math.max(min, Math.min(max, next))
-      if (next !== value) onChange(next)
+  const onDoubleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (disabled) return
+      e.stopPropagation()
+      onChange(defaultValue ?? min)
     },
-    [value, step, range, min, max, onChange],
+    [disabled, defaultValue, min, onChange],
   )
 
-  const display =
-    labels
-      ? labels[Math.round(value)] ?? label
-      : showValue || dragRef.current
-        ? value.toFixed(step < 0.1 ? 2 : step < 1 ? 2 : 0) + (unit ?? '')
-        : label
+  const onWheel = useCallback(
+    (e: WheelEvent) => {
+      if (disabled) return
+      e.preventDefault()
+      const dir = e.deltaY > 0 ? -1 : 1
+      const incr = e.shiftKey ? step : Math.max(step, range * 0.02)
+      commit(value + dir * incr)
+    },
+    [disabled, step, range, value, commit],
+  )
+
+  // React registers `wheel` on its root container as a PASSIVE listener, so
+  // preventDefault() inside an onWheel prop is silently ignored and turning a
+  // knob also scrolls the pedalboard and the page. Only a listener we attach
+  // ourselves, explicitly non-passive, can cancel the scroll.
+  const wheelRef = useRef(onWheel)
+  useEffect(() => {
+    wheelRef.current = onWheel
+  })
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const handler = (e: WheelEvent) => wheelRef.current(e)
+    el.addEventListener('wheel', handler, { passive: false })
+    return () => el.removeEventListener('wheel', handler)
+  }, [])
+
+  const readout = formatValue(value, step, unit, labels)
+  const display = labels ? readout : showValue ? readout : label
 
   return (
-    <div className="knob flex flex-col items-center gap-1 select-none">
+    <div
+      className="knob flex flex-col items-center gap-1 select-none"
+      style={{ opacity: disabled ? 0.45 : 1 }}
+    >
       <div
         ref={ref}
-        className="knob-body relative cursor-ns-resize touch-none"
-        style={{ width: size, height: size }}
+        role="slider"
+        aria-label={label}
+        aria-valuemin={min}
+        aria-valuemax={max}
+        aria-valuenow={value}
+        aria-valuetext={readout}
+        aria-disabled={disabled}
+        tabIndex={disabled ? -1 : 0}
+        className="knob-body relative touch-none"
+        style={{ width: size, height: size, cursor: disabled ? 'default' : 'ns-resize' }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onDoubleClick={onDoubleClick}
-        onWheel={onWheel}
+        onKeyDown={(e) => {
+          if (disabled) return
+          if (e.key === 'ArrowUp' || e.key === 'ArrowRight') {
+            e.preventDefault()
+            commit(value + step)
+          } else if (e.key === 'ArrowDown' || e.key === 'ArrowLeft') {
+            e.preventDefault()
+            commit(value - step)
+          }
+        }}
       >
         {/* colored value arc on the outer rim (gap at the bottom) */}
         <div
