@@ -116,9 +116,9 @@ export class BreathController {
   /**
    * Apply a new breath config at runtime without dropping held notes.
    *
-   * - Disabling while active opens the gate for good: held-but-gated keys start
-   *   (so the player is not left with silent keys) and the shared gain returns
-   *   to 1, after which this input is pure pass-through.
+   * - Disabling while active drops held-but-gated keys without starting them
+   *   (no idle-note drone), keeps notes already sounding, returns the shared
+   *   gain to 1, and makes this input pure pass-through from then on.
    * - Any other change re-evaluates the last breath value under the new config,
    *   so a gate/curve/floor tweak is heard immediately. A CC change just
    *   re-targets which controller is listened to; the gate keeps its state until
@@ -132,14 +132,21 @@ export class BreathController {
       if (wasEnabled && this.active) {
         if (this.pendingWrite) clearTimeout(this.pendingWrite)
         this.pendingWrite = null
+        // Drop held-but-gated keys WITHOUT starting them: starting them would
+        // drone the Travel Sax's idle C#4 the moment breath is switched off.
+        for (const midi of [...this.held.keys()]) {
+          if (!this.sounding.has(midi)) this.held.delete(midi)
+        }
+        // Notes can only be sounding with the gate shut transiently; release
+        // them if so. Notes sounding through an open gate keep playing.
+        if (!this.open) {
+          for (const midi of this.sounding) this.outputs.noteOff(midi)
+          this.sounding.clear()
+        }
         this.active = false
         this.open = true
         this.level = 1
-        // Gain first so the flushed notes are not softened by smoothing.
         this.outputs.setBreath(1, config.smoothingMs, true)
-        for (const [midi, vel] of this.held) {
-          if (!this.sounding.has(midi)) this.start(midi, vel)
-        }
       }
       return
     }

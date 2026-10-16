@@ -152,24 +152,35 @@ describe('BreathController.setConfig', () => {
     expect(calls).toEqual(['on 62 100', 'off 62'])
   })
 
-  it('disabling mid-phrase flushes gated notes and restores gain 1', () => {
+  it('disabling drops gated notes without starting them and restores gain 1', () => {
     const { ctrl, calls, out } = setup()
     ctrl.controlChange(2, 0) // armed, gate shut
-    ctrl.noteOn(61, 40)
-    expect(calls).toEqual([])
+    ctrl.noteOn(61, 40) // idle C#4, gated
     ctrl.setConfig(WIND_BREATH_DEFAULTS, false)
+    expect(calls).toEqual([]) // no drone
     expect(out.setBreath).toHaveBeenLastCalledWith(1, 8, true)
-    expect(out.setBreath.mock.invocationCallOrder.at(-1)!).toBeLessThan(
-      out.noteOn.mock.invocationCallOrder[0],
-    )
-    expect(calls).toEqual(['on 61 40']) // device velocity once breath is off
     expect(ctrl.isActive).toBe(false)
+    ctrl.noteOff(61) // the dropped key's release is harmless
+    expect(calls).toEqual([])
     // Breath CCs are now ignored entirely: no gating, no gain writes.
     out.setBreath.mockClear()
     expect(ctrl.controlChange(2, 0)).toBe(false)
     expect(out.setBreath).not.toHaveBeenCalled()
-    ctrl.noteOn(64, 55)
-    expect(calls.at(-1)).toBe('on 64 55')
+    ctrl.noteOn(64, 55) // pass-through with device velocity
+    expect(calls).toEqual(['on 64 55'])
+  })
+
+  it('disabling keeps notes already sounding through an open gate', () => {
+    const { ctrl, calls, out } = setup()
+    ctrl.controlChange(2, 80)
+    ctrl.noteOn(62, 90)
+    ctrl.setConfig(WIND_BREATH_DEFAULTS, false)
+    expect(calls).toEqual(['on 62 100'])
+    expect(out.setBreath).toHaveBeenLastCalledWith(1, 8, true)
+    ctrl.controlChange(2, 0) // would have gated; now ignored
+    expect(calls).toEqual(['on 62 100'])
+    ctrl.noteOff(62)
+    expect(calls).toEqual(['on 62 100', 'off 62'])
   })
 
   it('re-enabling arms again on the next breath CC', () => {

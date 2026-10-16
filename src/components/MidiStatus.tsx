@@ -10,7 +10,7 @@ const LABEL: Record<MidiAccessStatus, string> = {
 }
 
 /** MIDI status pill; tapping it opens the MIDI / breath controls sheet. */
-export function MidiStatus() {
+export function MidiStatus({ className = 'min-h-9' }: { className?: string } = {}) {
   const connected = useStore((s) => s.midiConnected)
   const activity = useStore((s) => s.midiActivity)
   const status = useStore((s) => s.midiStatus)
@@ -28,9 +28,12 @@ export function MidiStatus() {
       type="button"
       aria-haspopup="dialog"
       aria-expanded={panelOpen}
-      className="midi-status hw-pill legend flex min-h-9 items-center gap-2 rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] px-3 py-1"
+      className={`midi-status hw-pill legend flex ${className} items-center gap-2 rounded-full border border-[var(--pill-border)] bg-[var(--pill-bg)] px-3 py-1`}
       title={title}
-      onClick={() => setPanelOpen(true)}
+      onClick={(e) => {
+        e.stopPropagation()
+        setPanelOpen(true)
+      }}
     >
       <span
         className={`midi-status-led h-2 w-2 rounded-full ${connected && !activity ? 'led-on' : ''}`}

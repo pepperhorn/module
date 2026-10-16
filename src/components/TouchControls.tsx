@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { useStore } from '../state/useStore'
+import { MidiStatus } from './MidiStatus'
 
 /** Matches the computer-keyboard shortcuts: Z/X shift by an octave, C/V by 12. */
 const OCTAVE_STEP = 1
@@ -67,17 +68,22 @@ export function TouchControls({
       <TouchButton
         label="Panic — stop all notes"
         onClick={onPanic}
-        className="touch-controls-panic"
+        className={`touch-controls-panic ${keyboardMode ? 'col-span-2 sm:col-span-1' : ''}`}
         accent="coral"
       >
         ✖ PANIC
       </TouchButton>
 
+      {/* Keyboard mode hides the rack header, so the MIDI pill lives here. */}
+      {keyboardMode && (
+        <MidiStatus className="touch-controls-midi h-11 min-w-11 justify-center sm:ml-auto" />
+      )}
+
       {onToggleKeyboardMode && (
         <TouchButton
           label={keyboardMode ? 'Back to the full rack' : 'Give the keyboard the whole screen'}
           onClick={onToggleKeyboardMode}
-          className="touch-controls-mode sm:ml-auto"
+          className={`touch-controls-mode ${keyboardMode ? '' : 'sm:ml-auto'}`}
           accent="sky"
         >
           {keyboardMode ? '⌸ RACK' : '⌨ KEYS'}

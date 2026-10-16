@@ -106,3 +106,13 @@ describe('classifyMidiError', () => {
     expect(classifyMidiError(null)).toBe('error')
   })
 })
+
+describe('keyboard-mode access', () => {
+  it('TouchControls in keyboard mode exposes the MIDI pill', async () => {
+    const { TouchControls } = await import('./TouchControls')
+    useStore.setState({ midiPanelOpen: false, midiStatus: 'idle', midiConnected: false })
+    render(<TouchControls onPanic={() => {}} onToggleKeyboardMode={() => {}} keyboardMode />)
+    fireEvent.click(screen.getByRole('button', { name: /midi off/i }))
+    expect(useStore.getState().midiPanelOpen).toBe(true)
+  })
+})
