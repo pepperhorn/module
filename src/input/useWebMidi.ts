@@ -1,60 +1,74 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useStore } from '../state/useStore'
 import { BreathController, type BreathOutputs } from './breath'
 
 type WebMidiCallbacks = BreathOutputs
 
-export function useWebMidi(callbacks: WebMidiCallbacks): void {
+/** Returns a stable panic function that releases every MIDI-held note. */
+export function useWebMidi(callbacks: WebMidiCallbacks): () => void {
+  const controllersRef = useRef(new Map<string, BreathController>())
+
   useEffect(() => {
     if (typeof navigator === 'undefined' || !('requestMIDIAccess' in navigator)) {
       return
     }
     let cancelled = false
     let access: MIDIAccess | null = null
-    const inputs: MIDIInput[] = []
-    // Inactive (pass-through) until a breath CC arrives, so keyboards are
-    // unaffected; a wind controller arms it with its first breath message.
-    const breath = new BreathController(callbacks)
+    // One breath controller per input, so a wind controller's breath only
+    // gates its own notes; a keyboard on another port stays pass-through.
+    const controllers = controllersRef.current
+    const handlers = new Map<MIDIInput, EventListener>()
 
-    const handle = (msg: MIDIMessageEvent) => {
-      const data = msg.data
-      if (!data || data.length < 1) return
-      // Dispatch notes before any UI bookkeeping so audio starts ASAP.
-      const status = data[0] & 0xf0
-      if (status === 0x90) {
-        const midi = data[1]
-        const vel = data[2] ?? 0
-        if (vel === 0) breath.noteOff(midi)
-        else breath.noteOn(midi, vel)
-      } else if (status === 0x80) {
-        breath.noteOff(data[1])
-      } else if (status === 0xb0 && data.length >= 3) {
-        breath.controlChange(data[1], data[2])
+    const handlerFor = (input: MIDIInput): EventListener => {
+      let breath = controllers.get(input.id)
+      if (!breath) {
+        breath = new BreathController(callbacks)
+        controllers.set(input.id, breath)
       }
-      useStore.getState().flashMidiActivity()
+      const b = breath
+      return ((msg: MIDIMessageEvent) => {
+        const data = msg.data
+        if (!data || data.length < 1) return
+        // Dispatch notes before any UI bookkeeping so audio starts ASAP.
+        const status = data[0] & 0xf0
+        if (status === 0x90) {
+          const midi = data[1]
+          const vel = data[2] ?? 0
+          if (vel === 0) b.noteOff(midi)
+          else b.noteOn(midi, vel)
+        } else if (status === 0x80) {
+          b.noteOff(data[1])
+        } else if (status === 0xb0 && data.length >= 3) {
+          b.controlChange(data[1], data[2])
+        }
+        useStore.getState().flashMidiActivity()
+      }) as EventListener
+    }
+
+    const detachAll = () => {
+      for (const [input, h] of handlers) input.removeEventListener('midimessage', h)
+      handlers.clear()
     }
 
     const attach = () => {
       if (!access) return
-      const previousIds = new Set(inputs.map((i) => i.id))
-      for (const input of inputs) input.removeEventListener('midimessage', handle as EventListener)
-      inputs.length = 0
+      detachAll()
+      const present = new Set<string>()
       access.inputs.forEach((input) => {
         if (input.state === 'disconnected') return
-        input.addEventListener('midimessage', handle as EventListener)
-        inputs.push(input)
+        present.add(input.id)
+        const h = handlerFor(input)
+        input.addEventListener('midimessage', h)
+        handlers.set(input, h)
       })
-      // An input went away (e.g. sax unplugged): release held notes and lift
-      // the breath gain so other inputs aren't left gated at silence. Port
-      // open/close events for devices that are still present don't count.
-      const currentIds = new Set(inputs.map((i) => i.id))
-      for (const id of previousIds) {
-        if (!currentIds.has(id)) {
-          breath.reset()
-          break
-        }
+      // A device went away (e.g. sax unplugged): release its notes and lift
+      // the breath gain so other inputs aren't left gated at silence.
+      for (const [id, breath] of controllers) {
+        if (present.has(id)) continue
+        breath.reset()
+        controllers.delete(id)
       }
-      useStore.getState().setMidiConnected(inputs.length > 0)
+      useStore.getState().setMidiConnected(handlers.size > 0)
     }
 
     navigator
@@ -71,9 +85,15 @@ export function useWebMidi(callbacks: WebMidiCallbacks): void {
 
     return () => {
       cancelled = true
-      for (const input of inputs) input.removeEventListener('midimessage', handle as EventListener)
+      detachAll()
       if (access) access.onstatechange = null
-      breath.reset()
+      for (const breath of controllers.values()) breath.reset()
+      controllers.clear()
     }
   }, [callbacks])
+
+  const panicRef = useRef(() => {
+    for (const breath of controllersRef.current.values()) breath.releaseAll()
+  })
+  return panicRef.current
 }

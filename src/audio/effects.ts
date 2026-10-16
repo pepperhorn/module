@@ -478,9 +478,9 @@ export interface EffectChain {
   /** Reorder the audio-graph effects in series. Non-audio ids are ignored. */
   setOrder: (order: EffectId[]) => void
   /**
-   * Pre-FX breath/expression gain (0..1). Sits behind inputNode so instrument
-   * wiring is untouched, and ahead of the FX so reverb/delay tails ring out
-   * when breath stops. Never rewired by setOrder.
+   * Pre-FX breath/expression gain (0..1), applied on inputNode itself: ahead
+   * of the FX so reverb/delay tails ring out when breath stops, and untouched
+   * by setOrder (which only rewires inputNode's outputs).
    */
   setBreath: (level: number, smoothingMs: number, immediate?: boolean) => void
   dispose: () => void
@@ -498,8 +498,6 @@ export function buildEffectChain(context: AudioContext): EffectChain {
   // audio effects are currently ordered. (Doublers are handled at note level
   // in AudioEngine, not as audio FX, so they never appear in this graph.)
   const inputNode = context.createGain()
-  const breathStage = context.createGain()
-  inputNode.connect(breathStage)
 
   const fxMap: Partial<Record<EffectId, FxNode>> = {
     distortion,
@@ -510,10 +508,10 @@ export function buildEffectChain(context: AudioContext): EffectChain {
   // The audio-graph effects, in default series order.
   const AUDIO_FX: EffectId[] = ['distortion', 'chorus', 'delay', 'reverb']
 
-  // (Re)connect inputNode → breathStage → fx… → master in the given order.
+  // (Re)connect inputNode → fx… → master in the given order.
   const wire = (order: EffectId[]) => {
     try {
-      breathStage.disconnect()
+      inputNode.disconnect()
     } catch {
       // noop
     }
@@ -524,7 +522,7 @@ export function buildEffectChain(context: AudioContext): EffectChain {
         // noop
       }
     }
-    let prev: AudioNode = breathStage
+    let prev: AudioNode = inputNode
     for (const id of order) {
       const n = fxMap[id]
       if (!n) continue
@@ -557,7 +555,7 @@ export function buildEffectChain(context: AudioContext): EffectChain {
   }
 
   const setBreath = (level: number, smoothingMs: number, immediate = false) => {
-    const g = breathStage.gain
+    const g = inputNode.gain
     const now = context.currentTime
     const target = Math.min(1, Math.max(0, level))
     g.cancelScheduledValues(now)
@@ -572,7 +570,6 @@ export function buildEffectChain(context: AudioContext): EffectChain {
     reverb.dispose()
     try {
       inputNode.disconnect()
-      breathStage.disconnect()
     } catch {
       // noop
     }

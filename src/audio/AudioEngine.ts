@@ -201,16 +201,22 @@ function contextSupportsSinkId(): boolean {
   return 'setSinkId' in AudioContext.prototype
 }
 
-// Ask for the smallest output buffer the device allows. A numeric hint of 0
-// is clamped by the browser to the hardware minimum, which on Android Chrome
-// is typically smaller than the 'interactive' default. Leave sampleRate unset:
-// forcing a rate that differs from the hardware disables Android's fast path.
+// On Android, ask for the smallest output buffer the device allows: a numeric
+// hint of 0 is clamped to the hardware minimum, typically below the
+// 'interactive' default there. Desktop keeps 'interactive' — its default is
+// already low and the minimum risks underruns under a heavy patch + reverb.
+// Leave sampleRate unset: forcing a rate that differs from the hardware
+// disables Android's fast path.
 function createLowLatencyContext(): AudioContext {
-  try {
-    return new AudioContext({ latencyHint: 0 })
-  } catch {
-    return new AudioContext({ latencyHint: 'interactive' })
+  const android = typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent)
+  if (android) {
+    try {
+      return new AudioContext({ latencyHint: 0 })
+    } catch {
+      // fall through
+    }
   }
+  return new AudioContext({ latencyHint: 'interactive' })
 }
 
 export class AudioEngine {
@@ -246,7 +252,7 @@ export class AudioEngine {
     log('ctor', {
       state: this.context.state,
       sampleRate: this.context.sampleRate,
-      baseLatencyMs: Math.round((this.context.baseLatency ?? 0) * 1000),
+      ...this.latencyInfo(),
     })
   }
 

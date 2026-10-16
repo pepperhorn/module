@@ -44,11 +44,10 @@ function setup() {
 
 describe('BreathController', () => {
   it('passes notes straight through until a breath CC arrives (keyboards)', () => {
-    const { ctrl, calls, out } = setup()
+    const { ctrl, calls } = setup()
     ctrl.noteOn(60, 37)
     ctrl.noteOff(60)
     expect(calls).toEqual(['on 60 37', 'off 60'])
-    expect(out.setBreath).not.toHaveBeenCalled()
   })
 
   it('ignores non-breath CCs', () => {
@@ -119,5 +118,23 @@ describe('BreathController', () => {
     expect(out.setBreath).toHaveBeenLastCalledWith(1, 8, true)
     ctrl.noteOn(65, 33) // back to pass-through
     expect(calls.at(-1)).toBe('on 65 33')
+  })
+})
+
+describe('BreathController multi-source', () => {
+  it('lifts the shared gain to full for pass-through notes', () => {
+    const { ctrl, out } = setup()
+    ctrl.noteOn(60, 80)
+    expect(out.setBreath).toHaveBeenCalledWith(1, 8, true)
+  })
+
+  it('releaseAll forgets held keys so panic-killed notes do not return', () => {
+    const { ctrl, calls } = setup()
+    ctrl.controlChange(2, 80)
+    ctrl.noteOn(61, 90)
+    ctrl.releaseAll()
+    ctrl.controlChange(2, 0)
+    ctrl.controlChange(2, 80)
+    expect(calls).toEqual(['on 61 100', 'off 61'])
   })
 })

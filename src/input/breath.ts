@@ -1,5 +1,6 @@
 // Breath control for wind controllers (Odisei Travel Sax 2 / Travel Clarinet,
-// Akai EWI). See docs/superpowers/specs/2026-09-18-breath-control-design.md.
+// Akai EWI). Spec: docs/superpowers/specs/2026-09-18-breath-control-design.md
+// (on main).
 //
 // Breath drives one global pre-FX gain stage (smplr has no per-voice gain),
 // and gates note-ons so a wind controller only sounds while you blow — which
@@ -145,6 +146,13 @@ export class BreathController {
     this.writeThrottled()
   }
 
+  /** Panic: release and forget every note, keep the gate state. */
+  releaseAll(): void {
+    for (const midi of this.sounding) this.outputs.noteOff(midi)
+    this.sounding.clear()
+    this.held.clear()
+  }
+
   /** Breath source gone (device unplugged): release everything, un-gate. */
   reset(): void {
     for (const midi of this.sounding) this.outputs.noteOff(midi)
@@ -160,6 +168,9 @@ export class BreathController {
   }
 
   private start(midi: number, velocity: number): void {
+    // The breath gain is shared, so a non-breath input on another port lifts
+    // it back to full rather than playing into a wind controller's silence.
+    if (!this.active) this.outputs.setBreath(1, this.config.smoothingMs, true)
     const vel =
       this.active && this.config.velocityMode === 'fixed' ? this.config.fixedVelocity : velocity
     this.sounding.add(midi)

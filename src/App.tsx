@@ -197,17 +197,29 @@ export default function App() {
     },
     [engine],
   )
-  const panic = useCallback(() => {
-    engine.panic()
-    clearActiveNotes()
-  }, [engine])
-  useComputerKeyboard({ noteOn, noteOff, panic })
   const setBreath = useCallback(
     (level: number, smoothingMs: number, immediate: boolean) =>
       engine.setBreath(level, smoothingMs, immediate),
     [engine],
   )
-  useWebMidi(useMemo(() => ({ noteOn, noteOff, setBreath }), [noteOn, noteOff, setBreath]))
+  const midiPanic = useWebMidi(
+    useMemo(() => ({ noteOn, noteOff, setBreath }), [noteOn, noteOff, setBreath]),
+  )
+  const panic = useCallback(() => {
+    midiPanic()
+    engine.panic()
+    clearActiveNotes()
+  }, [engine, midiPanic])
+  // On-screen and computer-keyboard notes aren't breath-controlled: lift the
+  // shared breath gain so an idle wind controller doesn't leave them silent.
+  const uiNoteOn = useCallback(
+    (midi: number, vel: number) => {
+      engine.setBreath(1, 8, true)
+      noteOn(midi, vel)
+    },
+    [engine, noteOn],
+  )
+  useComputerKeyboard({ noteOn: uiNoteOn, noteOff, panic })
   const wakeLock = useWakeLock()
 
   // Browse hotkey
@@ -462,7 +474,7 @@ export default function App() {
             {keyboardOpen ? 'Hide keyboard ▾' : 'Show keyboard ▸'}
           </button>
           <div className={`${keyboardOpen ? 'mt-2.5 block' : 'hidden'} lg:mt-0 lg:block`}>
-            <LiveTouchKeyboard noteOn={noteOn} noteOff={noteOff} />
+            <LiveTouchKeyboard noteOn={uiNoteOn} noteOff={noteOff} />
           </div>
         </div>
 
