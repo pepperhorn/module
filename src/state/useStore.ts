@@ -305,11 +305,25 @@ export const useStore = create<State>((set, get) => ({
   setWarmProgress: (p) => set({ warmProgress: p }),
   setMidiConnected: (b) => set({ midiConnected: b }),
   flashMidiActivity: (() => {
+    // Wind/breath controllers stream CC at hundreds of msgs/s, so the hot
+    // path only stamps a time; the store flips on the off→on edge and one
+    // trailing timer turns it off 80ms after the last message.
+    const HOLD_MS = 80
+    let last = 0
     let timer: ReturnType<typeof setTimeout> | null = null
+    const check = () => {
+      const left = HOLD_MS - (performance.now() - last)
+      if (left > 0) {
+        timer = setTimeout(check, left)
+        return
+      }
+      timer = null
+      set({ midiActivity: false })
+    }
     return () => {
-      set({ midiActivity: true })
-      if (timer) clearTimeout(timer)
-      timer = setTimeout(() => set({ midiActivity: false }), 80)
+      last = performance.now()
+      if (!get().midiActivity) set({ midiActivity: true })
+      if (!timer) timer = setTimeout(check, HOLD_MS)
     }
   })(),
   setSaveDialogOpen: (open) => set({ saveDialogOpen: open }),
