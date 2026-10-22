@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../state/useStore'
 import { useFullCatalog } from '../state/useFullCatalog'
 import { BANK_ORDER, BANK_LABELS, type Bank, type PatchManifest } from '../patches/types'
 import { PatchCard } from './PatchCard'
+import { escapeIsForOverlay } from './overlayEscape'
 
 interface PatchPickerProps {
   onSelect: (id: string) => void
@@ -61,15 +62,19 @@ export function PatchPicker({
     return BANK_ORDER.filter((b) => set.has(b))
   }, [mergedCatalog])
 
-  // Close on Escape
+  const overlayRef = useRef<HTMLDivElement>(null)
+
+  // Close on Escape (contained: only Escape pressed inside the module)
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setPickerOpen(false)
+      if (e.key !== 'Escape') return
+      if (!escapeIsForOverlay(e, overlayRef.current, contained)) return
+      setPickerOpen(false)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, setPickerOpen])
+  }, [open, setPickerOpen, contained])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -93,11 +98,15 @@ export function PatchPicker({
 
   return (
     <div
+      ref={overlayRef}
       className={`patch-picker fade-in ${contained ? 'absolute' : 'fixed'} inset-0 z-50 flex items-stretch justify-center p-2 sm:p-6 backdrop-blur-sm`}
       onClick={() => setPickerOpen(false)}
       style={{ background: 'var(--scrim)' }}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Patch library"
         className="patch-picker-sheet pop-in flex w-full max-w-5xl flex-col overflow-hidden rounded-xl"
         onClick={(e) => e.stopPropagation()}
         style={{

@@ -12,6 +12,7 @@ import {
   profileMatchesPreset,
   type MidiProfile,
 } from '../input/midiProfile'
+import { escapeIsForOverlay } from './overlayEscape'
 
 export interface LatencyInfo {
   baseLatencyMs: number
@@ -44,6 +45,7 @@ export function MidiPanel({ getLatency, contained = false }: MidiPanelProps) {
   const setOpen = useStore((s) => s.setMidiPanelOpen)
   const status = useStore((s) => s.midiStatus)
 
+  const scrimRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -60,14 +62,15 @@ export function MidiPanel({ getLatency, contained = false }: MidiPanelProps) {
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation()
-        close()
-      }
+      if (e.key !== 'Escape') return
+      // Contained (embed): only Escape pressed inside the module.
+      if (!escapeIsForOverlay(e, scrimRef.current, contained)) return
+      e.stopPropagation()
+      close()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, close])
+  }, [open, close, contained])
 
   // Keep Tab inside the dialog.
   const onTrapKey = (e: React.KeyboardEvent) => {
@@ -91,6 +94,7 @@ export function MidiPanel({ getLatency, contained = false }: MidiPanelProps) {
 
   return (
     <div
+      ref={scrimRef}
       className={`midi-panel-scrim fade-in ${contained ? 'absolute' : 'fixed'} inset-0 z-[55] flex items-end justify-center backdrop-blur-sm sm:items-center sm:p-4`}
       style={{ background: 'var(--scrim)' }}
       onClick={(e) => {

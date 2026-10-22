@@ -88,6 +88,41 @@ describe('SoundModule', () => {
     expect(root.querySelector('.sm-keys-indicator')!.textContent).toMatch(/keys on/i)
   })
 
+  it('keys do not play, and Escape does not panic, while the picker is open', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    act(() => root.focus())
+    act(() => useStore.setState({ pickerOpen: true }))
+    const sheet = root.querySelector('.patch-picker-sheet') as HTMLElement
+    expect(sheet.getAttribute('role')).toBe('dialog')
+    expect(sheet.getAttribute('aria-modal')).toBe('true')
+    const card = root.querySelector('.patch-card') as HTMLElement
+    act(() => card.focus())
+    fireEvent.keyDown(card, { key: 'a' })
+    fireEvent.keyDown(card, { key: 'x' })
+    expect(fake.noteOn).not.toHaveBeenCalled()
+    expect(useStore.getState().octave).toBe(4)
+    fireEvent.keyDown(card, { key: 'Escape' })
+    expect(fake.panic).not.toHaveBeenCalled()
+    expect(useStore.getState().pickerOpen).toBe(false)
+  })
+
+  it('Escape on the host page does not close the picker or MIDI panel', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    act(() => useStore.setState({ pickerOpen: true }))
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(useStore.getState().pickerOpen).toBe(true)
+    // Escape from inside the module (e.g. the browse button) still closes it.
+    fireEvent.keyDown(root, { key: 'Escape' })
+    expect(useStore.getState().pickerOpen).toBe(false)
+
+    act(() => useStore.setState({ midiPanelOpen: true }))
+    act(() => document.body.focus())
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(useStore.getState().midiPanelOpen).toBe(true)
+    fireEvent.keyDown(root.querySelector('.midi-panel-close')!, { key: 'Escape' })
+    expect(useStore.getState().midiPanelOpen).toBe(false)
+  })
+
   it('pressing the on-screen piano arms the keyboard', () => {
     const root = rootOf(render(<SoundModule />).container)
     expect(root.contains(document.activeElement)).toBe(false)

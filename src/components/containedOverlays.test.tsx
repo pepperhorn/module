@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, afterEach } from 'vitest'
-import { render, cleanup } from '@testing-library/react'
+import { render, cleanup, fireEvent } from '@testing-library/react'
 import { useStore } from '../state/useStore'
 import { PatchPicker } from './PatchPicker'
 import { MidiPanel } from './MidiPanel'
@@ -60,6 +60,16 @@ describe('contained overlays', () => {
     const cls = render(el(false)).container.querySelector(sel)!.className
     expect(cls).toMatch(/\bfixed\b/)
     expect(cls).not.toMatch(/\babsolute\b/)
+  })
+
+  it.each([
+    ['PatchPicker', 'pickerOpen', () => <PatchPicker onSelect={noop} onPreview={noop} />],
+    ['MidiPanel', 'midiPanelOpen', () => <MidiPanel />],
+  ] as const)('%s (app) still closes on Escape anywhere in the page', (_n, key, el) => {
+    useStore.setState({ [key]: true })
+    render(el())
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(useStore.getState()[key]).toBe(false)
   })
 
   it('picker without offline features shows no download buttons or offline pill', () => {
