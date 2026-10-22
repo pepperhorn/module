@@ -36,7 +36,7 @@ export function SoundModule({ assetBaseUrl, theme, octaves, className }: SoundMo
 
   const s = useSoundEngine({
     trackOffline: false,
-    engineOptions: { consoleShim: false },
+    engineOptions: { consoleShim: false, quiet: true },
     suspendOnUnmount: true,
   })
   const currentSource = useStore((st) => st.currentSource)

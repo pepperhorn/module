@@ -1,15 +1,21 @@
-vi.mock('../audio/AudioEngine', () => ({ getEngine: () => fake }))
+vi.mock('../audio/AudioEngine', () => ({
+  getEngine: (opts?: EngineOptions) => {
+    engineOptions = opts
+    return fake
+  },
+}))
 
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render } from '@testing-library/react'
 import { makeFakeEngine, type FakeEngine } from '../test/fakeEngine'
-import type { PatchSourceTag } from '../audio/AudioEngine'
+import type { EngineOptions, PatchSourceTag } from '../audio/AudioEngine'
 import { getCatalog } from '../patches/catalog'
 import { clearActiveNotes } from '../state/activeNotes'
 import { setPersistScope, useStore } from '../state/useStore'
 import { SoundModule } from './SoundModule'
 
 let fake: FakeEngine
+let engineOptions: EngineOptions | undefined
 
 const tag: PatchSourceTag = { tier: 'cdn', local: 0, cache: 0, cdn: 1, total: 1 }
 
@@ -47,6 +53,11 @@ describe('SoundModule', () => {
     expect(root.tabIndex).toBe(0)
     expect(root.className).toContain('host-x')
     expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
+  })
+
+  it('creates a quiet engine without the console shim', () => {
+    render(<SoundModule />)
+    expect(engineOptions).toMatchObject({ consoleShim: false, quiet: true })
   })
 
   it('defaults to the dark theme', () => {

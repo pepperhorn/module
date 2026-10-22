@@ -1,4 +1,5 @@
 import type { PatchManifest, PatchSource } from '../patches/types'
+import { useStore } from '../state/useStore'
 import { buildEffectChain, DOUBLER_SNAPS } from './effects'
 import type { ChainEffectId } from './effects'
 import type { EffectId } from './effects'
@@ -135,7 +136,14 @@ function serializeDecodeAudioData(context: AudioContext) {
 export interface EngineOptions {
   /** Patch console.warn to surface smplr decode failures. Default true. */
   consoleShim?: boolean
+  /**
+   * Default false. When true (embed), the engine log is silent unless the
+   * store's debug mode is on, so a host page's console isn't flooded.
+   */
+  quiet?: boolean
 }
+
+let _quiet = false
 
 let _consoleShimInstalled = false
 function installConsoleShim() {
@@ -178,6 +186,7 @@ function installConsoleShim() {
 }
 
 const log = (msg: string, ...rest: unknown[]) => {
+  if (_quiet && !useStore.getState().debugMode) return
   console.log(`[engine] ${msg}`, ...rest)
   let payload = ''
   if (rest.length > 0) {
@@ -276,6 +285,7 @@ export class AudioEngine {
   private activeDoubles = new Map<number, number[]>()
 
   constructor(options: EngineOptions = {}) {
+    _quiet = options.quiet === true
     if (options.consoleShim !== false) installConsoleShim()
     this.context = createLowLatencyContext()
     serializeDecodeAudioData(this.context)
