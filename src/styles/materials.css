@@ -1,0 +1,167 @@
+/* ---------------------------------------------------------------------------
+   Theme system. The @theme block above holds the DARK colour tokens (default).
+   Every hardware material (faceplate, wells, keycaps, knobs, pedals, LCD bezel,
+   rails, pills, HUD, dialog cards) is expressed as a CSS variable so a single
+   [data-theme] switch reskins the whole instrument. Dark = default; the
+   [data-theme="light"] block restores the original brushed-white faceplate.
+--------------------------------------------------------------------------- */
+:root {
+  color-scheme: dark;
+
+  /* the room behind the rack */
+  --room-bg: radial-gradient(ellipse at 50% 0%, #303a4c 0%, #1c2230 55%, #12151d 100%);
+
+  /* accent text that sits ON a button face — bright on dark metal, deeper on
+     cream so it stays legible in both themes */
+  --ink-sky: #5BC0EB;
+  --ink-coral: #FF6B6B;
+  --ink-lavender: #B59CD9;
+
+  /* faceplate chassis */
+  --face-bg:
+    linear-gradient(180deg, #2A3141 0%, #232A3A 46%, #1B2130 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.022) 0px, rgba(255, 255, 255, 0.022) 1px, rgba(0, 0, 0, 0.018) 1px, rgba(0, 0, 0, 0.018) 2px);
+  --face-border: #0B0E15;
+  --face-shadow: 0 18px 44px rgba(0, 0, 0, 0.55), 0 2px 0 rgba(255, 255, 255, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.10), inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+  --brand-border: rgba(0, 0, 0, 0.5);
+  --brand-hi: rgba(255, 255, 255, 0.06);
+  --power-border: rgba(255, 255, 255, 0.12);
+  --power-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.35);
+
+  /* recessed section wells */
+  --well-bg: linear-gradient(180deg, #171D29 0%, #1B2231 100%);
+  --well-border: rgba(0, 0, 0, 0.55);
+  --well-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* function-button keycaps */
+  --btn-bg: linear-gradient(180deg, #414B62 0%, #2E3648 100%);
+  --btn-border: #0D1119;
+  --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -1px 1px rgba(0, 0, 0, 0.4),
+    0 2px 4px rgba(0, 0, 0, 0.5);
+  --btn-shadow-active: inset 0 2px 4px rgba(0, 0, 0, 0.55);
+  --btn-led-off-bg: rgba(0, 0, 0, 0.45);
+  --btn-led-off-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.04);
+
+  /* knobs — domed cap seated in a skirt collar, colored value arc on the rim */
+  --knob-bg: radial-gradient(circle at 50% 30%, #454F66 0%, #2A3140 48%, #141922 100%);
+  --knob-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.16), inset 0 -3px 5px rgba(0, 0, 0, 0.5);
+  --knob-track: rgba(255, 255, 255, 0.07);
+  --knob-skirt-bg: radial-gradient(circle at 50% 28%, #2E3648 0%, #10141D 100%);
+  --knob-skirt-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.08), inset 0 -1px 2px rgba(0, 0, 0, 0.6),
+    0 3px 7px rgba(0, 0, 0, 0.55);
+  --knob-pointer: #EAECF2;
+
+  /* effect pedal tiles */
+  --pedal-bg: linear-gradient(180deg, #2A3141 0%, #1E2432 100%);
+  --pedal-border: #10141D;
+  --pedal-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 2px 5px rgba(0, 0, 0, 0.45);
+
+  /* LCD bezel */
+  --lcd-bezel-bg: linear-gradient(180deg, #0E1219 0%, #171C26 100%);
+  --lcd-bezel-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 -1px 0 rgba(255, 255, 255, 0.05),
+    0 1px 0 rgba(255, 255, 255, 0.05);
+
+  /* rack rails */
+  --rail-bg: linear-gradient(90deg, #1A202C 0%, #2C3444 48%, #1A202C 100%);
+  --rail-border: #0B0E15;
+  --rail-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.06), inset -1px 0 0 rgba(0, 0, 0, 0.5),
+    0 6px 16px rgba(0, 0, 0, 0.55);
+
+  /* status pills */
+  --pill-bg: rgba(255, 255, 255, 0.10);
+  --pill-border: rgba(255, 255, 255, 0.20);
+
+  /* shortcut HUD */
+  --hud-bg: linear-gradient(180deg, #1C2230 0%, #151A26 100%);
+  --hud-border: rgba(0, 0, 0, 0.5);
+  --hud-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 1px 2px rgba(0, 0, 0, 0.4);
+  --kbd-bg: linear-gradient(180deg, #2E3647 0%, #232B3A 100%);
+  --kbd-border: #10141D;
+
+  /* overlays + dialog / patch-card surfaces */
+  --scrim: rgba(0, 0, 0, 0.7);
+  --card-bg: linear-gradient(180deg, #1B2130 0%, #161B26 100%);
+  --card-solid: #161B26;
+  --card-border: rgba(255, 255, 255, 0.12);
+  --card-shadow: 0 24px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* the room → Claude cream-gray */
+  --room-bg: radial-gradient(ellipse at 50% 0%, #EFEDE4 0%, #E7E4DA 55%, #DCD9CD 100%);
+
+  --ink-sky: #226680;
+  --ink-coral: #B03B3B;
+  --ink-lavender: #6A4E9C;
+
+  /* colour tokens → warm Claude cream faceplate */
+  --color-bg: #F0EEE6;
+  --color-text: #26241F;
+  --color-panel: #E9E7DD;
+  --color-rack: #E4E1D6;
+  --color-rack-edge: #D3D0C4;
+  --color-legend: #6B675C;
+  --color-legend-strong: #3D3A32;
+  --color-hairline: rgba(40, 36, 28, 0.14);
+  --color-face-hi: #F2F0E7;
+  --color-face-lo: #E7E4DA;
+
+  /* materials → warm cream-gray */
+  --face-bg: linear-gradient(180deg, #F3F1E8 0%, #E9E6DC 100%);
+  --face-border: #D3D0C4;
+  --face-shadow: 0 10px 30px rgba(50, 45, 35, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  --brand-border: rgba(40, 36, 28, 0.14);
+  --brand-hi: rgba(255, 255, 255, 0.6);
+  --power-border: rgba(40, 36, 28, 0.14);
+  --power-shadow: 0 0 transparent;
+
+  --well-bg: rgba(255, 255, 255, 0.4);
+  --well-border: rgba(40, 36, 28, 0.12);
+  --well-shadow: 0 0 transparent;
+
+  --btn-bg: linear-gradient(180deg, #FCFBF7 0%, #EFEDE3 100%);
+  --btn-border: #CFCCC0;
+  --btn-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(50, 45, 35, 0.12);
+  --btn-shadow-active: inset 0 2px 3px rgba(50, 45, 35, 0.18);
+  --btn-led-off-bg: rgba(40, 36, 28, 0.15);
+  --btn-led-off-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.2);
+
+  --knob-bg: radial-gradient(circle at 50% 30%, #FFFFFF 0%, #F1EFE7 55%, #E1DED3 100%);
+  --knob-shadow: inset 0 1.5px 0 rgba(255, 255, 255, 0.95), inset 0 -2px 4px rgba(50, 45, 35, 0.12);
+  --knob-track: rgba(40, 36, 28, 0.10);
+  --knob-skirt-bg: radial-gradient(circle at 50% 28%, #FFFFFF 0%, #D0CDC2 55%, #B4B1A4 100%);
+  --knob-skirt-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.9), inset 0 -1px 2px rgba(50, 45, 35, 0.22),
+    0 3px 7px rgba(50, 45, 35, 0.2);
+  --knob-pointer: #3B3A36;
+
+  --pedal-bg: linear-gradient(180deg, #FBFAF5 0%, #EEEBE1 100%);
+  --pedal-border: #D3D0C4;
+  --pedal-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 1px 2px rgba(50, 45, 35, 0.06);
+
+  --lcd-bezel-bg: linear-gradient(180deg, #CBC7BC 0%, #DEDACF 100%);
+  --lcd-bezel-shadow: inset 0 2px 5px rgba(50, 45, 35, 0.28), inset 0 -1px 0 rgba(255, 255, 255, 0.55);
+
+  --rail-bg: linear-gradient(90deg, #C2BEB2 0%, #DEDACF 48%, #C8C4B8 100%);
+  --rail-border: #ADA99C;
+  --rail-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.45), inset -1px 0 0 rgba(50, 45, 35, 0.12),
+    0 4px 12px rgba(50, 45, 35, 0.26);
+
+  --pill-bg: rgba(255, 255, 255, 0.6);
+  --pill-border: #D3D0C4;
+
+  --hud-bg: linear-gradient(180deg, #F3F1E8 0%, #E7E4DA 100%);
+  --hud-border: #D3D0C4;
+  --hud-shadow: 0 0 transparent;
+  --kbd-bg: #FCFBF7;
+  --kbd-border: #D3D0C4;
+
+  --scrim: rgba(38, 36, 31, 0.5);
+  --card-bg: #F6F4EC;
+  --card-solid: #F3F1E8;
+  --card-border: #D3D0C4;
+  --card-shadow: 0 24px 60px rgba(50, 45, 35, 0.18);
+}

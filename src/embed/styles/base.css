@@ -1,0 +1,64 @@
+/*
+ * Scoped base rules for @pepperhorn/sound-module.
+ *
+ * The components were written against Tailwind's preflight. A global reset
+ * would restyle the host page, so the parts they rely on are applied here
+ * ONLY to the module root (`.sound-module`) and what is inside it.
+ *
+ * Specificity is one class (0,1,0) throughout: enough to beat a host's
+ * layered element selectors (`button { … }` in its own preflight). The build
+ * puts these rules in the `sm-base` cascade layer, ahead of `sm-utilities`,
+ * so the utilities always win, as they do over preflight in the app.
+ * The `sm-*` layers outrank a host's own layers only when styles.css loads
+ * after the host's stylesheet.
+ */
+.sound-module {
+  position: relative;
+  isolation: isolate;
+  font-family: var(--font-body);
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sound-module,
+.sound-module :where(*),
+.sound-module::before,
+.sound-module::after,
+.sound-module :where(*)::before,
+.sound-module :where(*)::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0 solid;
+}
+
+.sound-module :where(button, input, select, textarea) {
+  font: inherit;
+  font-feature-settings: inherit;
+  font-variation-settings: inherit;
+  letter-spacing: inherit;
+  color: inherit;
+  border-radius: 0;
+  background: transparent;
+  opacity: 1;
+}
+
+.sound-module :where(button) {
+  appearance: button;
+  -webkit-appearance: button;
+}
+
+.sound-module :where(svg) {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  display: block;
+  vertical-align: middle;
+}
+
+.sound-module :where([hidden]:not([hidden='until-found'])) {
+  display: none;
+}
