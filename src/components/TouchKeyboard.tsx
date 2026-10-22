@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useStore } from '../state/useStore'
+import { keyLabelForSemitone } from '../input/useComputerKeyboard'
 
 interface TouchKeyboardProps {
   noteOn: (midi: number, velocity: number) => void
@@ -13,6 +14,8 @@ interface TouchKeyboardProps {
    * keyboard mode, where the keys take the lion's share of the viewport.
    */
   fill?: boolean
+  /** Show the computer-keyboard letter that plays each key (follows the octave). */
+  keyLabels?: boolean
 }
 
 const WHITE_OFFSETS = [0, 2, 4, 5, 7, 9, 11]
@@ -73,6 +76,7 @@ export function TouchKeyboard({
   activeNotes,
   octaves = 2,
   fill = false,
+  keyLabels = false,
 }: TouchKeyboardProps) {
   const octave = useStore((s) => s.octave)
   const velocity = useStore((s) => s.velocity)
@@ -82,6 +86,7 @@ export function TouchKeyboard({
   const whiteKeys = useMemo(() => keys.filter((k) => k.type === 'white'), [keys])
   const blackKeys = useMemo(() => keys.filter((k) => k.type === 'black'), [keys])
   const whiteKeyWidth = 100 / whiteKeys.length
+  const letterFor = (midi: number) => (keyLabels ? keyLabelForSemitone(midi - startMidi) : null)
 
   const heldRef = useRef<Map<number, number>>(new Map())
   const [pressed, setPressed] = useState<Set<number>>(new Set())
@@ -237,6 +242,14 @@ export function TouchKeyboard({
                 userSelect: 'none',
               }}
             >
+              {letterFor(k.midi) && (
+                <span
+                  className="touch-key-label pointer-events-none font-mono text-[10px] uppercase"
+                  style={{ color: isPressed ? 'rgba(255,255,255,0.9)' : 'rgba(20,30,60,0.55)' }}
+                >
+                  {letterFor(k.midi)}
+                </span>
+              )}
               {k.midi % 12 === 0 ? k.label : ''}
             </div>
           )
@@ -250,7 +263,7 @@ export function TouchKeyboard({
             <div
               key={`b-${k.midi}`}
               data-midi={k.midi}
-              className={`touch-key touch-key-black absolute top-0 z-10 ${
+              className={`touch-key touch-key-black absolute top-0 z-10 flex flex-col items-center justify-end pb-1 ${
                 isPressed ? 'touch-key-pressed' : ''
               }`}
               style={{
@@ -268,7 +281,16 @@ export function TouchKeyboard({
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
               }}
-            />
+            >
+              {letterFor(k.midi) && (
+                <span
+                  className="touch-key-label pointer-events-none font-mono text-[10px] uppercase"
+                  style={{ color: isPressed ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.75)' }}
+                >
+                  {letterFor(k.midi)}
+                </span>
+              )}
+            </div>
           )
         })}
       </div>

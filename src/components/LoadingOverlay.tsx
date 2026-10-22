@@ -1,7 +1,7 @@
 import { useStore } from '../state/useStore'
 import { useFullCatalog } from '../state/useFullCatalog'
 
-export function LoadingOverlay() {
+export function LoadingOverlay({ contained = false }: { contained?: boolean }) {
   const loadingPatchId = useStore((s) => s.loadingPatchId)
   const loadingProgress = useStore((s) => s.loadingProgress)
   // User presets live outside the raw catalog, so resolve against the merged
@@ -22,12 +22,12 @@ export function LoadingOverlay() {
 
   return (
     <div
-      className="loading-overlay fade-in fixed inset-0 z-[60] flex items-center justify-center backdrop-blur-sm"
+      className={`loading-overlay fade-in ${contained ? 'absolute' : 'fixed'} inset-0 z-[60] flex items-center justify-center backdrop-blur-sm`}
       style={{ pointerEvents: 'auto', background: 'var(--scrim)' }}
       onClick={(e) => e.stopPropagation()}
     >
       <div
-        className="loading-card pop-in flex w-[min(420px,calc(100vw-2rem))] flex-col gap-5 rounded-2xl px-6 py-6"
+        className={`loading-card pop-in flex ${contained ? 'w-[min(420px,calc(100%-2rem))]' : 'w-[min(420px,calc(100vw-2rem))]'} flex-col gap-5 rounded-2xl px-6 py-6`}
         style={{
           background: 'linear-gradient(180deg, #0F1024 0%, #161A33 100%)',
           border: '1px solid rgba(91, 192, 235, 0.35)',
@@ -83,7 +83,7 @@ export function LoadingOverlay() {
                 width: '40%',
                 background:
                   'linear-gradient(90deg, transparent 0%, #5BC0EB 50%, transparent 100%)',
-                animation: 'loadingBarSlide 1.4s ease-in-out infinite',
+                animation: 'sm-loadingBarSlide 1.4s ease-in-out infinite',
               }}
             />
           )}
@@ -94,11 +94,11 @@ export function LoadingOverlay() {
         </div>
       </div>
       <style>{`
-        @keyframes loadingBarSlide {
+        @keyframes sm-loadingBarSlide {
           0%   { left: -45%; }
           100% { left: 105%; }
         }
-        @keyframes spinnerSpin {
+        @keyframes sm-spinnerSpin {
           to { transform: rotate(360deg); }
         }
       `}</style>
@@ -111,7 +111,7 @@ function Spinner() {
     <div
       className="loading-spinner relative h-9 w-9"
       style={{
-        animation: 'spinnerSpin 1.1s linear infinite',
+        animation: 'sm-spinnerSpin 1.1s linear infinite',
       }}
     >
       <div

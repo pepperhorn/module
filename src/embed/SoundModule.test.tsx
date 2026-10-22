@@ -1,0 +1,287 @@
+vi.mock('../audio/AudioEngine', () => ({
+  getEngine: (opts?: EngineOptions) => {
+    engineOptions = opts
+    return fake
+  },
+}))
+
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { act, cleanup, fireEvent, render } from '@testing-library/react'
+import { makeFakeEngine, type FakeEngine } from '../test/fakeEngine'
+import type { EngineOptions, PatchSourceTag } from '../audio/AudioEngine'
+import { getCatalog } from '../patches/catalog'
+import { clearActiveNotes } from '../state/activeNotes'
+import { setPersistScope, useStore } from '../state/useStore'
+import { SoundModule } from './SoundModule'
+
+let fake: FakeEngine
+let engineOptions: EngineOptions | undefined
+
+const tag: PatchSourceTag = { tier: 'cdn', local: 0, cache: 0, cdn: 1, total: 1 }
+
+function rootOf(container: HTMLElement): HTMLElement {
+  return container.querySelector('.sound-module') as HTMLElement
+}
+
+beforeEach(() => {
+  fake = makeFakeEngine()
+  clearActiveNotes()
+  useStore.setState({
+    catalog: getCatalog(),
+    currentPatchId: 'ep/wurlitzerep200',
+    pendingPatchId: null,
+    loadingPatchId: null,
+    loadError: null,
+    previewPatchId: null,
+    loadingProgress: null,
+    pickerOpen: false,
+    midiPanelOpen: false,
+    octave: 4,
+    velocity: 100,
+  })
+})
+
+afterEach(() => {
+  cleanup()
+  setPersistScope('app')
+  vi.restoreAllMocks()
+})
+
+describe('SoundModule', () => {
+  it('renders a themed, focusable root and leaves <html> alone', () => {
+    const { container } = render(<SoundModule theme="light" className="host-x" />)
+    const root = rootOf(container)
+    expect(root.dataset.theme).toBe('light')
+    expect(root.tabIndex).toBe(0)
+    expect(root.className).toContain('host-x')
+    expect(document.documentElement.hasAttribute('data-theme')).toBe(false)
+  })
+
+  it('creates a quiet engine without the console shim', () => {
+    render(<SoundModule />)
+    expect(engineOptions).toMatchObject({ consoleShim: false, quiet: true })
+  })
+
+  it('defaults to the dark theme', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    expect(root.dataset.theme).toBe('dark')
+  })
+
+  it('keys play only while the module has focus', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    expect(root.querySelector('.sm-keys-indicator')!.textContent).toMatch(/keys off/i)
+    fireEvent.keyDown(document.body, { key: 'a' })
+    expect(fake.noteOn).not.toHaveBeenCalled()
+    act(() => root.focus())
+    fireEvent.keyDown(root, { key: 'a' })
+    expect(fake.noteOn).toHaveBeenCalled()
+    expect(root.querySelector('.sm-keys-indicator')!.textContent).toMatch(/keys on/i)
+  })
+
+  it('refocuses the root when the picker closes and focus was lost', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    act(() => root.focus())
+    act(() => useStore.setState({ pickerOpen: true }))
+    const card = root.querySelector('.patch-card') as HTMLElement
+    act(() => card.focus())
+    expect(document.activeElement).toBe(card)
+    act(() => useStore.setState({ pickerOpen: false }))
+    expect(root.contains(document.activeElement)).toBe(true)
+    expect(root.querySelector('.sm-keys-indicator')!.textContent).toMatch(/keys on/i)
+  })
+
+  it('keys do not play, and Escape does not panic, while the picker is open', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    act(() => root.focus())
+    act(() => useStore.setState({ pickerOpen: true }))
+    const sheet = root.querySelector('.patch-picker-sheet') as HTMLElement
+    expect(sheet.getAttribute('role')).toBe('dialog')
+    expect(sheet.getAttribute('aria-modal')).toBe('true')
+    const card = root.querySelector('.patch-card') as HTMLElement
+    act(() => card.focus())
+    fireEvent.keyDown(card, { key: 'a' })
+    fireEvent.keyDown(card, { key: 'x' })
+    expect(fake.noteOn).not.toHaveBeenCalled()
+    expect(useStore.getState().octave).toBe(4)
+    fireEvent.keyDown(card, { key: 'Escape' })
+    expect(fake.panic).not.toHaveBeenCalled()
+    expect(useStore.getState().pickerOpen).toBe(false)
+  })
+
+  it('Escape on the host page does not close the picker or MIDI panel', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    act(() => useStore.setState({ pickerOpen: true }))
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(useStore.getState().pickerOpen).toBe(true)
+    // Escape from inside the module (e.g. the browse button) still closes it.
+    fireEvent.keyDown(root, { key: 'Escape' })
+    expect(useStore.getState().pickerOpen).toBe(false)
+
+    act(() => useStore.setState({ midiPanelOpen: true }))
+    act(() => document.body.focus())
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(useStore.getState().midiPanelOpen).toBe(true)
+    fireEvent.keyDown(root.querySelector('.midi-panel-close')!, { key: 'Escape' })
+    expect(useStore.getState().midiPanelOpen).toBe(false)
+  })
+
+  it('pressing the on-screen piano arms the keyboard', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    expect(root.contains(document.activeElement)).toBe(false)
+    // jsdom has no hit testing; land the press on a real key so the piano's
+    // handler runs its preventDefault() path, as it does in a browser.
+    const key = root.querySelector<HTMLElement>('[data-midi]')!
+    document.elementFromPoint = () => key
+    try {
+      fireEvent.pointerDown(root.querySelector('.touch-keyboard-body')!, { pointerId: 1 })
+    } finally {
+      delete (document as { elementFromPoint?: unknown }).elementFromPoint
+    }
+    expect(root.contains(document.activeElement)).toBe(true)
+    expect(fake.noteOn).toHaveBeenCalled()
+  })
+
+  it('focus loss does not call the global panic (MIDI/breath keep playing)', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    act(() => root.focus())
+    fireEvent.keyDown(root, { key: 'a' })
+    fireEvent.focusOut(root, { relatedTarget: document.body })
+    expect(fake.noteOff).toHaveBeenCalledWith(60)
+    expect(fake.panic).not.toHaveBeenCalled()
+  })
+
+  it('labels 18 piano keys', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    expect(root.querySelectorAll('.touch-key-label')).toHaveLength(18)
+  })
+
+  it('draws the picker and MIDI panel inside the root', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    act(() => useStore.setState({ pickerOpen: true, midiPanelOpen: true }))
+    expect(root.querySelector('.patch-picker')).not.toBeNull()
+    expect(root.querySelector('.midi-panel-scrim')).not.toBeNull()
+    expect(root.querySelector('.patch-card-dl')).toBeNull()
+  })
+
+  it('hides CST patches without assetBaseUrl', () => {
+    expect(useStore.getState().catalog.some((p) => p.bank === 'CST')).toBe(true)
+    render(<SoundModule />)
+    expect(useStore.getState().catalog.some((p) => p.bank === 'CST')).toBe(false)
+  })
+
+  it('keeps CST patches when assetBaseUrl is given', () => {
+    render(<SoundModule assetBaseUrl="" />)
+    expect(useStore.getState().catalog.some((p) => p.bank === 'CST')).toBe(true)
+  })
+
+  it('a click powers on while the gesture is pending', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    expect(root.querySelector('.gesture-overlay')).not.toBeNull()
+    fireEvent.click(root)
+    expect(fake.resume).toHaveBeenCalled()
+    expect(root.querySelector('.gesture-overlay')).toBeNull()
+  })
+
+  it('unmount panics and suspends the engine', () => {
+    const { unmount } = render(<SoundModule />)
+    unmount()
+    expect(fake.panic).toHaveBeenCalled()
+    expect(fake.suspend).toHaveBeenCalledOnce()
+  })
+
+  it('tracks online/offline while mounted and stops on unmount', () => {
+    useStore.setState({ online: true })
+    const { unmount } = render(<SoundModule />)
+    act(() => void window.dispatchEvent(new Event('offline')))
+    expect(useStore.getState().online).toBe(false)
+    act(() => void window.dispatchEvent(new Event('online')))
+    expect(useStore.getState().online).toBe(true)
+    unmount()
+    act(() => void window.dispatchEvent(new Event('offline')))
+    expect(useStore.getState().online).toBe(true)
+  })
+
+  it('unmount mid-load leaves no stale loading state; remount loads again', async () => {
+    let resolveLoad!: () => void
+    fake.loadPatch.mockImplementation(
+      () =>
+        new Promise<void>((r) => {
+          resolveLoad = r
+        }),
+    )
+    const first = render(<SoundModule />)
+    await act(async () => {
+      fireEvent.click(rootOf(first.container))
+    })
+    expect(fake.loadPatch).toHaveBeenCalledTimes(1)
+    act(() => {
+      fake.onLoading!('ep/wurlitzerep200')
+      fake.onPreviewChange!('ep/wurlitzerep200')
+    })
+    expect(useStore.getState().loadingPatchId).toBe('ep/wurlitzerep200')
+    first.unmount()
+    await act(async () => resolveLoad())
+
+    const st = useStore.getState()
+    expect(st.loadingPatchId).toBeNull()
+    expect(st.pendingPatchId).toBeNull()
+    expect(st.previewPatchId).toBeNull()
+
+    const root = rootOf(render(<SoundModule />).container)
+    expect(root.querySelector('.loading-overlay')).toBeNull()
+    fake.loadPatch.mockImplementation(() => Promise.resolve())
+    await act(async () => {
+      fireEvent.click(root)
+    })
+    expect(fake.loadPatch).toHaveBeenCalledTimes(2)
+  })
+
+  it('mount clears loading state left behind by an earlier instance', () => {
+    useStore.setState({
+      loadingPatchId: 'ep/wurlitzerep200',
+      loadingProgress: { loaded: 1, total: 4 },
+      pendingPatchId: 'ep/wurlitzerep200',
+      previewPatchId: 'ep/wurlitzerep200',
+    })
+    const root = rootOf(render(<SoundModule />).container)
+    const st = useStore.getState()
+    expect(st.loadingPatchId).toBeNull()
+    expect(st.loadingProgress).toBeNull()
+    expect(st.pendingPatchId).toBeNull()
+    expect(st.previewPatchId).toBeNull()
+    expect(root.querySelector('.loading-overlay')).toBeNull()
+  })
+
+  it('never touches app-only storage keys', async () => {
+    const keysTouched: string[] = []
+    const getItem = Storage.prototype.getItem
+    const setItem = Storage.prototype.setItem
+    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(function (this: Storage, k: string) {
+      keysTouched.push(k)
+      return getItem.call(this, k)
+    })
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (
+      this: Storage,
+      k: string,
+      v: string,
+    ) {
+      keysTouched.push(k)
+      setItem.call(this, k, v)
+    })
+
+    const root = rootOf(render(<SoundModule />).container)
+    // Power on, play, and finish a clean load of the selected patch.
+    await act(async () => {
+      fireEvent.click(root)
+    })
+    act(() => root.focus())
+    fireEvent.keyDown(root, { key: 'a' })
+    fireEvent.keyUp(root, { key: 'a' })
+    act(() => fake.onLoaded!('ep/wurlitzerep200', { source: tag, offlineReady: true }))
+    fireEvent.keyDown(root, { key: 'x' })
+
+    expect(fake.loadPatch).toHaveBeenCalled()
+    for (const k of ['module:downloaded:v1', 'module:user-patches:v1', 'module:debug:v1'])
+      expect(keysTouched).not.toContain(k)
+  })
+})

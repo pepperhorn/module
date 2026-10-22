@@ -1,4 +1,5 @@
 import type { PatchManifest, PatchSource } from '../patches/types'
+import { useStore } from '../state/useStore'
 import { buildEffectChain, DOUBLER_SNAPS } from './effects'
 import type { ChainEffectId } from './effects'
 import type { EffectId } from './effects'
@@ -132,6 +133,18 @@ function serializeDecodeAudioData(context: AudioContext) {
 
 // Intercept console.warn so smplr's silent decode failures
 // ("Error loading buffer", "Invalid status") show up in the on-screen log.
+export interface EngineOptions {
+  /** Patch console.warn to surface smplr decode failures. Default true. */
+  consoleShim?: boolean
+  /**
+   * Default false. When true (embed), the engine log is silent unless the
+   * store's debug mode is on, so a host page's console isn't flooded.
+   */
+  quiet?: boolean
+}
+
+let _quiet = false
+
 let _consoleShimInstalled = false
 function installConsoleShim() {
   if (_consoleShimInstalled) return
@@ -173,6 +186,7 @@ function installConsoleShim() {
 }
 
 const log = (msg: string, ...rest: unknown[]) => {
+  if (_quiet && !useStore.getState().debugMode) return
   console.log(`[engine] ${msg}`, ...rest)
   let payload = ''
   if (rest.length > 0) {
@@ -270,8 +284,9 @@ export class AudioEngine {
   }
   private activeDoubles = new Map<number, number[]>()
 
-  constructor() {
-    installConsoleShim()
+  constructor(options: EngineOptions = {}) {
+    _quiet = options.quiet === true
+    if (options.consoleShim !== false) installConsoleShim()
     this.context = createLowLatencyContext()
     serializeDecodeAudioData(this.context)
     log('ctor', {
@@ -279,6 +294,17 @@ export class AudioEngine {
       sampleRate: this.context.sampleRate,
       ...this.latencyInfo(),
     })
+  }
+
+  /** Silence everything and suspend the context. Chain and caches are kept so resume() plays again. */
+  async suspend(): Promise<void> {
+    this.stopPreview()
+    this.panic()
+    try {
+      await this.context.suspend()
+    } catch {
+      /* ignore */
+    }
   }
 
   async resume(): Promise<void> {
@@ -1034,7 +1060,7 @@ export class AudioEngine {
 }
 
 let _engine: AudioEngine | null = null
-export function getEngine(): AudioEngine {
-  if (!_engine) _engine = new AudioEngine()
+export function getEngine(options?: EngineOptions): AudioEngine {
+  if (!_engine) _engine = new AudioEngine(options)
   return _engine
 }

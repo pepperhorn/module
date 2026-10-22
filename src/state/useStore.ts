@@ -276,15 +276,26 @@ const initialFxOrder = normalizeFxOrder(persisted.fxOrder)
 // Default reverb mix to a noticeable value if no persisted state
 if (!persisted.fxParams) initialFxParams.reverb.mix = 0.25
 
+export type PersistScope = 'app' | 'embed'
+let persistScope: PersistScope = 'app'
+
+/** 'embed' persists only patch, octave and velocity; 'app' (default) also persists fx state. */
+export function setPersistScope(scope: PersistScope): void {
+  persistScope = scope
+}
+
 function persist(state: State) {
-  const slice: PersistedSlice = {
-    currentPatchId: state.currentPatchId,
-    octave: state.octave,
-    velocity: state.velocity,
-    fxEnabled: state.fxEnabled,
-    fxParams: state.fxParams,
-    fxOrder: state.fxOrder,
-  }
+  const slice: Partial<PersistedSlice> =
+    persistScope === 'embed'
+      ? { currentPatchId: state.currentPatchId, octave: state.octave, velocity: state.velocity }
+      : {
+          currentPatchId: state.currentPatchId,
+          octave: state.octave,
+          velocity: state.velocity,
+          fxEnabled: state.fxEnabled,
+          fxParams: state.fxParams,
+          fxOrder: state.fxOrder,
+        }
   try {
     localStorage.setItem(STATE_KEY, JSON.stringify(slice))
   } catch {
@@ -306,10 +317,10 @@ export const useStore = create<State>((set, get) => ({
   fxParams: initialFxParams,
   fxOrder: initialFxOrder,
   favourites: loadFavourites(),
-  downloaded: loadDownloaded(),
+  downloaded: new Set<string>(),
   downloadingPatchId: null,
   warmProgress: null,
-  userPatches: loadUserPatches(),
+  userPatches: [],
   saveDialogOpen: false,
   pickerOpen: false,
   midiConnected: false,
@@ -341,7 +352,7 @@ export const useStore = create<State>((set, get) => ({
   setBreathEnabled: (v) => get().setMidiProfile({ ...get().midiProfile, enabled: v }),
   setMidiPanelOpen: (open) => set(open ? { midiPanelOpen: true } : { midiPanelOpen: false, midiLearning: false }),
   setMidiLearning: (v) => set({ midiLearning: v }),
-  debugMode: loadDebug(),
+  debugMode: false,
   online: typeof navigator === 'undefined' ? true : navigator.onLine,
   keyboardMode: initialUi.keyboardMode,
   fxVisible: initialUi.fxVisible,
@@ -509,7 +520,23 @@ export const useStore = create<State>((set, get) => ({
   setOnline: (v) => set({ online: v }),
 }))
 
-if (typeof window !== 'undefined') {
-  window.addEventListener('online', () => useStore.getState().setOnline(true))
-  window.addEventListener('offline', () => useStore.getState().setOnline(false))
+let hydrated = false
+
+/**
+ * App-only startup: loads downloaded patches, user patches and debug mode from
+ * localStorage and installs online/offline listeners. Idempotent. Kept out of
+ * module load so the store can be imported by the embed without side effects.
+ */
+export function hydrateAppState(): void {
+  if (hydrated) return
+  hydrated = true
+  useStore.setState({
+    downloaded: loadDownloaded(),
+    userPatches: loadUserPatches(),
+    debugMode: loadDebug(),
+  })
+  if (typeof window !== 'undefined') {
+    window.addEventListener('online', () => useStore.getState().setOnline(true))
+    window.addEventListener('offline', () => useStore.getState().setOnline(false))
+  }
 }

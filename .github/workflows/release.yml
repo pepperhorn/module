@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write # npm trusted publishing (OIDC)
+
+jobs:
+  publish:
+    name: Publish @pepperhorn/sound-module
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm >= 11.5.1.
+      - name: Update npm
+        run: npm install -g npm@latest
+
+      - name: Tag matches package version
+        run: |
+          set -euo pipefail
+          expected="v$(node -p "require('./packages/sound-module/package.json').version")"
+          if [ "$expected" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package version $expected"
+            exit 1
+          fi
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build:lib
+      - run: npm run verify:lib
+
+      - name: Publish to npm
+        run: npm publish ./packages/sound-module --access public

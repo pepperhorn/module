@@ -1,0 +1,16 @@
+/*
+ * Tailwind input for the embed's precompiled styles.css
+ * (packages/sound-module/scripts/build-css.mjs). No preflight: the scoped
+ * base rules in ./base.css replace it. The theme tokens are emitted in full
+ * (`theme(static)`) because the components read most of them through inline
+ * `var(--color-*)` styles that Tailwind cannot see.
+ */
+@import 'tailwindcss/theme.css' layer(theme);
+@import '../../styles/theme.css' theme(static);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@import '../../styles/materials.css';
+@import '../../styles/components.css';
+
+@source '../../components';
+@source '..';
+@source not '../../**/*.test.{ts,tsx}';

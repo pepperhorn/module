@@ -12,6 +12,7 @@ import {
   profileMatchesPreset,
   type MidiProfile,
 } from '../input/midiProfile'
+import { escapeIsForOverlay } from './overlayEscape'
 
 export interface LatencyInfo {
   baseLatencyMs: number
@@ -21,6 +22,8 @@ export interface LatencyInfo {
 interface MidiPanelProps {
   /** Reads the AudioContext latency (engine.latencyInfo). Optional for tests. */
   getLatency?: () => LatencyInfo
+  /** Render absolutely inside the nearest positioned ancestor (embed). */
+  contained?: boolean
 }
 
 const CURVES: { id: BreathCurve; label: string }[] = [
@@ -37,11 +40,12 @@ const ccLabel = (cc: number) => `CC${String(cc).padStart(2, '0')}`
  * permission state first; once granted, devices, presets, the live breath
  * meter and the breath shaping controls.
  */
-export function MidiPanel({ getLatency }: MidiPanelProps) {
+export function MidiPanel({ getLatency, contained = false }: MidiPanelProps) {
   const open = useStore((s) => s.midiPanelOpen)
   const setOpen = useStore((s) => s.setMidiPanelOpen)
   const status = useStore((s) => s.midiStatus)
 
+  const scrimRef = useRef<HTMLDivElement>(null)
   const cardRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
 
@@ -58,14 +62,15 @@ export function MidiPanel({ getLatency }: MidiPanelProps) {
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation()
-        close()
-      }
+      if (e.key !== 'Escape') return
+      // Contained (embed): only Escape pressed inside the module.
+      if (!escapeIsForOverlay(e, scrimRef.current, contained)) return
+      e.stopPropagation()
+      close()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open, close])
+  }, [open, close, contained])
 
   // Keep Tab inside the dialog.
   const onTrapKey = (e: React.KeyboardEvent) => {
@@ -89,7 +94,8 @@ export function MidiPanel({ getLatency }: MidiPanelProps) {
 
   return (
     <div
-      className="midi-panel-scrim fade-in fixed inset-0 z-[55] flex items-end justify-center backdrop-blur-sm sm:items-center sm:p-4"
+      ref={scrimRef}
+      className={`midi-panel-scrim fade-in ${contained ? 'absolute' : 'fixed'} inset-0 z-[55] flex items-end justify-center backdrop-blur-sm sm:items-center sm:p-4`}
       style={{ background: 'var(--scrim)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) close()
@@ -101,7 +107,7 @@ export function MidiPanel({ getLatency }: MidiPanelProps) {
         aria-modal="true"
         aria-labelledby="midi-panel-title"
         onKeyDown={onTrapKey}
-        className="midi-panel pop-in scroll-clean flex max-h-[92dvh] w-full flex-col gap-4 overflow-y-auto rounded-t-2xl p-4 sm:w-[min(640px,calc(100vw-2rem))] sm:rounded-2xl sm:p-5"
+        className={`midi-panel pop-in scroll-clean flex ${contained ? 'max-h-full' : 'max-h-[92dvh]'} w-full flex-col gap-4 overflow-y-auto rounded-t-2xl p-4 ${contained ? 'sm:w-[min(640px,calc(100%-2rem))]' : 'sm:w-[min(640px,calc(100vw-2rem))]'} sm:rounded-2xl sm:p-5`}
         style={{
           background: 'var(--face-bg)',
           border: '1px solid var(--face-border)',

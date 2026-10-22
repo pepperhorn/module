@@ -11,7 +11,9 @@
     "gen-icons": "node scripts/gen-icons.mjs",
     "vendor-samples": "node scripts/vendor-samples.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "build:lib": "node -e \"require('node:fs').rmSync('packages/sound-module/dist',{recursive:true,force:true})\" && vite build --config packages/sound-module/vite.config.ts && tsc -p packages/sound-module/tsconfig.build.json && node packages/sound-module/scripts/build-css.mjs && node packages/sound-module/scripts/copy-patches.mjs",
+    "verify:lib": "node packages/sound-module/scripts/verify-dist.mjs"
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",
@@ -25,6 +27,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.2.2",
     "@tailwindcss/vite": "^4.2.2",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/react": "^16.3.2",
@@ -32,6 +35,8 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^6.0.1",
     "jsdom": "^25.0.1",
+    "postcss": "^8",
+    "postcss-selector-parser": "^7",
     "sharp": "^0.33.5",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.7.2",

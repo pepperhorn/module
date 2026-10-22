@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { classifyLoad, isOfflineReady, type LoggedStorageStats } from './loggedStorage'
+import {
+  classifyLoad,
+  configureSampleSource,
+  createLoggedStorage,
+  isOfflineReady,
+  type LoggedStorageStats,
+} from './loggedStorage'
 
 function stats(partial: Partial<LoggedStorageStats>): LoggedStorageStats {
   return {
@@ -196,5 +202,47 @@ describe('createLoggedStorage CDN caching', () => {
     const storage = await freshStorage()
     await storage.fetch('https://cdn.example.test/samples/missing.ogg')
     expect(isOfflineReady(storage.snapshot())).toBe(false)
+  })
+})
+
+describe('CDN-only sample source', () => {
+  let fetchMock: ReturnType<typeof vi.fn>
+  let cachesOpen: ReturnType<typeof vi.fn>
+
+  beforeEach(() => {
+    fetchMock = vi.fn(
+      async () =>
+        new Response(new Uint8Array(4), { headers: { 'content-type': 'audio/ogg' } }),
+    )
+    cachesOpen = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    vi.stubGlobal('caches', { open: cachesOpen })
+  })
+
+  afterEach(() => {
+    configureSampleSource({ mode: 'app' })
+    vi.unstubAllGlobals()
+  })
+
+  it('fetches CDN urls directly, never from /smplr-samples', async () => {
+    configureSampleSource({ mode: 'cdn' })
+    await createLoggedStorage().fetch('https://smpldsnds.github.io/a/b.ogg')
+    expect(fetchMock.mock.calls.map((c) => c[0])).toEqual([
+      'https://smpldsnds.github.io/a/b.ogg',
+    ])
+  })
+
+  it('never opens the Cache API for CDN or bundled urls', async () => {
+    configureSampleSource({ mode: 'cdn' })
+    const s = createLoggedStorage()
+    await s.fetch('https://gleitz.github.io/x.mp3')
+    await s.fetch('/patches/sine-key/C4.wav')
+    expect(cachesOpen).not.toHaveBeenCalled()
+    expect(s.snapshot().bySource).toMatchObject({ cdn: 1, local: 1, cache: 0, localAlt: 0 })
+  })
+
+  it('app mode keeps the local-first cascade', async () => {
+    await createLoggedStorage().fetch('https://smpldsnds.github.io/a/b.ogg')
+    expect(fetchMock.mock.calls[0][0]).toBe('/smplr-samples/smpldsnds/a/b.ogg')
   })
 })

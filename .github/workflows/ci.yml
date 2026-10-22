@@ -50,6 +50,11 @@ jobs:
           done
           echo "PWA output present: $(du -sh dist | cut -f1) total"
 
+      - name: Library build
+        # The embeddable @pepperhorn/sound-module package: bundle, types,
+        # scoped styles and patch audio, checked by verify-dist.
+        run: npm run build:lib && npm run verify:lib
+
       - name: Upload build output
         uses: actions/upload-artifact@v7
         with:

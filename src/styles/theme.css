@@ -1,0 +1,36 @@
+@theme {
+  /* Poly-Rack — deep brushed-navy aluminium faceplate (Korg-inspired).
+     The faceplate is dark milled metal; legends are screened cream; the
+     recessed section wells sit *into* the metal. Section accents stay bright
+     so they read like the Polysix's coloured control groups. */
+  --color-bg: #0B0E15;          /* the room behind the rack */
+  --color-text: #ECEAE0;        /* silkscreen cream-white */
+  --color-panel: #161C28;       /* recessed well surface */
+  --color-rack: #232A3A;        /* faceplate metal base */
+  --color-rack-edge: #0B0E15;   /* dark seam / outer edge */
+
+  --color-coral: #FF6B6B;
+  --color-amber: #FFB84D;
+  --color-lime: #B5E853;
+  --color-sky: #5BC0EB;
+  --color-lavender: #B59CD9;
+  --color-peach: #FFB5A7;
+  --color-mint: #96E6B3;
+  --color-rose: #FFA5B8;
+
+  --color-legend: #B2BACB;         /* screened grey-cream label */
+  --color-legend-strong: #E6E8F0;  /* bright screened label */
+  --color-hairline: rgba(0, 0, 0, 0.5);
+  --color-face-hi: #242B3B;        /* faceplate mid (legend knockout bg) */
+  --color-face-lo: #161B26;        /* metal shadow */
+
+  --color-lcd-bg: #07211F;
+  --color-lcd-text: #55E6C8;
+  --color-lcd-dim: #1D5B50;
+
+  --font-brand: "Michroma", sans-serif;
+  --font-display: "Chakra Petch", "Inter", system-ui, sans-serif;
+  --font-legend: "Chakra Petch", sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+}
