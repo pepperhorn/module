@@ -83,6 +83,23 @@ describe('styles.css', () => {
       expect(css).toContain(s)
   })
 
+  it('declares the sm- layer order with components below utilities (Tailwind order)', () => {
+    const statements: string[] = []
+    root.walkAtRules('layer', (at) => {
+      if (!at.nodes) statements.push(at.params)
+    })
+    expect(statements.length).toBeGreaterThan(0)
+    const order = statements[0].split(',').map((s) => s.trim())
+    expect(order).toEqual(['sm-properties', 'sm-theme', 'sm-base', 'sm-components', 'sm-utilities'])
+    // Every layer the stylesheet uses is named in the order statement, so none
+    // is appended (and so outranks the utilities) by first use.
+    const used = new Set<string>()
+    root.walkAtRules('layer', (at) => {
+      if (at.nodes) used.add(at.params.trim())
+    })
+    for (const l of used) expect(order).toContain(l)
+  })
+
   it('does not bundle fonts', () => {
     expect(css).not.toMatch(/@font-face|@import/)
   })

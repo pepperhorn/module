@@ -16,7 +16,8 @@
  *      prefixed `sm-`, so nothing merges with a host's Tailwind;
  *    - every `@keyframes X` becomes `sm-X`, with the animations using it;
  *    - `rem` becomes `px` (1rem = 16px), so a host's root font size is moot.
- * 3. The base rules go in the `sm-base` layer, ahead of `sm-utilities`, the
+ * 3. The base rules go in the `sm-base` layer, ahead of `sm-components` and
+ *    `sm-utilities` (Tailwind's order), the
  *    same order the standalone app has (preflight, utilities, then the
  *    unlayered materials/components).
  */
@@ -41,7 +42,7 @@ const SCOPE_PSEUDO = `:where(${SCOPE}, ${SCOPE} *)`;
 const VAR_PREFIX = '--sm-tw-';
 const NAME_PREFIX = 'sm-';
 const LAYERS = ['properties', 'theme', 'base', 'components', 'utilities'];
-const LAYER_ORDER = `@layer ${['properties', 'theme', 'base', 'utilities'].map((l) => NAME_PREFIX + l).join(', ')};`;
+const LAYER_ORDER = `@layer ${['properties', 'theme', 'base', 'components', 'utilities'].map((l) => NAME_PREFIX + l).join(', ')};`;
 
 function compileTailwind() {
   const tmp = mkdtempSync(join(tmpdir(), 'sm-css-'));
