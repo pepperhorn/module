@@ -45,6 +45,21 @@ export function SoundModule({ assetBaseUrl, theme, octaves, className }: SoundMo
   const pickerOpen = useStore((st) => st.pickerOpen)
   const setPickerOpen = useStore((st) => st.setPickerOpen)
 
+  // The app installs these once in hydrateAppState(); the embed owns them for
+  // its lifetime so LoadErrorToast's offline wording stays accurate.
+  useEffect(() => {
+    const { setOnline } = useStore.getState()
+    setOnline(navigator.onLine)
+    const onOnline = () => setOnline(true)
+    const onOffline = () => setOnline(false)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
+    return () => {
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
+    }
+  }, [])
+
   const rootRef = useRef<HTMLDivElement>(null)
   const { armed } = useComputerKeyboard(
     { noteOn: s.uiNoteOn, noteOff: s.noteOff, panic: s.panic },

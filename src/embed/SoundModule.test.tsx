@@ -152,6 +152,18 @@ describe('SoundModule', () => {
     expect(fake.suspend).toHaveBeenCalledOnce()
   })
 
+  it('tracks online/offline while mounted and stops on unmount', () => {
+    useStore.setState({ online: true })
+    const { unmount } = render(<SoundModule />)
+    act(() => void window.dispatchEvent(new Event('offline')))
+    expect(useStore.getState().online).toBe(false)
+    act(() => void window.dispatchEvent(new Event('online')))
+    expect(useStore.getState().online).toBe(true)
+    unmount()
+    act(() => void window.dispatchEvent(new Event('offline')))
+    expect(useStore.getState().online).toBe(true)
+  })
+
   it('never touches app-only storage keys', async () => {
     const keysTouched: string[] = []
     const getItem = Storage.prototype.getItem
