@@ -48,6 +48,23 @@ describe('useSoundEngine', () => {
     expect(fake.suspend).toHaveBeenCalledOnce()
   })
 
+  it('suspendOnUnmount: mount adopts a patch that finished loading while unmounted', () => {
+    useStore.setState({ currentPatchId: 'ep/wurlitzerep200', pendingPatchId: 'piano/splendid' })
+    fake.loadedPatchId = 'piano/splendid'
+    renderHook(() => useSoundEngine({ suspendOnUnmount: true }))
+    expect(useStore.getState().currentPatchId).toBe('piano/splendid')
+    expect(useStore.getState().pendingPatchId).toBeNull()
+  })
+
+  it('without suspendOnUnmount, mount and unmount leave load markers alone', () => {
+    useStore.setState({ loadingPatchId: 'ep/wurlitzerep200', pendingPatchId: 'ep/wurlitzerep200' })
+    const { unmount } = renderHook(() => useSoundEngine())
+    unmount()
+    expect(useStore.getState().loadingPatchId).toBe('ep/wurlitzerep200')
+    expect(useStore.getState().pendingPatchId).toBe('ep/wurlitzerep200')
+    useStore.setState({ loadingPatchId: null, pendingPatchId: null })
+  })
+
   it('without suspendOnUnmount, unmount leaves the engine running', () => {
     const { unmount } = renderHook(() => useSoundEngine())
     unmount()

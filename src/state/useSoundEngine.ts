@@ -389,12 +389,26 @@ export function useSoundEngine(options: SoundEngineOptions = {}): SoundEngineApi
   panicRef.current = panic
   const needsGestureRef = useRef(needsGesture)
   needsGestureRef.current = needsGesture
+  //
+  // The load/preview markers live in the shared store but are only retired by
+  // engine callbacks, which are detached on unmount (before suspend() stops
+  // the preview, and while a load may still be in flight). Clear them on the
+  // way out, and again on the way in in case anything left them behind, or a
+  // remount shows a LoadingOverlay forever and the first load never starts.
   useEffect(() => {
     if (!suspendOnUnmount) return
+    clearLoadMarkers()
+    // A load that finished while unmounted changed what the engine plays
+    // without telling the store; show the patch that is really loaded.
+    const loaded = engine.loadedPatchId
+    if (loaded && loaded !== useStore.getState().currentPatchId) {
+      useStore.getState().setCurrentPatchId(loaded)
+    }
     if (!needsGestureRef.current) void engine.resume()
     return () => {
       panicRef.current()
       void engine.suspend()
+      clearLoadMarkers()
     }
   }, [engine, suspendOnUnmount])
 
@@ -420,4 +434,13 @@ export function useSoundEngine(options: SoundEngineOptions = {}): SoundEngineApi
     panic,
     getLatency,
   }
+}
+
+/** Retire every in-flight load/preview marker in the shared store. */
+function clearLoadMarkers(): void {
+  const s = useStore.getState()
+  if (s.loadingPatchId !== null) s.setLoadingPatchId(null)
+  if (s.loadingProgress !== null) s.setLoadingProgress(null)
+  if (s.pendingPatchId !== null) s.setPendingPatchId(null)
+  if (s.previewPatchId !== null) s.setPreviewPatchId(null)
 }

@@ -32,6 +32,8 @@ beforeEach(() => {
     pendingPatchId: null,
     loadingPatchId: null,
     loadError: null,
+    previewPatchId: null,
+    loadingProgress: null,
     pickerOpen: false,
     midiPanelOpen: false,
     octave: 4,
@@ -197,6 +199,57 @@ describe('SoundModule', () => {
     unmount()
     act(() => void window.dispatchEvent(new Event('offline')))
     expect(useStore.getState().online).toBe(true)
+  })
+
+  it('unmount mid-load leaves no stale loading state; remount loads again', async () => {
+    let resolveLoad!: () => void
+    fake.loadPatch.mockImplementation(
+      () =>
+        new Promise<void>((r) => {
+          resolveLoad = r
+        }),
+    )
+    const first = render(<SoundModule />)
+    await act(async () => {
+      fireEvent.click(rootOf(first.container))
+    })
+    expect(fake.loadPatch).toHaveBeenCalledTimes(1)
+    act(() => {
+      fake.onLoading!('ep/wurlitzerep200')
+      fake.onPreviewChange!('ep/wurlitzerep200')
+    })
+    expect(useStore.getState().loadingPatchId).toBe('ep/wurlitzerep200')
+    first.unmount()
+    await act(async () => resolveLoad())
+
+    const st = useStore.getState()
+    expect(st.loadingPatchId).toBeNull()
+    expect(st.pendingPatchId).toBeNull()
+    expect(st.previewPatchId).toBeNull()
+
+    const root = rootOf(render(<SoundModule />).container)
+    expect(root.querySelector('.loading-overlay')).toBeNull()
+    fake.loadPatch.mockImplementation(() => Promise.resolve())
+    await act(async () => {
+      fireEvent.click(root)
+    })
+    expect(fake.loadPatch).toHaveBeenCalledTimes(2)
+  })
+
+  it('mount clears loading state left behind by an earlier instance', () => {
+    useStore.setState({
+      loadingPatchId: 'ep/wurlitzerep200',
+      loadingProgress: { loaded: 1, total: 4 },
+      pendingPatchId: 'ep/wurlitzerep200',
+      previewPatchId: 'ep/wurlitzerep200',
+    })
+    const root = rootOf(render(<SoundModule />).container)
+    const st = useStore.getState()
+    expect(st.loadingPatchId).toBeNull()
+    expect(st.loadingProgress).toBeNull()
+    expect(st.pendingPatchId).toBeNull()
+    expect(st.previewPatchId).toBeNull()
+    expect(root.querySelector('.loading-overlay')).toBeNull()
   })
 
   it('never touches app-only storage keys', async () => {
