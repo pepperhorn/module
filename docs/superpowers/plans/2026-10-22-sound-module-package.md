@@ -696,7 +696,7 @@ it('does not bundle fonts', () => { expect(css).not.toMatch(/@font-face|@import/
 **Interfaces:**
 - Consumes: `src/embed/index.ts` (Task 9) and `build-css.mjs` (Task 10).
 - `packages/sound-module/package.json`:
-  - Identity: `name: "@pepperhorn/sound-module"`, `version: "0.1.0"`, `type: "module"`, `license: "UNLICENSED"` (see Decisions).
+  - Identity: `name: "@pepperhorn/sound-module"`, `version: "0.1.0"`, `type: "module"`, `license: "MIT"`. Add `LICENSE` (MIT, "Copyright (c) 2026 PepperHorn") at the repo root and copy it into `packages/sound-module/LICENSE`; include `LICENSE` in `files`.
   - Entry points: `main` and `module` are `./dist/index.js`, and `types` is `./dist/types/embed/index.d.ts`.
   - `sideEffects: ["*.css"]` and `files: ["dist", "README.md"]`.
   - `exports`: `"."` (`{ types, import }`), `"./styles.css": "./dist/styles.css"`, `"./fonts.css": "./dist/fonts.css"`, `"./patches/*": "./dist/patches/*"` and `"./package.json": "./package.json"`.
@@ -739,13 +739,13 @@ it('does not bundle fonts', () => { expect(css).not.toMatch(/@font-face|@import/
   - **Setup:** `actions/checkout@v7`, then `actions/setup-node@v7` with `node-version: 24`, `cache: npm` and `registry-url: https://registry.npmjs.org`, then `npm install -g npm@latest`.
   - **Tag check:** "Tag matches package version" compares `v$(node -p "require('./packages/sound-module/package.json').version")` with `$GITHUB_REF_NAME`.
   - **Build and test:** `npm ci`, `npm run typecheck`, `npm test`, `npm run build:lib`, `npm run verify:lib`.
-  - **Publish:** `npm publish ./packages/sound-module --access public`, with `env: NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}`. A token secret works, and npm trusted publishing (OIDC) also works if the user configures it instead.
+  - **Publish:** `npm publish ./packages/sound-module --access public` via **npm trusted publishing (OIDC)**, same as crf-react-music-tools: no `NPM_TOKEN` secret, no `NODE_AUTH_TOKEN`. Requires npm >= 11.5.1 (hence `npm install -g npm@latest`) and `id-token: write`.
 
 - [ ] **Step 1: Write the workflow** as described in the Interfaces block.
 - [ ] **Step 2: Validate it.** Run `npx --yes @action-validator/cli .github/workflows/release.yml` (or `actionlint` if it is installed). Expected: no errors. Then dry-run the tag check locally: `GITHUB_REF_NAME=v0.1.0 bash -c '[ "v$(node -p "require(\"./packages/sound-module/package.json\").version")" = "$GITHUB_REF_NAME" ] && echo match'`. Expected: `match`.
 - [ ] **Step 3: Commit.** `git add .github/workflows/release.yml && git commit -m "ci: publish @pepperhorn/sound-module to npm on v* tags"`
 
-The user then adds the `NPM_TOKEN` secret (or configures trusted publishing for `@pepperhorn/sound-module`) and pushes the tag `v0.1.0`. Pushing the tag is the user's step and is not part of this plan.
+Publishing is the user's step, not part of this plan: first release `0.1.0` is published manually (`npm login`, then `npm publish ./packages/sound-module --access public`), because npm trusted publishing can only be configured on a package that already exists. The user then adds the trusted publisher on npmjs.com (repo `pepperhorn/module`, workflow `release.yml`), and later releases go out by pushing a `v*` tag.
 
 ---
 
@@ -758,4 +758,4 @@ The user then adds the `NPM_TOKEN` secret (or configures trusted publishing for 
 - **Layout:** the header is `PatchStrip` plus a status row. The root has `min-h-[420px]`, overlays are `absolute inset-0`, and `MidiPanel` scrolls internally (`max-h-full`).
 - **Store:** app-only state is loaded by `hydrateAppState()` from `main.tsx`, not at import. Embed writes go through `setPersistScope('embed')`.
 - **Keys indicator copy:** `⌨ keys on` and `⌨ keys off`.
-- **License:** `UNLICENSED` until the user picks one. The repo has no LICENSE file.
+- **License:** MIT (user).
