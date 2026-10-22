@@ -103,7 +103,7 @@ export function MidiPanel({ getLatency, contained = false }: MidiPanelProps) {
         aria-modal="true"
         aria-labelledby="midi-panel-title"
         onKeyDown={onTrapKey}
-        className={`midi-panel pop-in scroll-clean flex ${contained ? 'max-h-full' : 'max-h-[92dvh]'} w-full flex-col gap-4 overflow-y-auto rounded-t-2xl p-4 sm:w-[min(640px,calc(100vw-2rem))] sm:rounded-2xl sm:p-5`}
+        className={`midi-panel pop-in scroll-clean flex ${contained ? 'max-h-full' : 'max-h-[92dvh]'} w-full flex-col gap-4 overflow-y-auto rounded-t-2xl p-4 ${contained ? 'sm:w-[min(640px,calc(100%-2rem))]' : 'sm:w-[min(640px,calc(100vw-2rem))]'} sm:rounded-2xl sm:p-5`}
         style={{
           background: 'var(--face-bg)',
           border: '1px solid var(--face-border)',

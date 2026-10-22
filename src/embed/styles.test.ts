@@ -63,8 +63,9 @@ describe('styles.css', () => {
     )
     expect(dark).toBeTruthy()
     for (const p of ['--font-mono', '--font-legend', '--face-bg', '--scrim', '--card-bg']) expect(css).toContain(p)
-    const light = rules.find((r) => r.selector === '.sound-module[data-theme="light"]')!
+    const light = rules.find((r) => r.selector === '.sound-module:where([data-theme="light"])')!
     // Lightning CSS lowercases hex colours, as in the app's own build.
+    expect(css).not.toContain('.sound-module[data-theme')
     expect(light.toString()).toMatch(/--color-text: #26241F/i)
   })
 

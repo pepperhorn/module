@@ -64,7 +64,7 @@ const isRootNode = (n) =>
   (n.type === 'pseudo' && (n.value === ':root' || n.value === ':host')) || (n.type === 'tag' && n.value === 'html');
 
 /**
- * `:root[data-theme="light"]` → `.sound-module[data-theme="light"]`;
+ * `:root[data-theme="light"]` → `.sound-module:where([data-theme="light"])`;
  * `.flex` → `.flex:where(.sound-module, .sound-module *)` (after the first class).
  */
 const scopeSelector = selectorParser((selectors) => {
@@ -72,6 +72,12 @@ const scopeSelector = selectorParser((selectors) => {
   selectors.each((selector) => {
     const head = selector.nodes[0];
     if (head && isRootNode(head)) head.replaceWith(selectorParser.className({ value: SCOPE_CLASS }));
+    // The light overrides keep the base root's weight (0,1,0) so a host rule
+    // like `.my-page .sound-module` (0,2,0) overrides either theme.
+    const root = selector.nodes[0];
+    if (root?.type === 'class' && root.value === SCOPE_CLASS && selector.nodes[1]?.type === 'attribute') {
+      selector.nodes[1].replaceWith(selectorParser.pseudo({ value: ':where', nodes: [selectorParser.selector({ nodes: [selector.nodes[1].clone()] })] }));
+    }
     const text = selector.toString().trim();
     if (seen.has(text)) return void selector.remove(); // `:root, :host` → one `.sound-module`
     seen.add(text);

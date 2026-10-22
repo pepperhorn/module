@@ -63,7 +63,8 @@ host spacing, sizing and typography classes **on a wrapper element**, not on
 styles.
 
 Theme tokens (`--color-*`, `--face-bg`, `--card-bg`, …) can be overridden with a
-selector of specificity at least `(0,2,0)`:
+selector of specificity at least `(0,2,0)`; this holds for both themes, as the
+module's own theme rules are `(0,1,0)`:
 
 ```css
 .my-page .sound-module { --color-coral: #ff6f61; }

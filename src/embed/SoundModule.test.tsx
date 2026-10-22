@@ -65,6 +65,18 @@ describe('SoundModule', () => {
     expect(root.querySelector('.sm-keys-indicator')!.textContent).toMatch(/keys on/i)
   })
 
+  it('refocuses the root when the picker closes and focus was lost', () => {
+    const root = rootOf(render(<SoundModule />).container)
+    act(() => root.focus())
+    act(() => useStore.setState({ pickerOpen: true }))
+    const card = root.querySelector('.patch-card') as HTMLElement
+    act(() => card.focus())
+    expect(document.activeElement).toBe(card)
+    act(() => useStore.setState({ pickerOpen: false }))
+    expect(root.contains(document.activeElement)).toBe(true)
+    expect(root.querySelector('.sm-keys-indicator')!.textContent).toMatch(/keys on/i)
+  })
+
   it('pressing the on-screen piano arms the keyboard', () => {
     const root = rootOf(render(<SoundModule />).container)
     expect(root.contains(document.activeElement)).toBe(false)

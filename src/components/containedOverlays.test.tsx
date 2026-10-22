@@ -49,6 +49,13 @@ describe('contained overlays', () => {
     expect(cls).not.toMatch(/\bfixed\b/)
   })
 
+  it('MidiPanel contained sizes against its container, not the viewport', () => {
+    useStore.setState({ midiPanelOpen: true })
+    const card = render(<MidiPanel contained />).container.querySelector('.midi-panel')!
+    expect(card.className).not.toMatch(/100vw/)
+    expect(card.className).toMatch(/sm:w-\[min\(640px,calc\(100%-2rem\)\)\]/)
+  })
+
   it.each(cases)('%s stays fixed by default (app unchanged)', (_n, el, sel) => {
     const cls = render(el(false)).container.querySelector(sel)!.className
     expect(cls).toMatch(/\bfixed\b/)

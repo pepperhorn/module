@@ -1,4 +1,4 @@
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import { useSoundEngine } from '../state/useSoundEngine'
 import { useStore } from '../state/useStore'
 import { useComputerKeyboard } from '../input/useComputerKeyboard'
@@ -42,6 +42,7 @@ export function SoundModule({ assetBaseUrl, theme, octaves, className }: SoundMo
   const currentSource = useStore((st) => st.currentSource)
   const octave = useStore((st) => st.octave)
   const velocity = useStore((st) => st.velocity)
+  const pickerOpen = useStore((st) => st.pickerOpen)
   const setPickerOpen = useStore((st) => st.setPickerOpen)
 
   const rootRef = useRef<HTMLDivElement>(null)
@@ -49,6 +50,16 @@ export function SoundModule({ assetBaseUrl, theme, octaves, className }: SoundMo
     { noteOn: s.uiNoteOn, noteOff: s.noteOff, panic: s.panic },
     { target: rootRef },
   )
+
+  // Closing the picker removes the focused card and drops focus to <body>,
+  // which would silence the computer keyboard; take focus back.
+  const wasPickerOpen = useRef(false)
+  useEffect(() => {
+    const closed = wasPickerOpen.current && !pickerOpen
+    wasPickerOpen.current = pickerOpen
+    const root = rootRef.current
+    if (closed && root && !root.contains(document.activeElement)) root.focus({ preventScroll: true })
+  }, [pickerOpen])
 
   const { ensureAudio } = s
   const openPicker = useCallback(() => {
