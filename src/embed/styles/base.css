@@ -23,10 +23,8 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-.sound-module,
+/* Descendants only: the root's own box (margin, padding, border) is the host's. */
 .sound-module :where(*),
-.sound-module::before,
-.sound-module::after,
 .sound-module :where(*)::before,
 .sound-module :where(*)::after {
   box-sizing: border-box;

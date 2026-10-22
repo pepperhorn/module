@@ -68,6 +68,15 @@ describe('styles.css', () => {
     expect(light.toString()).toMatch(/--color-text: #26241F/i)
   })
 
+  it('leaves the root box to the host: no margin, padding or border on .sound-module itself', () => {
+    const boxProps = rules
+      .filter((r) => r.selectors.some((sel) => sel.trim() === SCOPE))
+      .flatMap((r) => r.nodes.filter((n): n is postcss.Declaration => n.type === 'decl'))
+      .map((d) => d.prop)
+      .filter((p) => /^(margin|padding|border)(-|$)/.test(p))
+    expect(boxProps).toEqual([])
+  })
+
   it('includes the component classes and the utilities the embed uses, scoped', () => {
     for (const s of ['.hw-btn:where(.sound-module, .sound-module *)', '.legend:where(', '.inset-0:where(', '.font-mono:where('])
       expect(css).toContain(s)

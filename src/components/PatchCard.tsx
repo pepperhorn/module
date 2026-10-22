@@ -302,7 +302,7 @@ function SpinnerIcon() {
       viewBox="0 0 16 16"
       fill="none"
       aria-hidden="true"
-      style={{ animation: 'spin 1s linear infinite' }}
+      className="patch-card-spinner animate-spin"
     >
       <circle cx="8" cy="8" r="5.5" stroke="currentColor" strokeWidth="1.5" opacity="0.25" />
       <path

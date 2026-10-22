@@ -83,7 +83,7 @@ export function LoadingOverlay({ contained = false }: { contained?: boolean }) {
                 width: '40%',
                 background:
                   'linear-gradient(90deg, transparent 0%, #5BC0EB 50%, transparent 100%)',
-                animation: 'loadingBarSlide 1.4s ease-in-out infinite',
+                animation: 'sm-loadingBarSlide 1.4s ease-in-out infinite',
               }}
             />
           )}
@@ -94,11 +94,11 @@ export function LoadingOverlay({ contained = false }: { contained?: boolean }) {
         </div>
       </div>
       <style>{`
-        @keyframes loadingBarSlide {
+        @keyframes sm-loadingBarSlide {
           0%   { left: -45%; }
           100% { left: 105%; }
         }
-        @keyframes spinnerSpin {
+        @keyframes sm-spinnerSpin {
           to { transform: rotate(360deg); }
         }
       `}</style>
@@ -111,7 +111,7 @@ function Spinner() {
     <div
       className="loading-spinner relative h-9 w-9"
       style={{
-        animation: 'spinnerSpin 1.1s linear infinite',
+        animation: 'sm-spinnerSpin 1.1s linear infinite',
       }}
     >
       <div
