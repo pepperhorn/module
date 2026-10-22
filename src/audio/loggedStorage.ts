@@ -7,6 +7,11 @@
 //   3.  Cache API ('module-cdn-v1')             (persistent across reloads)
 //   4.  Upstream CDN fetch                      (network — saved to Cache API)
 //
+// In 'cdn' mode (the embeddable package, which has no offline machinery) the
+// cascade collapses to a single network fetch: no /smplr-samples rewrite, no
+// alternate-format retry, and the Cache API is never touched. Same-origin
+// bundled URLs are counted `local`, CDN URLs `cdn`. See configureSampleSource.
+//
 // The Cache API tier means a patch is "downloaded for offline" automatically
 // the moment it loads successfully. The download button in the picker just
 // pre-fills this cache without making the patch the active one.
@@ -77,6 +82,19 @@ export function isOfflineReady(stats: LoggedStorageStats): boolean {
   return stats.attempted > 0 && classifyLoad(stats) === 'complete'
 }
 
+export type SampleSourceMode = 'app' | 'cdn'
+
+let sourceMode: SampleSourceMode = 'app'
+
+/** Choose between the app's local-first cascade and direct CDN fetching. */
+export function configureSampleSource(config: { mode: SampleSourceMode }): void {
+  sourceMode = config.mode
+}
+
+export function getSampleSourceMode(): SampleSourceMode {
+  return sourceMode
+}
+
 export interface LoggedStorage {
   fetch: (url: string) => Promise<Response>
   reset(): void
@@ -135,6 +153,7 @@ function openCache(): Promise<Cache> | null {
 }
 
 async function tryCache(url: string): Promise<Response | null> {
+  if (sourceMode === 'cdn') return null
   const cachePromise = openCache()
   if (!cachePromise) return null
   try {
@@ -154,6 +173,7 @@ async function tryCache(url: string): Promise<Response | null> {
 // taking the copy up front means the cache write cannot lose that race however
 // the cache handle happens to settle.
 function putCache(url: string, response: Response): void {
+  if (sourceMode === 'cdn') return
   const cachePromise = openCache()
   if (!cachePromise) return
   let copy: Response
@@ -247,7 +267,7 @@ export function createLoggedStorage(
         onEvent?.(`bundled ${notAudio ? 'not audio' : status} ${shortUrl(url)}`)
         return new Response(null, { status: notAudio ? 502 : status || 502 })
       }
-      const localPath = rewriteToLocal(url)
+      const localPath = sourceMode === 'cdn' ? null : rewriteToLocal(url)
       if (localPath) {
         try {
           const localRes = await fetch(localPath)
