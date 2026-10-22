@@ -18,10 +18,11 @@ import App from './App'
 import { applyStoredTheme } from './state/useTheme'
 import { UpdateToast } from './components/UpdateToast'
 import { warmVendored } from './pwa/warmVendored'
-import { useStore } from './state/useStore'
+import { hydrateAppState, useStore } from './state/useStore'
 
 // Before React renders; see applyStoredTheme.
 applyStoredTheme()
+hydrateAppState()
 
 function Root() {
   const [needRefresh, setNeedRefresh] = useState(false)
