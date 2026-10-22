@@ -53,8 +53,8 @@ The standalone PWA (offline, save, sign-in, effects) stays exactly as it is.
   connection status, theme toggle UI, keyboard-mode switch.
 - Multiple `<SoundModule>` instances on one page (see Constraints).
 - An iframe embed (becreative sends `frame-ancestors 'none'` / `X-Frame-Options: DENY`).
-- A CMS block editors can drop into arbitrary pages — possible later; this
-  work delivers one dedicated page.
+- A CMS block editors can drop into arbitrary pages — possible later. This
+  work delivers a reusable component plus one dedicated page using it.
 
 ## Anti-goals (failure even if it "works")
 
@@ -254,13 +254,23 @@ Work on a feature branch off becreative `master` (not the stale
 `feat/play-me` worktree, which predates `security-headers.ts`).
 
 - Dependency `@pepperhorn/sound-module`.
-- Page `src/pages/sound-module.astro` — **its own page, alongside the
-  unmerged `feat/play-me` page, not replacing it** (user): site layout, short intro, `<SoundModule client:only="react"
-  assetBaseUrl=… />` inside a wrapper component, a fallback slot and a
-  `<noscript>`, mirroring `becreative-play-me/src/pages/play-me.astro`.
-- Import `@pepperhorn/sound-module/styles.css` and `/fonts.css` in the wrapper.
-- `security-headers.ts`: Permissions-Policy `midi=(self)` **for the
-  sound-module path only**; everywhere else stays `midi=()`.
+- **A reusable becreative component, used first on one page** (user):
+  - `src/components/sound-module/SoundModuleEmbed.tsx` wraps `<SoundModule>`:
+    imports `@pepperhorn/sound-module/styles.css` and `/fonts.css`, passes
+    `assetBaseUrl=""`, and applies any becreative-specific CSS-variable
+    overrides. It's the only place becreative touches the package, so any
+    page can reuse it.
+  - `src/components/sound-module/SoundModuleIsland.astro` renders
+    `<SoundModuleEmbed client:only="react">` with a fallback slot and a
+    `<noscript>`, mirroring `becreative-play-me/src/pages/play-me.astro`.
+    Pages drop in `<SoundModuleIsland />`.
+  - First use: `src/pages/sound-module.astro` — site layout, short intro, the
+    island. Its own page, alongside the unmerged `feat/play-me` page, not
+    replacing it (user).
+- `security-headers.ts`: Permissions-Policy `midi=(self)` on paths listed in
+  a single exported list (e.g. `MIDI_ENABLED_PATHS = ['/sound-module']`);
+  everywhere else stays `midi=()`. Reusing the island on another page means
+  adding that page's path to the list — documented next to the component.
 - Report-only CSP: add `https://smpldsnds.github.io`,
   `https://gleitz.github.io`, `https://goldst.dev` to `connect-src` (and `media-src` if the engine needs it).
 - Tests alongside becreative's existing header tests for the per-path
