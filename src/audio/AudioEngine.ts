@@ -132,6 +132,11 @@ function serializeDecodeAudioData(context: AudioContext) {
 
 // Intercept console.warn so smplr's silent decode failures
 // ("Error loading buffer", "Invalid status") show up in the on-screen log.
+export interface EngineOptions {
+  /** Patch console.warn to surface smplr decode failures. Default true. */
+  consoleShim?: boolean
+}
+
 let _consoleShimInstalled = false
 function installConsoleShim() {
   if (_consoleShimInstalled) return
@@ -270,8 +275,8 @@ export class AudioEngine {
   }
   private activeDoubles = new Map<number, number[]>()
 
-  constructor() {
-    installConsoleShim()
+  constructor(options: EngineOptions = {}) {
+    if (options.consoleShim !== false) installConsoleShim()
     this.context = createLowLatencyContext()
     serializeDecodeAudioData(this.context)
     log('ctor', {
@@ -279,6 +284,17 @@ export class AudioEngine {
       sampleRate: this.context.sampleRate,
       ...this.latencyInfo(),
     })
+  }
+
+  /** Silence everything and suspend the context. Chain and caches are kept so resume() plays again. */
+  async suspend(): Promise<void> {
+    this.stopPreview()
+    this.panic()
+    try {
+      await this.context.suspend()
+    } catch {
+      /* ignore */
+    }
   }
 
   async resume(): Promise<void> {
@@ -1034,7 +1050,7 @@ export class AudioEngine {
 }
 
 let _engine: AudioEngine | null = null
-export function getEngine(): AudioEngine {
-  if (!_engine) _engine = new AudioEngine()
+export function getEngine(options?: EngineOptions): AudioEngine {
+  if (!_engine) _engine = new AudioEngine(options)
   return _engine
 }
