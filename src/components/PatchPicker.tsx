@@ -9,10 +9,20 @@ interface PatchPickerProps {
   /** Audition a patch without switching to it. */
   onPreview: (id: string) => void
   /** Fetch a patch's samples into the offline caches. */
-  onDownload: (id: string) => void
+  onDownload?: (id: string) => void
+  /** Render absolutely inside the nearest positioned ancestor (embed). */
+  contained?: boolean
+  /** Show download buttons and the offline pill. Off in the embed. */
+  offlineFeatures?: boolean
 }
 
-export function PatchPicker({ onSelect, onPreview, onDownload }: PatchPickerProps) {
+export function PatchPicker({
+  onSelect,
+  onPreview,
+  onDownload,
+  contained = false,
+  offlineFeatures = true,
+}: PatchPickerProps) {
   const open = useStore((s) => s.pickerOpen)
   const setPickerOpen = useStore((s) => s.setPickerOpen)
   const currentPatchId = useStore((s) => s.currentPatchId)
@@ -83,7 +93,7 @@ export function PatchPicker({ onSelect, onPreview, onDownload }: PatchPickerProp
 
   return (
     <div
-      className="patch-picker fade-in fixed inset-0 z-50 flex items-stretch justify-center p-2 sm:p-6 backdrop-blur-sm"
+      className={`patch-picker fade-in ${contained ? 'absolute' : 'fixed'} inset-0 z-50 flex items-stretch justify-center p-2 sm:p-6 backdrop-blur-sm`}
       onClick={() => setPickerOpen(false)}
       style={{ background: 'var(--scrim)' }}
     >
@@ -105,7 +115,7 @@ export function PatchPicker({ onSelect, onPreview, onDownload }: PatchPickerProp
             <div className="font-mono text-[11px] uppercase tracking-widest text-legend">
               {filtered.length} patches
             </div>
-            {!online && (
+            {offlineFeatures && !online && (
               <div
                 className="patch-picker-offline-pill flex items-center gap-1.5 rounded-full px-2.5 py-1 font-mono text-[11px] uppercase tracking-widest"
                 title="You are offline — only cached patches are playable"
@@ -190,7 +200,7 @@ export function PatchPicker({ onSelect, onPreview, onDownload }: PatchPickerProp
                     favourited
                     downloaded={downloaded.has(p.id)}
                     downloading={downloadingPatchId === p.id}
-                    unavailableOffline={!online && !isOfflineReady(p)}
+                    unavailableOffline={offlineFeatures && !online && !isOfflineReady(p)}
                     previewing={previewPatchId === p.id}
                     onSelect={(id) => {
                       onSelect(id)
@@ -199,6 +209,7 @@ export function PatchPicker({ onSelect, onPreview, onDownload }: PatchPickerProp
                     onPreview={onPreview}
                     onToggleFavourite={toggleFavourite}
                     onDownload={onDownload}
+                    showDownload={offlineFeatures}
                   />
                 ))}
               </div>
@@ -217,7 +228,7 @@ export function PatchPicker({ onSelect, onPreview, onDownload }: PatchPickerProp
                   favourited={favourites.has(p.id)}
                   downloaded={downloaded.has(p.id)}
                   downloading={downloadingPatchId === p.id}
-                  unavailableOffline={!online && !isOfflineReady(p)}
+                  unavailableOffline={offlineFeatures && !online && !isOfflineReady(p)}
                   previewing={previewPatchId === p.id}
                   onSelect={(id) => {
                     onSelect(id)
@@ -226,6 +237,7 @@ export function PatchPicker({ onSelect, onPreview, onDownload }: PatchPickerProp
                   onPreview={onPreview}
                   onToggleFavourite={toggleFavourite}
                   onDownload={onDownload}
+                    showDownload={offlineFeatures}
                 />
               ))}
               {filtered.length === 0 && (

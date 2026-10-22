@@ -13,7 +13,9 @@ interface PatchCardProps {
   onSelect: (id: string) => void
   onPreview: (id: string) => void
   onToggleFavourite: (id: string) => void
-  onDownload: (id: string) => void
+  onDownload?: (id: string) => void
+  /** Render the offline download button. Off in the embed. */
+  showDownload?: boolean
 }
 
 const COLOR_TO_HEX: Record<PatchColor, string> = {
@@ -39,6 +41,7 @@ export function PatchCard({
   onPreview,
   onToggleFavourite,
   onDownload,
+  showDownload = true,
 }: PatchCardProps) {
   const hex = COLOR_TO_HEX[patch.color] ?? COLOR_TO_HEX.sky
   // A div rather than a button: the card holds its own buttons (preview,
@@ -117,6 +120,7 @@ export function PatchCard({
       >
         {favourited ? '♥' : '♡'}
       </button>
+      {showDownload && (
       <DownloadButton
         downloaded={downloaded}
         downloading={downloading}
@@ -125,10 +129,11 @@ export function PatchCard({
           e.stopPropagation()
           e.preventDefault()
           if (!downloaded && !downloading && !unavailableOffline) {
-            onDownload(patch.id)
+            onDownload?.(patch.id)
           }
         }}
       />
+      )}
     </div>
   )
 }

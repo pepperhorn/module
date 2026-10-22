@@ -21,6 +21,8 @@ export interface LatencyInfo {
 interface MidiPanelProps {
   /** Reads the AudioContext latency (engine.latencyInfo). Optional for tests. */
   getLatency?: () => LatencyInfo
+  /** Render absolutely inside the nearest positioned ancestor (embed). */
+  contained?: boolean
 }
 
 const CURVES: { id: BreathCurve; label: string }[] = [
@@ -37,7 +39,7 @@ const ccLabel = (cc: number) => `CC${String(cc).padStart(2, '0')}`
  * permission state first; once granted, devices, presets, the live breath
  * meter and the breath shaping controls.
  */
-export function MidiPanel({ getLatency }: MidiPanelProps) {
+export function MidiPanel({ getLatency, contained = false }: MidiPanelProps) {
   const open = useStore((s) => s.midiPanelOpen)
   const setOpen = useStore((s) => s.setMidiPanelOpen)
   const status = useStore((s) => s.midiStatus)
@@ -89,7 +91,7 @@ export function MidiPanel({ getLatency }: MidiPanelProps) {
 
   return (
     <div
-      className="midi-panel-scrim fade-in fixed inset-0 z-[55] flex items-end justify-center backdrop-blur-sm sm:items-center sm:p-4"
+      className={`midi-panel-scrim fade-in ${contained ? 'absolute' : 'fixed'} inset-0 z-[55] flex items-end justify-center backdrop-blur-sm sm:items-center sm:p-4`}
       style={{ background: 'var(--scrim)' }}
       onClick={(e) => {
         if (e.target === e.currentTarget) close()
@@ -101,7 +103,7 @@ export function MidiPanel({ getLatency }: MidiPanelProps) {
         aria-modal="true"
         aria-labelledby="midi-panel-title"
         onKeyDown={onTrapKey}
-        className="midi-panel pop-in scroll-clean flex max-h-[92dvh] w-full flex-col gap-4 overflow-y-auto rounded-t-2xl p-4 sm:w-[min(640px,calc(100vw-2rem))] sm:rounded-2xl sm:p-5"
+        className={`midi-panel pop-in scroll-clean flex ${contained ? 'max-h-full' : 'max-h-[92dvh]'} w-full flex-col gap-4 overflow-y-auto rounded-t-2xl p-4 sm:w-[min(640px,calc(100vw-2rem))] sm:rounded-2xl sm:p-5`}
         style={{
           background: 'var(--face-bg)',
           border: '1px solid var(--face-border)',
