@@ -1,6 +1,6 @@
 {
   "name": "@pepperhorn/sound-module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Embeddable React sound module: a sampled-instrument rack with patch browser, on-screen piano, computer keyboard and Web MIDI input.",
   "type": "module",
   "license": "MIT",
