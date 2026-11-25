@@ -1,0 +1,40 @@
+{
+  "kitVersion": "v5",
+  "DOCS": "docs",
+  "DECISIONS": "docs/decisions",
+  "LEDGER": "docs/wip/LEDGER.md",
+  "DECISIONS_REL": "decisions",
+  "LEDGER_REL": "wip/LEDGER.md",
+  "MAIN_BRANCH": "main",
+  "VERIFY_CMD": "npm run typecheck && npm test && npm run build",
+  "WORKTREE_SETUP": "npm ci; no secrets required for local checks. For optional integrations, use the shared-env skill and select dev or prod with the user; never copy secrets into source.",
+  "PORT_BASE": 5200,
+  "REMOTE": "origin",
+  "MERGE": "squash",
+  "GBRAIN_PROJECT": "module",
+  "AUTO_MERGE": "small",
+  "AUTO_MERGE_MAX_LINES": 50,
+  "SWEEP_PRS": true,
+  "SCAN_DAYS": 7,
+  "STOP_MAX_BLOCKS": 3,
+  "IMPL_PROVIDER": "codex",
+  "IMPL_MODEL": "gpt-6.2-sol",
+  "IMPL_OPTIONS": {
+    "reasoningEffort": "high"
+  },
+  "ALT_PROVIDER": "claudeAgent",
+  "ALT_MODEL": "claude-sonnet-5-5",
+  "ALT_OPTIONS": {
+    "effort": "high"
+  },
+  "REVIEW_PROVIDER": "claudeAgent",
+  "REVIEW_MODEL": "claude-opus-5-5",
+  "REVIEW_OPTIONS": {
+    "effort": "high"
+  },
+  "ALT_REVIEW_PROVIDER": "codex",
+  "ALT_REVIEW_MODEL": "gpt-6.2-sol",
+  "ALT_REVIEW_OPTIONS": {
+    "reasoningEffort": "high"
+  }
+}

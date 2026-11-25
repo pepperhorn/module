@@ -6,6 +6,23 @@ import { vendoredSamplesPlugin } from './plugins/vendoredSamplesPlugin.mjs'
 
 export default defineConfig({
   plugins: [
+    {
+      name: 'umami-analytics',
+      apply: (_, { command, mode }) => command === 'build' && mode === 'production',
+      transformIndexHtml: {
+        handler: () => [
+          {
+            tag: 'script',
+            attrs: {
+              defer: true,
+              src: 'https://analytics.pepperhorn.com/script.js',
+              'data-website-id': '821b35fa-4b42-4aec-b3ae-77546a1eabf5',
+            },
+            injectTo: 'head',
+          },
+        ],
+      },
+    },
     react(),
     tailwindcss(),
     vendoredSamplesPlugin(),
