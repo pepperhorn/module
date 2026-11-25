@@ -34,3 +34,6 @@ Thumbs.db
 .env.local
 .env.*.local
 .gstack/
+
+# isolated worktrees
+.worktrees/
