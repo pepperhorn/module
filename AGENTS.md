@@ -1,4 +1,4 @@
-<!-- ph-orch:begin v5 — managed by orch-init; customise via .ph-orch.json, edit outside these markers, or re-run orch-init to upgrade -->
+<!-- ph-orch:begin v6 — managed by orch-init; customise via .ph-orch.json, edit outside these markers, or re-run orch-init to upgrade -->
 # Agent Operating Manual
 
 Every agent working in this repo (Claude, Codex, or anything else) reads this first.
@@ -42,10 +42,12 @@ Everything else is a task, however small: a one-line fix, a refactor, a dependen
 
 | Role | providerInstanceId | model | options |
 |---|---|---|---|
-| implement (default) | codex | gpt-6.2-sol | {"reasoningEffort": "high"} |
-| implement (alt) | claudeAgent | claude-sonnet-5-5 | {"effort": "high"} |
-| review Codex-family work | claudeAgent | claude-opus-5-5 | {"effort": "high"} |
-| review Claude-family work | codex | gpt-6.2-sol | {"reasoningEffort": "high"} |
+| implement (default) | codex | latest:sol | {"reasoningEffort": "high"} |
+| implement (alt) | claudeAgent | latest:sonnet | {"effort": "high"} |
+| review Codex-family work | claudeAgent | latest:opus | {"effort": "high"} |
+| review Claude-family work | codex | latest:sol | {"reasoningEffort": "high"} |
+
+**`latest:<family>`** (e.g. `latest:sol`, `latest:sonnet`, `latest:opus`) tracks the newest model in that family; any other value is a pinned id, used as is. Whoever starts a `delegate_task` from this table resolves it once per dispatch round: call `orchestrator_capabilities` with `search: "<family>"` and take the first model listed for that row's providerInstanceId (the catalog lists newest first). Pass the resolved id as `model` and record it wherever the model is already recorded (ledger log line, PR, handoff). If nothing matches, or the resolved model doesn't list an option value from the row's options, stop and tell the human. Don't fall back or guess.
 
 If an instance isn't available, check `orchestrator_capabilities` and use the nearest equivalent. Never review work with the same model family that implemented it.
 

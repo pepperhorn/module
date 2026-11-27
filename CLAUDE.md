@@ -1,4 +1,4 @@
-<!-- ph-orch:begin v5 — managed by orch-init -->
+<!-- ph-orch:begin v6 — managed by orch-init -->
 @AGENTS.md
 
 ## Claude-specific notes

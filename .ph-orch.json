@@ -1,5 +1,5 @@
 {
-  "kitVersion": "v5",
+  "kitVersion": "v6",
   "DOCS": "docs",
   "DECISIONS": "docs/decisions",
   "LEDGER": "docs/wip/LEDGER.md",
@@ -18,22 +18,22 @@
   "SCAN_DAYS": 7,
   "STOP_MAX_BLOCKS": 3,
   "IMPL_PROVIDER": "codex",
-  "IMPL_MODEL": "gpt-6.2-sol",
+  "IMPL_MODEL": "latest:sol",
   "IMPL_OPTIONS": {
     "reasoningEffort": "high"
   },
   "ALT_PROVIDER": "claudeAgent",
-  "ALT_MODEL": "claude-sonnet-5-5",
+  "ALT_MODEL": "latest:sonnet",
   "ALT_OPTIONS": {
     "effort": "high"
   },
   "REVIEW_PROVIDER": "claudeAgent",
-  "REVIEW_MODEL": "claude-opus-5-5",
+  "REVIEW_MODEL": "latest:opus",
   "REVIEW_OPTIONS": {
     "effort": "high"
   },
   "ALT_REVIEW_PROVIDER": "codex",
-  "ALT_REVIEW_MODEL": "gpt-6.2-sol",
+  "ALT_REVIEW_MODEL": "latest:sol",
   "ALT_REVIEW_OPTIONS": {
     "reasoningEffort": "high"
   }
