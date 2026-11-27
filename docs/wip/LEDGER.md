@@ -11,7 +11,7 @@ Next ID: 0002
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0001-t5 | Keyboard T5: drawers, MIDI, responsive | dispatched | lead: delegate | codex/gpt-6.2-sol | orch/0001-t5-drawers | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t5-drawers--lead-to-impl.md | 2026-11-27 |
+| 0001-t5 | Keyboard T5: drawers, MIDI, responsive | dispatched | child 0001-t5-impl-r1 | codex/gpt-6.2-sol | orch/0001-t5-drawers | — | — | task node:delegated-task:command%3Amcp%3A40e57b15-667a-40b2-a014-39b38bc044cc%3Adelegate-task%3A0001-t5-impl-r1 / thread thread:delegated-task:command%3Amcp%3A40e57b15-667a-40b2-a014-39b38bc044cc%3Adelegate-task%3A0001-t5-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t5-drawers--lead-to-impl.md | 2026-11-27 |
 
 ## Done / closed
 
@@ -40,6 +40,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001-t5 delegated — codex gpt-6.2-sol impl r1
 2026-11-27 0001-t5 planned→dispatched — base f79eda6
 2026-11-27 0001-t4 →merged→closed — #18 f79eda6; main full verify green (277 tests, both libs, keyboard dist)
 2026-11-27 0001-t4 changes-requested→in-review — fixes @ 3f90c73 (277 tests on Node 22+26, host prod build emits all 60 samples); review r2 claude-opus-5-5
