@@ -40,7 +40,9 @@ describe('CustomSampler', () => {
       if (mime === 'audio/ogg') return extension === 'ogg' ? 'probably' : ''
       return mime === 'audio/mp4' ? 'maybe' : ''
     })
-    vi.stubGlobal('Audio', class { canPlayType = canPlayType })
+    vi.stubGlobal('Audio', class {
+      canPlayType = canPlayType
+    })
 
     const { storage } = await loadSampler({
       formats: ['ogg', 'm4a', 'mp3'],

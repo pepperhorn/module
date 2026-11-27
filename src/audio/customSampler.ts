@@ -101,7 +101,8 @@ export class CustomSampler {
 
   private async loadSource(source: SamplerSource): Promise<void> {
     const format = playableFormat(source.formats)
-    const resolveUrl = (path: string) => joinUrl(source.baseUrl, format ? withFormat(path, format) : path)
+    const resolveUrl = (path: string) =>
+      joinUrl(source.baseUrl, format ? withFormat(path, format) : path)
 
     // Pre-count samples for progress reporting
     this.totalSamples = 0
@@ -132,7 +133,11 @@ export class CustomSampler {
     }
   }
 
-  private async loadEntry(midi: number, entry: SampleEntry, resolveUrl: (path: string) => string): Promise<void> {
+  private async loadEntry(
+    midi: number,
+    entry: SampleEntry,
+    resolveUrl: (path: string) => string,
+  ): Promise<void> {
     if (typeof entry === 'string') {
       const buf = await this.fetchBuffer(resolveUrl(entry))
       this.regions.push({ midi, velMin: 0, velMax: 127, variants: [buf], rrIndex: 0 })
@@ -172,10 +177,8 @@ export class CustomSampler {
     const vel = event.velocity ?? 100
     const nearest = this.exactOnly ? target : this.findNearestMidi(target)
     if (nearest == null) return () => {}
-    const candidates = (this.byMidi.get(nearest) ?? []).filter(
-      (r) => vel >= r.velMin && vel <= r.velMax,
-    )
-    const region = candidates[0] ?? this.byMidi.get(nearest)?.[0]
+    const regions = this.byMidi.get(nearest)
+    const region = regions?.find((r) => vel >= r.velMin && vel <= r.velMax) ?? regions?.[0]
     if (!region || region.variants.length === 0) return () => {}
     const buf = region.variants[region.rrIndex % region.variants.length]
     region.rrIndex = (region.rrIndex + 1) % region.variants.length
