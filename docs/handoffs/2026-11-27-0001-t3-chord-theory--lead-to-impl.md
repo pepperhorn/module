@@ -46,6 +46,7 @@ npx vitest run packages/keyboard/src/theory && npm run typecheck
 
 ---
 ## Receiver ack
+Implementer: Claude Sonnet 5.5, 2026-11-27. I'm doing plan task T3 only: pure theory modules in `packages/keyboard/src/theory/` (`chords.ts`, `spelling.ts`, `colors.ts`, `voices.ts`, `index.ts`) with tests, test-first. Beyond that folder I make only the two include-line edits to `vitest.config.ts` and `tsconfig.json`. The exported names and signatures match the plan's Interfaces block. Spelling follows the plan's letter-by-degree algorithm, with `pitchName` as the double-accidental fallback. I don't touch T1/T2/T4 files or existing app behaviour. Verify: `npx vitest run packages/keyboard/src/theory && npm run typecheck`, then also `npm test`.
 
 ---
 ## Return
