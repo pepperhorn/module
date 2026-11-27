@@ -1,6 +1,6 @@
 # 0001 — Keyboard: a standalone play-along keyboard component
 
-- **Status:** draft
+- **Status:** approved (Shaun, 2026-11-27)
 - **Ledger:** 0001 · **Plan:** ../plans/0001-keyboard.md (not yet written)
 - **Author:** lead · **Date:** 2026-11-27
 
@@ -8,7 +8,7 @@
 
 The sound module (this repo, published as `@pepperhorn/sound-module`) is built like a rack, and the on-screen keyboard is only one part of it. Shaun wants the reverse: a **keyboard** that people play along with on the Creative Ranges site, with the module's sound controls tucked away in small drawers. It needs a good piano and a drum kit to work on its own, plus two learning aids: a chord mode and note names on the keys.
 
-Host site: **crf-new** (Astro 6 + `@astrojs/react` 5, React 19, Tailwind 4; GBrain `projects/crf-new`). The component is mounted there as a React island. Wiring it into crf-new is a separate item in that repo.
+Host site: **becreative** (`pepperhorn/becreative`; Astro 7 + `@astrojs/react` 7, React 19, Tailwind 4). The component is mounted there as a React island. Wiring it into becreative is a separate item in that repo.
 
 ## Goals
 
@@ -22,7 +22,7 @@ Host site: **crf-new** (Astro 6 + `@astrojs/react` 5, React 19, Tailwind 4; GBra
 
 ## Non-goals
 
-- Mounting it in crf-new: that's a follow-up item in that repo.
+- Mounting it in becreative: that's a follow-up item in that repo.
 - Publishing to npm. Shaun runs `npm login` and the publish himself, as separate steps.
 - Chord types beyond the six listed, as well as inversions, voicing choices, strum or arpeggio.
 - Recording, looping, a sequencer, or a metronome.
@@ -33,7 +33,7 @@ Host site: **crf-new** (Astro 6 + `@astrojs/react` 5, React 19, Tailwind 4; GBra
 
 | | Approach | Trade-off | Verdict |
 |---|---|---|---|
-| A | New package `@pepperhorn/keyboard` in `packages/keyboard`, same library build as sound-module, importing from `src/`. Bundles its own piano and kit. | One more package to publish; its own versioning and look; changes to it can't break the sound-module embed. | **Chosen** (lead recommendation; approval relayed 2026-11-27, to be confirmed by Shaun when he approves this spec) |
+| A | New package `@pepperhorn/keyboard` in `packages/keyboard`, same library build as sound-module, importing from `src/`. Bundles its own piano and kit. | One more package to publish; its own versioning and look; changes to it can't break the sound-module embed. | **Chosen** (Shaun, 2026-11-27) |
 | B | A second export, `Keyboard`, from `@pepperhorn/sound-module`. | One package, but the embed carries the drum kit, chord logic and drawers, and both components always release together. | Rejected |
 | C | A separate repo. | Duplicates the engine, patches and effects. | Rejected |
 
@@ -94,7 +94,11 @@ One key sounds one note. The pressed key is shown as active.
   - the root key shows as pressed
   - each other chord-tone key is highlighted in its **CRF note colour** (tables in `~/.claude/CLAUDE.md` "CRF note colours"; source `tiles/src/notes.ts`)
   - each chord-tone key shows a name badge, whether or not note-name mode is on
-- Chord tones are spelled correctly for the chord. For example, E major is E-G♯-B and C minor is C-E♭-G. The root takes the sharp or flat setting. When the correct spelling would need a double sharp or double flat, the simpler enharmonic name is used instead.
+- Chord tones are spelled correctly for the chord, and the spelling follows the root (Shaun, 2026-11-27):
+  - E major is E-G♯-B, C minor is C-E♭-G, and F major is F-A-C.
+  - A C♯ chord is spelled with sharps (C♯-E♯-G♯), and a D♭ chord with flats (D♭-F-A♭).
+  - For a black-key root, the sharp or flat setting picks the root's name (C♯ or D♭), and the other chord tones follow from that name.
+  - When the correct spelling would need a double sharp or double flat, the simpler enharmonic name is used instead.
 - When a chord tone falls above the visible range, it still sounds but isn't highlighted.
 - Holding several keys plays several chords at once. A chord tone that two chords share is turned off only when the last chord using it is released.
 - MIDI and computer-keyboard input follow chord mode in the same way as touch.
@@ -181,7 +185,7 @@ User changes after mount (patch, mode, toggles) are kept in component state, not
 - [ ] AC2: The piano plays from the bundled files with the network limited to the package's own files. Its loaded size is ≤ 500 KB in the chosen format, and the rebuild script reproduces it.
 - [ ] AC3: The drums patch plays every mapped General MIDI note from the table above. Keys with no sample are dimmed and silent. The range moves to show 35–59.
 - [ ] AC4: In chord mode, each of the six types plays the correct intervals from the pressed root (unit test: every type × all 12 roots). Releasing the key stops every note of that chord. Overlapping chords release correctly.
-- [ ] AC5: Chord tones are highlighted in the correct CRF colour and labelled with correct spellings (unit test: for example E maj → G♯, C min → E♭, B dim → F, C aug → G♯; the double-accidental fallback).
+- [ ] AC5: Chord tones are highlighted in the correct CRF colour and labelled with correct spellings that follow the root (unit test: E maj → G♯, C min → E♭, B dim → F, C aug → G♯, C♯ maj → C♯-E♯-G♯, D♭ maj → D♭-F-A♭; the double-accidental fallback).
 - [ ] AC6: Note-name mode labels every visible key without octave numbers and follows the sharp or flat setting. With drums selected, it shows drum names.
 - [ ] AC7: The Sounds, Effects and Settings drawers open and close as described, with only one open at a time, closing on Escape or an outside click. Changing a patch or an effect is audible.
 - [ ] AC8: Computer-keyboard and Web MIDI input both play, including in chord mode.
