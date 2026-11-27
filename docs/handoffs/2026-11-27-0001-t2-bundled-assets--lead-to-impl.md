@@ -48,6 +48,8 @@ node packages/keyboard/scripts/build-piano.mjs --check && npm test
 ---
 ## Receiver ack
 
+I’ll build the local piano and acoustic-kit assets, document their sources, and implement the bundled patch manifests and exact GM drum map. I’ll work within T2’s owned files, make only the two shared config edits specified above, and verify the asset sizes and tests before opening a draft against main. I won’t import T1 or T3 work. No open questions.
+
 ---
 ## Return
 (write it in docs/handoffs/2026-11-27-0001-t2-bundled-assets--<you>-to-lead.md)
