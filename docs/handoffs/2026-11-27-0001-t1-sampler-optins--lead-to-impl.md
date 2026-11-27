@@ -45,6 +45,8 @@ npm run typecheck && npm test && npm run build
 ---
 ## Receiver ack
 
+I will add ordered format selection, exact-note playback and one-shot playback to sampler patches without changing the defaults. I will keep the constructor and start contract, test the opt-ins and legacy behavior, and open a draft PR from this worktree. No open questions.
+
 ---
 ## Return
 (write it in docs/handoffs/2026-11-27-0001-t1-sampler-optins--<you>-to-lead.md)
