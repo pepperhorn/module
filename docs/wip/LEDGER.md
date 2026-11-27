@@ -11,7 +11,7 @@ Next ID: 0002
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0001-t4 | Keyboard T4: package + Keyboard surface | changes-requested | child 0001-t4-impl-r1 (fix round 2, run 3) | codex/gpt-6.2-sol | orch/0001-t4-keyboard-surface | https://github.com/pepperhorn/module/pull/18 | /home/shaun/.t3/worktrees/module/t3-c0a11e85-ef745eb146b95598 @ 437de50 | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t4-keyboard-surface--lead-to-impl-r2.md | 2026-11-27 |
+| 0001-t4 | Keyboard T4: package + Keyboard surface | in-review | review 0001-t4-review-r2 | codex/gpt-6.2-sol | orch/0001-t4-keyboard-surface | https://github.com/pepperhorn/module/pull/18 | /home/shaun/.t3/worktrees/module/t3-c0a11e85-ef745eb146b95598 @ 3f90c73 | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t4-keyboard-surface--codex-to-lead.md | 2026-11-27 |
 | 0001-t5 | Keyboard T5: drawers, MIDI, responsive | planned | child 0001-t4 (dep) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
 
 ## Done / closed
@@ -37,6 +37,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001-t4 changes-requested→in-review — fixes @ 3f90c73 (277 tests on Node 22+26, host prod build emits all 60 samples); review r2 claude-opus-5-5
 2026-11-27 0001-t4 implementer resumed for fix round 2 @ b55eeb5
 2026-11-27 0001-t4 in-review→changes-requested — review r1 (opus) @ 437de50: 5 blockers (host prod build drops samples; overlay unpositioned; Node≥25 storage tests; props persisted; useChordPlayer flats-only). Lead: fix assets properly, T4 now owns bundled.ts
 2026-11-27 0001-t4 dispatched→in-review — PR #18 @ 437de50 (271 tests, Chromium smoke clean); review r1 claude-opus-5-5
