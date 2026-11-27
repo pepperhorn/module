@@ -1,4 +1,4 @@
-import type { SampleEntry, VelocityTag } from '../patches/types'
+import type { PatchSource, SampleEntry, VelocityTag } from '../patches/types'
 
 const VEL_RANGES: Record<VelocityTag, [number, number]> = {
   pp: [0, 24],
@@ -18,10 +18,7 @@ interface Region {
   rrIndex: number
 }
 
-interface SamplerSource {
-  baseUrl: string
-  samples: Record<string, SampleEntry>
-}
+type SamplerSource = Omit<Extract<PatchSource, { kind: 'sampler' }>, 'kind'>
 
 interface LoadProgressLike {
   loaded: number
@@ -50,6 +47,22 @@ function joinUrl(base: string, path: string): string {
   return base.endsWith('/') ? base + path : `${base}/${path}`
 }
 
+const FORMAT_TYPES: Record<string, string> = {
+  ogg: 'audio/ogg',
+  m4a: 'audio/mp4',
+  mp3: 'audio/mpeg',
+}
+
+function playableFormat(formats?: string[]): string | undefined {
+  if (!formats?.length) return
+  const audio = new Audio()
+  return formats.find((format) => audio.canPlayType(FORMAT_TYPES[format] ?? `audio/${format}`))
+}
+
+function withFormat(path: string, format: string): string {
+  return path.replace(/^[^?#]*/, (pathname) => pathname.replace(/\.[^./]+$/, `.${format}`))
+}
+
 export class CustomSampler {
   readonly context: AudioContext
   readonly output: GainNode
@@ -58,6 +71,8 @@ export class CustomSampler {
   private byMidi: Map<number, Region[]> = new Map()
   private active: Map<number, AudioBufferSourceNode[]> = new Map()
   private destination?: AudioNode
+  private readonly exactOnly: boolean
+  private readonly oneShot: boolean
 
   private onLoadProgress?: (progress: LoadProgressLike) => void
   private storage?: SampleStorage
@@ -78,11 +93,16 @@ export class CustomSampler {
     this.destination = options.destination
     this.onLoadProgress = options.onLoadProgress
     this.storage = options.storage
+    this.exactOnly = options.source.exactOnly ?? false
+    this.oneShot = options.source.oneShot ?? false
     if (this.destination) this.output.connect(this.destination)
     this.load = this.loadSource(options.source).then(() => this)
   }
 
   private async loadSource(source: SamplerSource): Promise<void> {
+    const format = playableFormat(source.formats)
+    const resolveUrl = (path: string) => joinUrl(source.baseUrl, format ? withFormat(path, format) : path)
+
     // Pre-count samples for progress reporting
     this.totalSamples = 0
     this.loadedSamples = 0
@@ -102,7 +122,7 @@ export class CustomSampler {
     for (const [noteName, entry] of Object.entries(source.samples)) {
       const midi = noteNameToMidi(noteName)
       if (midi == null) continue
-      tasks.push(this.loadEntry(midi, entry, source.baseUrl))
+      tasks.push(this.loadEntry(midi, entry, resolveUrl))
     }
     await Promise.all(tasks)
     for (const r of this.regions) {
@@ -112,14 +132,14 @@ export class CustomSampler {
     }
   }
 
-  private async loadEntry(midi: number, entry: SampleEntry, baseUrl: string): Promise<void> {
+  private async loadEntry(midi: number, entry: SampleEntry, resolveUrl: (path: string) => string): Promise<void> {
     if (typeof entry === 'string') {
-      const buf = await this.fetchBuffer(joinUrl(baseUrl, entry))
+      const buf = await this.fetchBuffer(resolveUrl(entry))
       this.regions.push({ midi, velMin: 0, velMax: 127, variants: [buf], rrIndex: 0 })
       return
     }
     if (Array.isArray(entry)) {
-      const bufs = await Promise.all(entry.map((p) => this.fetchBuffer(joinUrl(baseUrl, p))))
+      const bufs = await Promise.all(entry.map((p) => this.fetchBuffer(resolveUrl(p))))
       this.regions.push({ midi, velMin: 0, velMax: 127, variants: bufs, rrIndex: 0 })
       return
     }
@@ -127,7 +147,7 @@ export class CustomSampler {
       if (paths == null) continue
       const [velMin, velMax] = VEL_RANGES[tag as VelocityTag] ?? VEL_RANGES.default
       const arr = Array.isArray(paths) ? paths : [paths]
-      const bufs = await Promise.all(arr.map((p) => this.fetchBuffer(joinUrl(baseUrl, p))))
+      const bufs = await Promise.all(arr.map((p) => this.fetchBuffer(resolveUrl(p))))
       this.regions.push({ midi, velMin, velMax, variants: bufs, rrIndex: 0 })
     }
   }
@@ -146,10 +166,11 @@ export class CustomSampler {
   }
 
   start(event: { note: number | string; velocity?: number }): () => void {
-    const target =
-      typeof event.note === 'number' ? event.note : (noteNameToMidi(event.note) ?? 60)
+    const midi = typeof event.note === 'number' ? event.note : noteNameToMidi(event.note)
+    if (midi == null && this.exactOnly) return () => {}
+    const target = midi ?? 60
     const vel = event.velocity ?? 100
-    const nearest = this.findNearestMidi(target)
+    const nearest = this.exactOnly ? target : this.findNearestMidi(target)
     if (nearest == null) return () => {}
     const candidates = (this.byMidi.get(nearest) ?? []).filter(
       (r) => vel >= r.velMin && vel <= r.velMax,
@@ -178,6 +199,7 @@ export class CustomSampler {
       if (idx !== -1) cur.splice(idx, 1)
     }
 
+    if (this.oneShot) return () => {}
     return () => {
       try {
         src.stop(this.context.currentTime + 0.04)
@@ -201,6 +223,7 @@ export class CustomSampler {
       this.active.clear()
       return
     }
+    if (this.oneShot) return
     const midi = typeof target === 'number' ? target : (noteNameToMidi(target) ?? -1)
     const list = this.active.get(midi) ?? []
     for (const s of list) {

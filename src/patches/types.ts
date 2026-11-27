@@ -14,7 +14,14 @@ export type PatchSource =
   | { kind: 'mallet'; instrument: string }
   | { kind: 'mellotron'; instrument: string }
   | { kind: 'smolken'; instrument: 'Arco' | 'Pizzicato' | 'Switched' }
-  | { kind: 'sampler'; baseUrl: string; samples: Record<string, SampleEntry> }
+  | {
+      kind: 'sampler'
+      baseUrl: string
+      samples: Record<string, SampleEntry>
+      formats?: string[]
+      exactOnly?: boolean
+      oneShot?: boolean
+    }
 
 export type Bank =
   | 'GM'
