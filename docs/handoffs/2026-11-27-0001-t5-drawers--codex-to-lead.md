@@ -5,7 +5,7 @@
 - **Ledger:** 0001 · **Spec:** [Keyboard](../specs/0001-keyboard.md) · **Plan:** [T5](../plans/0001-keyboard.md#t5--drawers-sounds-effects-settings-midi-and-responsive-layout)
 - **Dispatch:** [Lead to implementer](2026-11-27-0001-t5-drawers--lead-to-impl.md)
 - **Branch:** `orch/0001-t5-drawers` · **Worktree:** `/home/shaun/.t3/worktrees/module/t3-5e91bb0a-9975df0b7901330d`
-- **PR:** [Draft for this branch](https://github.com/pepperhorn/module/pulls?q=head%3Aorch%2F0001-t5-drawers)
+- **PR:** [Draft PR #19](https://github.com/pepperhorn/module/pull/19)
 - **Base:** `f79eda6`, with dispatch at `fca3873` · **Implementation:** `2f9c028` · **Port:** 5215
 - **Status:** implementation complete
 
