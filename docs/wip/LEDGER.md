@@ -11,7 +11,7 @@ Next ID: 0002
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0001 | Keyboard: standalone play-along keyboard component (`@pepperhorn/keyboard`) | specced | lead: write plan | — | — | — | — | — | docs/specs/0001-keyboard.md | — | — | 2026-11-27 |
+| 0001 | Keyboard: standalone play-along keyboard component (`@pepperhorn/keyboard`) | planned | human: review plan | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
 
 ## Done / closed
 
@@ -29,5 +29,6 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001 specced→planned — plan T1–T6 written; awaiting Shaun's review
 2026-11-27 0001 proposed→specced — Shaun approved spec + approach A; host is becreative; spelling follows chord root
 2026-11-27 0001 →proposed — keyboard spec drafted; builder check done; awaiting Shaun's approval

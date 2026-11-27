@@ -1,7 +1,7 @@
 # 0001 — Keyboard: a standalone play-along keyboard component
 
 - **Status:** approved (Shaun, 2026-11-27)
-- **Ledger:** 0001 · **Plan:** ../plans/0001-keyboard.md (not yet written)
+- **Ledger:** 0001 · **Plan:** ../plans/0001-keyboard.md
 - **Author:** lead · **Date:** 2026-11-27
 
 ## Problem
