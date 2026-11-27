@@ -60,7 +60,7 @@ Host site: **becreative** (`pepperhorn/becreative`; Astro 7 + `@astrojs/react` 7
   - **Aa** toggle for note names.
   - **⚙** button, which opens **Effects** and **Settings**.
 - The component is usable at phone width (360 px). The bar wraps or collapses into icons, and nothing scrolls sideways.
-- Only one drawer is open at a time. Escape, a click outside, or the same button closes it.
+- Only one drawer is open at a time. Escape, a click outside, or the same button closes it. Playing the keys, by touch, mouse, computer keys or MIDI, does **not** close it, so a player can adjust a sound or effect while playing (Shaun, 2026-11-27).
 
 ### Sounds drawer
 
