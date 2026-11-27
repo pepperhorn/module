@@ -7,7 +7,7 @@
 - **Worktree:** `/home/shaun/.t3/worktrees/module/t3-badf2e5a-dfd9d4a2bd028698`
 - **Base commit:** `ea10cef` (dispatch at `12ffd32`)
 - **Status:** ready for review
-- **PR:** [Compare with main](https://github.com/pepperhorn/module/compare/main...orch/0001-t1-sampler-optins)
+- **PR:** [Draft PR #16](https://github.com/pepperhorn/module/pull/16)
 
 ## Goal
 
