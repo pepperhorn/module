@@ -31,7 +31,9 @@ Volume, name spelling, note names, effects, and MIDI device are saved in the bro
 
 ## Drawers and MIDI
 
-Open Sounds from the current patch name. Piano and Drums are bundled. The other sounds are grouped by bank and stream on selection. The gear opens Effects, with a Settings button alongside it. Turn on an effect and raise its amount to hear it. Press Escape, click outside, or press the opening button again to close a drawer.
+Open Sounds from the current patch name. Piano and Drums are bundled. The other sounds are grouped by bank and stream on selection. The gear opens Effects, with a Settings button alongside it. Turning on an effect at zero sets a starting amount. Raising the amount above zero turns the effect on.
+
+Play the keys while a drawer is open to try a change. Press Escape, press the opening button again, or click outside the drawer and keys to close it.
 
 In Settings, adjust volume, shift the keyboard by up to two octaves, choose sharps or flats, or select a Web MIDI input. Octave shift is disabled for the fixed drum range. Plug in a controller before enabling audio, or use **Check for MIDI devices** in Settings. Select **All inputs** to play from any connected device. Web MIDI requires a supporting browser and permission. Touch and computer keys work without it.
 

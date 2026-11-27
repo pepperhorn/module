@@ -99,7 +99,7 @@ export function Keyboard({
           }} />
         )}
         effectsDrawer={(
-          <EffectsDrawer effects={prefs.effects} onEnabled={audio.setEffectEnabled} onAmount={audio.setEffectAmount} />
+          <EffectsDrawer effects={prefs.effects} onChange={(id, effect) => setPrefs({ effects: { [id]: effect } })} />
         )}
         settingsDrawer={(
           <SettingsDrawer

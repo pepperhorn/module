@@ -117,6 +117,60 @@ it('pins the bundled patches, groups the built-in catalog, and closes while a st
   await waitFor(() => expect(screen.queryByRole('status')).toBeNull())
 })
 
+it('keeps Effects open when the player presses a key and closes it on an outside pointerdown', async () => {
+  const { container } = render(<Keyboard />)
+  await unlock()
+  click(gear())
+  const key = container.querySelector<HTMLElement>('[data-midi="48"]')!
+  fireEvent.pointerDown(key, { pointerId: 1, pointerType: 'touch' })
+  expect(drawer('Effects')).toBeTruthy()
+  click(key)
+  expect(drawer('Effects')).toBeTruthy()
+  fireEvent.pointerDown(document.body, { pointerId: 2, pointerType: 'touch' })
+  expect(screen.queryByRole('region', { name: 'Effects' })).toBeNull()
+})
+
+it.each([
+  { id: 'reverb', label: 'Reverb', amount: 0.32, adjustFirst: false },
+  { id: 'delay', label: 'Delay', amount: 0.35, adjustFirst: true },
+])('$label gets an audible mix on the first action and saves it in one write', async ({ id, label, amount, adjustFirst }) => {
+  const writes = vi.spyOn(localStorage, 'setItem')
+  const slider = () => screen.getByRole('slider', { name: `${label} amount` })
+  const keyboard = render(<Keyboard />)
+  await unlock()
+  click(gear())
+  expect(button(label).getAttribute('aria-pressed')).toBe('false')
+  if (adjustFirst) change(slider(), String(amount))
+  else click(button(label))
+  expect(engine.setEffectEnabled).toHaveBeenCalledWith(id, true)
+  expect(engine.setEffectParam).toHaveBeenCalledWith(id, 'mix', amount)
+  expect(writes.mock.calls).toEqual([[prefsKey, JSON.stringify({ effects: { [id]: { on: true, amount } } })]])
+
+  keyboard.unmount()
+  vi.clearAllMocks()
+  render(<Keyboard />)
+  await unlock()
+  click(gear())
+  expect(button(label).getAttribute('aria-pressed')).toBe('true')
+  expect(engine.setEffectEnabled).toHaveBeenCalledWith(id, true)
+  expect(engine.setEffectParam).toHaveBeenCalledWith(id, 'mix', amount)
+  expect(writes).not.toHaveBeenCalled()
+})
+
+it('keeps the enabled state when an effect amount is set to zero', async () => {
+  localStorage.setItem(prefsKey, JSON.stringify({
+    effects: { reverb: { on: false, amount: 0.32 }, delay: { on: true, amount: 0.35 } },
+  }))
+  render(<Keyboard />)
+  await unlock()
+  click(gear())
+  change(screen.getByRole('slider', { name: 'Reverb amount' }), '0')
+  change(screen.getByRole('slider', { name: 'Delay amount' }), '0')
+  expect(JSON.parse(localStorage.getItem(prefsKey)!).effects).toEqual({
+    reverb: { on: false, amount: 0 }, delay: { on: true, amount: 0 },
+  })
+})
+
 it('applies drawer changes to the engine and keys and preserves sound-module storage', async () => {
   localStorage.setItem('module:state:v1', 'host settings')
   const writes = vi.spyOn(localStorage, 'setItem')
@@ -177,7 +231,7 @@ it('selects and remembers a MIDI input and routes MIDI and computer keys in both
   await waitFor(() => expect(midi.options).toHaveLength(3))
   change(midi, 'second')
   expect(JSON.parse(localStorage.getItem(prefsKey)!)).toEqual({ midiDeviceId: 'second' })
-  click(gear())
+  click(button('Effects'))
 
   first.send(0x90, 48, 80)
   expect(engine.noteOn).not.toHaveBeenCalled()
@@ -188,6 +242,7 @@ it('selects and remembers a MIDI input and routes MIDI and computer keys in both
   fireEvent.keyUp(root, { key: 'a' })
   expect(engine.noteOn.mock.calls).toEqual([[48, 80], [48, 100]])
   expect(engine.noteOff.mock.calls).toEqual([[48], [48]])
+  expect(drawer('Effects')).toBeTruthy()
 
   click(button('Chord'))
   engine.noteOn.mockClear()

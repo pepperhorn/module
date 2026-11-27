@@ -31,9 +31,11 @@ export function useDrawer() {
       panel.current?.focus({ preventScroll: true })
       moveFocus.current = false
     }
-    const handleClick = (event: MouseEvent) => {
+    const handleOutside = (event: MouseEvent) => {
+      // Keyboard and assistive clicks do not have a preceding pointerdown.
+      if (event.type === 'click' && event.detail !== 0) return
       const target = event.target
-      if (!(target instanceof Node)) return
+      if (!(target instanceof Element) || target.closest('.keyboard-module .kb-surface')) return
       if ([panel.current, sounds.current, gear.current].some(el => el?.contains(target))) return
       show(null)
     }
@@ -47,10 +49,12 @@ export function useDrawer() {
       event.stopPropagation()
       close()
     }
-    document.addEventListener('click', handleClick, true)
+    document.addEventListener('pointerdown', handleOutside, true)
+    document.addEventListener('click', handleOutside, true)
     document.addEventListener('keydown', handleEscape, true)
     return () => {
-      document.removeEventListener('click', handleClick, true)
+      document.removeEventListener('pointerdown', handleOutside, true)
+      document.removeEventListener('click', handleOutside, true)
       document.removeEventListener('keydown', handleEscape, true)
     }
   }, [active, close])

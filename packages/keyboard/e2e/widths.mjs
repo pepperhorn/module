@@ -53,7 +53,7 @@ try {
   const browser = await chromium.launch({ executablePath: process.env.CHROMIUM_BIN || undefined })
   try {
     for (const width of [360, 390, 1280]) {
-      const page = await browser.newPage({ viewport: { width, height: 800 } })
+      const page = await browser.newPage({ viewport: { width, height: 800 }, hasTouch: width === 390 })
       const errors = []
       page.on('pageerror', error => errors.push(String(error)))
       page.on('console', message => {
@@ -110,10 +110,13 @@ try {
       const effects = keyboard.getByRole('region', { name: 'Effects' })
       await checkControls(effects.getByRole('button').or(effects.getByRole('slider')), width)
       await effects.getByRole('button', { name: 'Reverb' }).click()
-      const reverb = effects.getByRole('slider', { name: 'Reverb amount' })
-      await reverb.press('Home')
-      for (let i = 0; i < 3; i++) await reverb.press('PageUp')
-      assert.equal(await reverb.getAttribute('aria-valuetext'), '30%')
+      assert.equal(await effects.getByRole('slider', { name: 'Reverb amount' }).getAttribute('aria-valuetext'), '32%')
+      if (width === 390) {
+        await keyboard.locator('[data-midi="48"]').tap()
+        assert.equal(await effects.isVisible(), true, 'a key tap must keep Effects open')
+        await page.waitForFunction(() => window.startedSamples === 3)
+        console.log('390px touch: key tap plays a chord and keeps Effects open')
+      }
       await checkWidth(page, keyboard, width, 'effects')
 
       await effects.getByRole('button', { name: 'Settings' }).click()
@@ -121,16 +124,20 @@ try {
       await checkControls(settings.getByRole('button').or(settings.getByRole('slider')).or(settings.getByRole('combobox')), width)
       await settings.getByRole('combobox', { name: 'MIDI input' }).selectOption('fixture-input')
       await checkWidth(page, keyboard, width, 'settings')
+      const samplesBeforeMidi = await page.evaluate(() => window.startedSamples)
+      await page.evaluate(() => window.note(96))
+      await page.waitForFunction(total => window.startedSamples === total, samplesBeforeMidi + 3)
+      assert.equal(await keyboard.locator('.kb-chord-badge').count(), 3)
+      assert.equal(await settings.isVisible(), true, 'MIDI must keep Settings open')
+      await page.evaluate(() => window.note(0))
+      assert.equal(await keyboard.locator('.kb-chord-badge').count(), 0)
       await page.keyboard.press('Escape')
       assert.equal(await settings.count(), 0)
       assert.equal(await gear.getAttribute('aria-expanded'), 'false')
-      await page.evaluate(() => window.note(96))
-      await page.waitForFunction(() => window.startedSamples === 3)
-      assert.equal(await keyboard.locator('.kb-chord-badge').count(), 3)
-      await page.evaluate(() => window.note(0))
-      assert.equal(await keyboard.locator('.kb-chord-badge').count(), 0)
       await soundsTrigger.click()
-      await page.locator('#outside').click()
+      const outside = page.locator('#outside')
+      if (width === 390) await outside.tap()
+      else await outside.click()
       assert.equal(await sounds.count(), 0)
       assert.deepEqual(errors, [])
       await page.close()
