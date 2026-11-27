@@ -1,6 +1,6 @@
+import type { ReactNode } from 'react'
+import { useDrawer } from './drawers/useDrawer'
 import { CHORD_TYPES, type ChordType } from './theory'
-
-type DrawerName = 'sounds' | 'effects' | 'settings'
 
 interface TopBarProps {
   patchName: string
@@ -11,14 +11,26 @@ interface TopBarProps {
   onMode(mode: 'play' | 'chord'): void
   onChord(chord: ChordType): void
   onNames(): void
-  onOpenDrawer(name: DrawerName): void
+  soundsDrawer(close: () => void): ReactNode
+  effectsDrawer: ReactNode
+  settingsDrawer: ReactNode
 }
 
-export function TopBar({ patchName, isDrums, mode, chord, showNames, onMode, onChord, onNames, onOpenDrawer }: TopBarProps) {
+export function TopBar({
+  patchName, isDrums, mode, chord, showNames, onMode, onChord, onNames,
+  soundsDrawer, effectsDrawer, settingsDrawer,
+}: TopBarProps) {
+  const drawer = useDrawer()
+  const gearOpen = drawer.active === 'effects' || drawer.active === 'settings'
+  const panelName = drawer.active === 'sounds' ? 'Sounds' : drawer.active === 'effects' ? 'Effects' : 'Settings'
   return (
     <div className="kb-toolbar">
       <div className="kb-top-bar flex flex-wrap items-center">
-        <button className="kb-button kb-sounds-btn" type="button" onClick={() => onOpenDrawer('sounds')}>
+        <button
+          ref={drawer.sounds} className="kb-button kb-sounds-btn" type="button" title={patchName}
+          aria-expanded={drawer.active === 'sounds'} aria-controls={drawer.panelId}
+          onClick={() => drawer.toggle('sounds')}
+        >
           ♪ {patchName} ▾
         </button>
         <div className="kb-mode-controls flex" role="group" aria-label="Playing mode">
@@ -38,9 +50,25 @@ export function TopBar({ patchName, isDrums, mode, chord, showNames, onMode, onC
           </div>
         )}
         <button className="kb-button kb-names-btn" type="button" aria-label="Note names" aria-pressed={showNames} onClick={onNames}>Aa</button>
-        <button className="kb-button kb-settings-btn" type="button" aria-label="Effects and settings" onClick={() => onOpenDrawer('effects')}>⚙</button>
+        <button
+          ref={drawer.gear} className="kb-button kb-settings-btn" type="button" aria-label="Effects and settings"
+          aria-expanded={gearOpen} aria-controls={drawer.panelId} onClick={() => drawer.toggle('effects')}
+        >⚙</button>
       </div>
-      <div className="kb-drawer-slot" />
+      <div
+        ref={drawer.panel} id={drawer.panelId} className="kb-drawer-slot" hidden={!drawer.active}
+        role={drawer.active ? 'region' : undefined} aria-label={drawer.active ? panelName : undefined} tabIndex={-1}
+      >
+        {gearOpen && (
+          <div className="kb-drawer-nav flex" role="group" aria-label="Effects and settings">
+            <button className="kb-button kb-drawer-tab" type="button" aria-pressed={drawer.active === 'effects'} onClick={() => drawer.show('effects')}>Effects</button>
+            <button className="kb-button kb-drawer-tab" type="button" aria-pressed={drawer.active === 'settings'} onClick={() => drawer.show('settings')}>Settings</button>
+          </div>
+        )}
+        {drawer.active === 'sounds' && soundsDrawer(drawer.close)}
+        {drawer.active === 'effects' && effectsDrawer}
+        {drawer.active === 'settings' && settingsDrawer}
+      </div>
     </div>
   )
 }

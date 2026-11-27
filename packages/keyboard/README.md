@@ -29,6 +29,14 @@ The stylesheet loads the bundled Poppins font from the package. Its stylesheet i
 
 Volume, name spelling, note names, effects, and MIDI device are saved in the browser under `pepperhorn-keyboard:`. Saved preferences take precedence over initial props. The patch, playing mode, chord type and octave shift are not saved.
 
+## Drawers and MIDI
+
+Open Sounds from the current patch name. Piano and Drums are bundled. The other sounds are grouped by bank and stream on selection. The gear opens Effects, with a Settings button alongside it. Turning on an effect at zero sets a starting amount. Raising the amount above zero turns the effect on.
+
+Play the keys while a drawer is open to try a change. Press Escape, press the opening button again, or click outside the drawer and keys to close it.
+
+In Settings, adjust volume, shift the keyboard by up to two octaves, choose sharps or flats, or select a Web MIDI input. Octave shift is disabled for the fixed drum range. Plug in a controller before enabling audio, or use **Check for MIDI devices** in Settings. Select **All inputs** to play from any connected device. Web MIDI requires a supporting browser and permission. Touch and computer keys work without it.
+
 ## Astro and Vite
 
 Mount with `<Keyboard client:only="react" />` in Astro 7 with `@astrojs/react`. Keep the library out of Vite dev dependency pre-bundling so its relative asset URLs resolve beside the built JavaScript.
@@ -46,3 +54,5 @@ For Vite without Astro, put `optimizeDeps` at the top level of the Vite config. 
 ## Local checks
 
 From the repo root, run `npm run build:keyboard && npm run verify:keyboard`. Verify the packed package in a production Vite host with `node packages/keyboard/e2e/host-build.mjs`. With Chromium and `playwright-core` available, run `node packages/keyboard/e2e/smoke.mjs`. Set `PLAYWRIGHT_MODULE` to the absolute path of a local playwright-core entry if it is not installed in the repo.
+
+Run `node packages/keyboard/e2e/widths.mjs` to check the built keyboard at 360, 390 and 1280 px. It saves screenshots to a temporary directory, or to `KEYBOARD_WIDTH_SCREENSHOTS` if set. Both browser checks accept `CHROMIUM_BIN` for a cached Chromium executable.

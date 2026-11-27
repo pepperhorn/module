@@ -61,6 +61,8 @@ Also run the T4 Chromium smoke test (`packages/keyboard/e2e/smoke.*`). Use the l
 ---
 ## Receiver ack
 
+I’ll wire Sounds, Effects and Settings to T4’s keyboard-local adapters, verify their controls and input routing, and capture the three requested viewport widths. I’ll add the drawer storage cases under `src/drawers/` and leave the existing storage test in place. I’ll open a draft against main without watching, merging, publishing or deploying. No blocking questions.
+
 ---
 ## Return
 (write it in docs/handoffs/2026-11-27-0001-t5-drawers--<you>-to-lead.md)

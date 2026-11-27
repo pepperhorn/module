@@ -53,7 +53,7 @@
 }
 
 .keyboard-module .kb-sounds-btn {
-  max-inline-size: 100%;
+  max-inline-size: min(100%, 26ch);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -166,4 +166,137 @@
   padding: 4px 8px;
   border-radius: 5px;
   background: #191a27;
+}
+
+.keyboard-module .kb-button[aria-expanded="true"] {
+  border-color: #8dc9a8;
+}
+
+.keyboard-module .kb-drawer-slot {
+  margin: 0 8px 8px;
+  padding: 8px;
+  border: 1px solid #414357;
+  border-radius: 8px;
+  background: #202132;
+}
+
+.keyboard-module .kb-drawer-slot:focus-visible,
+.keyboard-module .kb-range:focus-visible,
+.keyboard-module .kb-select:focus-visible {
+  outline: 2px solid #b5d4ff;
+  outline-offset: 2px;
+}
+
+.keyboard-module .kb-drawer-nav {
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.keyboard-module .kb-drawer-sounds {
+  display: grid;
+  gap: 8px;
+  max-height: min(46vh, 300px);
+  overflow: auto;
+  padding: 4px;
+}
+
+.keyboard-module .kb-drawer-label {
+  color: #c5c6d7;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.keyboard-module .kb-patch-list {
+  gap: 4px;
+  margin-top: 3px;
+}
+
+.keyboard-module .kb-patch-btn {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+
+.keyboard-module .kb-drawer-effects,
+.keyboard-module .kb-drawer-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+  gap: 8px;
+}
+
+.keyboard-module .kb-effect {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 4ch;
+  align-items: center;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 6px;
+  background: #292b3e;
+}
+
+.keyboard-module .kb-setting {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  min-width: 0;
+}
+
+.keyboard-module .kb-volume {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4ch;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+}
+
+.keyboard-module .kb-range {
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  accent-color: #a7ddbd;
+}
+
+.keyboard-module .kb-effect-value,
+.keyboard-module .kb-volume-value {
+  color: #c5c6d7;
+  text-align: end;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.keyboard-module .kb-select {
+  width: 100%;
+  min-width: 0;
+  min-height: 32px;
+  padding: 3px 6px;
+  border: 1px solid #525367;
+  border-radius: 6px;
+  color: inherit;
+  background: #282a3d;
+  font: inherit;
+  font-size: 13px;
+}
+
+.keyboard-module .kb-select:disabled {
+  opacity: .55;
+}
+
+.keyboard-module .kb-midi-hint,
+.keyboard-module .kb-midi-request {
+  margin: 4px 0 0;
+  font-size: 12px;
+}
+
+@container (max-width: 420px) {
+  .keyboard-module .kb-top-bar {
+    gap: 4px;
+  }
+
+  .keyboard-module .kb-sounds-btn {
+    max-inline-size: min(100%, 15ch);
+  }
+
+  .keyboard-module .kb-chord-btn {
+    padding-inline: 7px;
+  }
 }
