@@ -152,6 +152,7 @@ T1, T2 and T3 own disjoint files and can run in parallel. T4 needs all three. T5
 - **Depends on:** T1, T2, T3 merged
 - **Route:** implement (default)
 - **Owns:**
+  - `packages/keyboard/src/engine/**`: the keyboard-local `useKeyboardEngine`, `useKeyboardMidi` and `useKeyboardKeys`, decided 2026-11-27 in docs/handoffs/2026-11-27-0001-t4-keyboard-surface--lead-to-impl-answers.md because the shared hooks write sound-module's `module:state:v1`
   - `packages/keyboard/{package.json,README.md,LICENSE,vite.config.ts,tsconfig.build.json}`
   - `packages/keyboard/scripts/{build-css.mjs,verify-dist.mjs}`
   - `packages/keyboard/src/{index.ts,Keyboard.tsx,KeyboardSurface.tsx,TopBar.tsx,useKeyboardPrefs.ts,useChordPlayer.ts,styles/**}` and their tests
@@ -221,7 +222,7 @@ T1, T2 and T3 own disjoint files and can run in parallel. T4 needs all three. T5
        - the octave shift is clamped to −2…+2
        - accidentals flips the labels
        - MIDI device choice persists
-  2. Implement, reusing `PatchPicker` grouping logic, `EffectPedal`/`Knob` and `MidiPanel` pieces where they fit. Effects are reverb, delay, chorus and distortion, each with on/off plus one amount control; the doublers and reordering are hidden.
+  2. Implement on T4's keyboard-local hooks (`useKeyboardEngine` effect setters, `useKeyboardMidi` devices). Never use `useStore`, `MidiPanel` or the shared input hooks. `PatchPicker` grouping logic and the presentational `EffectPedal`/`Knob` may be reused if they don't write to the store. Effects are reverb, delay, chorus and distortion, each with on/off plus one amount control; the doublers and reordering are hidden.
   3. Add `e2e/widths.mjs` (playwright-core with cached Chromium). It runs at 360, 390 and 1280 px and asserts no horizontal scroll and that every bar control and drawer is reachable. Save screenshots to the PR.
   4. Commit and open the PR.
 

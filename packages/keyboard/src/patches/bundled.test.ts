@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import drumKit from '../../assets/drums/kit.json'
 import { bundledPatches, DRUMS_ID, PIANO_ID } from './bundled'
 
 const pianoFiles = Object.keys(import.meta.glob('../../assets/piano/*.{ogg,m4a}', { query: '?url' }))
@@ -29,8 +30,8 @@ describe('bundled patches', () => {
     expect(drums.id).toBe(DRUMS_ID)
     const source = drums.source
     if (source.kind !== 'sampler') throw new Error('Expected a drum sampler')
-    expect(source).toMatchObject({ exactOnly: true, oneShot: true, formats: expect.arrayContaining(['ogg']) })
-    if (!('formats' in source) || !Array.isArray(source.formats)) throw new Error('Expected drum formats')
+    expect(drumKit.formats).toEqual(['ogg', 'm4a'])
+    expect(source).toMatchObject({ exactOnly: true, oneShot: true, formats: drumKit.formats })
     expect(source.baseUrl).toBe('https://example.test/assets/drums/')
     expect(source.samples).toMatchObject({
       B1: 'acoustic-Kick.ogg',
@@ -41,7 +42,7 @@ describe('bundled patches', () => {
     expect(source.samples).not.toHaveProperty('Eb2') // MIDI 39
     for (const file of Object.values(source.samples)) {
       if (typeof file !== 'string') throw new Error('Expected a single drum sample per note')
-      for (const ext of source.formats) {
+      for (const ext of drumKit.formats) {
         const path = file.replace(/\.ogg$/, '.' + ext)
         expect(drumFiles).toContain('../../assets/drums/' + path)
       }

@@ -50,6 +50,8 @@ npm run typecheck && npx vitest run --testTimeout=60000 --maxWorkers=2 && npm ru
 ---
 ## Receiver ack
 
+Codex acknowledges T6. I will copy the pinned drumlet variant-B kit in both formats, read its format list into the Drums patch, use the shared sampler source type, and distinguish Vorbis and AAC in the browser probe. I will leave the drum map, sampler behavior outside the probe strings, and T4 files unchanged. No open questions.
+
 ---
 ## Return
 (write it in docs/handoffs/2026-11-27-0001-t6-variant-b-kit--<you>-to-lead.md)
