@@ -14,7 +14,7 @@ Next ID: 0002
 | 0001-t3 | Keyboard T3: chord theory + spelling | in-review | review 0001-t3-review-r1 | claudeAgent/claude-sonnet-5-5 | orch/0001-t3-chord-theory | https://github.com/pepperhorn/module/pull/14 | /home/shaun/.t3/worktrees/module/t3-3d1ba71c-5cbef75b0f590833 @ 19a6bb6 | task node:delegated-task:command%3Amcp%3A5e34c756-69ee-4093-a489-de78f21a5e09%3Adelegate-task%3A0001-t3-impl-r1 / thread thread:delegated-task:command%3Amcp%3A5e34c756-69ee-4093-a489-de78f21a5e09%3Adelegate-task%3A0001-t3-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t3-chord-theory--claude-to-lead.md | 2026-11-27 |
 | 0001-t4 | Keyboard T4: package + Keyboard surface | planned | review 0001-t3-review-r1 (T4 dispatches after #14 merges) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
 | 0001-t5 | Keyboard T5: drawers, MIDI, responsive | planned | child 0001-t4 (dep) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
-| 0001-t6 | Keyboard T6: swap in drumlet variant-B kit | dispatched | lead: delegate | codex/gpt-6.2-sol | orch/0001-t6-variant-b-kit | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t6-variant-b-kit--lead-to-impl.md | 2026-11-27 |
+| 0001-t6 | Keyboard T6: swap in drumlet variant-B kit | dispatched | child 0001-t6-impl-r1 | codex/gpt-6.2-sol | orch/0001-t6-variant-b-kit | — | — | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t6-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t6-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t6-variant-b-kit--lead-to-impl.md | 2026-11-27 |
 
 ## Done / closed
 
@@ -36,6 +36,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001-t6 delegated — codex gpt-6.2-sol impl r1
 2026-11-27 0001-t6 planned→dispatched — variant-B kit + review follow-ups (codec probe, kit.json formats, stopgap type, NOTICE pin)
 2026-11-27 0001-t1, 0001-t2 →merged→closed — #16 c70aa6a, #15 89fca9a; main verify green (231 tests); Shaun approved merging all 0001 PRs after review+CI
 2026-11-27 0001-t1 dispatched→in-review — PR #16 @ 6b692fd; review r1 claude-opus-5-5
