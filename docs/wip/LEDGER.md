@@ -11,7 +11,7 @@ Next ID: 0002
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0001-t5 | Keyboard T5: drawers, MIDI, responsive | changes-requested | lead: resume implementer (r2 handoff) | codex/gpt-6.2-sol | orch/0001-t5-drawers | https://github.com/pepperhorn/module/pull/19 | /home/shaun/.t3/worktrees/module/t3-5e91bb0a-9975df0b7901330d @ 65c2983 | task node:delegated-task:command%3Amcp%3A40e57b15-667a-40b2-a014-39b38bc044cc%3Adelegate-task%3A0001-t5-impl-r1 / thread thread:delegated-task:command%3Amcp%3A40e57b15-667a-40b2-a014-39b38bc044cc%3Adelegate-task%3A0001-t5-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t5-drawers--lead-to-impl-r2.md | 2026-11-27 |
+| 0001-t5 | Keyboard T5: drawers, MIDI, responsive | changes-requested | child 0001-t5-impl-r1 (fix round 2, run 2) | codex/gpt-6.2-sol | orch/0001-t5-drawers | https://github.com/pepperhorn/module/pull/19 | /home/shaun/.t3/worktrees/module/t3-5e91bb0a-9975df0b7901330d @ 65c2983 | task node:delegated-task:command%3Amcp%3A40e57b15-667a-40b2-a014-39b38bc044cc%3Adelegate-task%3A0001-t5-impl-r1 / thread thread:delegated-task:command%3Amcp%3A40e57b15-667a-40b2-a014-39b38bc044cc%3Adelegate-task%3A0001-t5-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t5-drawers--lead-to-impl-r2.md | 2026-11-27 |
 
 ## Done / closed
 
@@ -40,6 +40,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001-t5 implementer resumed for fix round 2 @ 48fbc5b
 2026-11-27 0001-t5 in-review→changes-requested — review r1 (opus) @ 65c2983: effects inaudible on first action. Shaun: playing keys keeps drawers open (spec updated)
 2026-11-27 0001-t5 dispatched→in-review — PR #19 @ 65c2983 (281 tests Node 22+26; widths 360/390/1280 clean); review r1 claude-opus-5-5
 2026-11-27 0001-t5 delegated — codex gpt-6.2-sol impl r1
