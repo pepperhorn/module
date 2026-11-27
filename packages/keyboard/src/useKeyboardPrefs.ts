@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import type { Accidentals } from './theory'
 
 export interface KeyboardPrefs {
@@ -37,20 +37,40 @@ function readPrefs(): Partial<KeyboardPrefs> {
 }
 
 export function useKeyboardPrefs(defaults: Partial<KeyboardPrefs>): [KeyboardPrefs, (patch: Partial<KeyboardPrefs>) => void] {
-  const [prefs, setPrefs] = useState<KeyboardPrefs>(() => ({
+  const [initial] = useState<KeyboardPrefs>(() => ({
     volume: 1, accidentals: 'flat', showNames: false, effects: {}, midiDeviceId: null,
-    ...safePrefs(defaults), ...readPrefs(),
+    ...safePrefs(defaults),
   }))
-  useEffect(() => {
+  const [saved, setSaved] = useState(readPrefs)
+  const latest = useRef(saved)
+  const prefs = useMemo(() => ({
+    ...initial, ...saved, effects: { ...initial.effects, ...saved.effects },
+  }), [initial, saved])
+
+  return [prefs, patch => {
+    const changes = safePrefs(patch)
+    const previous = latest.current
+    const current = { ...initial, ...previous, effects: { ...initial.effects, ...previous.effects } }
+    for (const key of ['volume', 'accidentals', 'showNames', 'midiDeviceId'] as const) {
+      if (changes[key] === current[key]) delete changes[key]
+    }
+    if (changes.effects) {
+      const changedEffects = Object.entries(changes.effects).filter(([id, effect]) => {
+        const before = current.effects[id]
+        return effect.on !== before?.on || effect.amount !== before.amount
+      })
+      if (changedEffects.length) changes.effects = Object.fromEntries(changedEffects)
+      else delete changes.effects
+    }
+    if (!Object.keys(changes).length) return
+    const next = { ...previous, ...changes }
+    if (changes.effects) next.effects = { ...previous.effects, ...changes.effects }
+    latest.current = next
+    setSaved(next)
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(prefs))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
     } catch {
       // The controls still work in memory when storage is unavailable.
     }
-  }, [prefs])
-  return [prefs, patch => setPrefs(current => {
-    const next = safePrefs(patch)
-    const effects = next.effects ? { ...current.effects, ...next.effects } : current.effects
-    return { ...current, ...next, effects }
-  })]
+  }]
 }

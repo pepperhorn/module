@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 import type { PatchManifest } from '../../../src/patches/types'
 import { Keyboard } from './Keyboard'
+import { memoryStorage } from './Keyboard.testStorage'
 
 const engine = vi.hoisted(() => ({
   loadedPatchId: null as string | null,
@@ -29,21 +30,19 @@ vi.mock('./engine/useKeyboardEngine', async importOriginal => {
   }
 })
 
-beforeEach(() => vi.stubGlobal('localStorage', window.localStorage))
+beforeEach(() => vi.stubGlobal('localStorage', memoryStorage()))
 
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
-  localStorage.clear()
   vi.unstubAllGlobals()
 })
 
 it('changes patch, plays a chord and changes keyboard settings without writing module keys', async () => {
-  localStorage.clear()
   localStorage.setItem('pepperhorn-keyboard:prefs:v1', JSON.stringify({
     volume: 0.35, effects: { reverb: { on: true, amount: 0.2 } },
   }))
-  const writes = vi.spyOn(Storage.prototype, 'setItem')
+  const writes = vi.spyOn(localStorage, 'setItem')
   const { container } = render(<Keyboard defaultMode="chord" />)
   fireEvent.click(screen.getByRole('button', { name: 'Enable audio' }))
   await waitFor(() => expect(screen.queryByRole('status')).toBeNull())
@@ -69,7 +68,7 @@ it('changes patch, plays a chord and changes keyboard settings without writing m
   fireEvent.keyDown(root, { key: 'x' })
   expect(container.querySelector('[data-midi="48"]')).toBeNull()
   expect(container.querySelector('[data-midi="60"]')?.textContent).toBe('C')
-  expect(Object.keys(localStorage).filter(key => key.startsWith('module:'))).toEqual([])
+  expect(Array.from({ length: localStorage.length }, (_, i) => localStorage.key(i)).filter(key => key?.startsWith('module:'))).toEqual([])
   expect(writes).toHaveBeenCalled()
   expect(writes.mock.calls.every(([key]) => key.startsWith('pepperhorn-keyboard:'))).toBe(true)
 })

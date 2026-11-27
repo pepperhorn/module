@@ -5,7 +5,7 @@
 - **Ledger:** 0001 · **Spec:** [Keyboard](../specs/0001-keyboard.md) · **Plan:** [T4](../plans/0001-keyboard.md#t4--package-keyboard-shell-and-playing-surface-play-chord-and-note-names)
 - **Dispatch:** [Original](2026-11-27-0001-t4-keyboard-surface--lead-to-impl.md) · [Scope answers](2026-11-27-0001-t4-keyboard-surface--lead-to-impl-answers.md)
 - **Branch:** `orch/0001-t4-keyboard-surface` · **Worktree:** `/home/shaun/.t3/worktrees/module/t3-c0a11e85-ef745eb146b95598`
-- **PR:** [Draft for this branch](https://github.com/pepperhorn/module/pulls?q=is%3Apr+head%3Aorch%2F0001-t4-keyboard-surface)
+- **PR:** [Draft PR #18](https://github.com/pepperhorn/module/pull/18)
 - **Base:** started at `981ec00` with `f5e6d85` as an ancestor. Merged `main` at `7fd0262` to verify with the landed T6 kit.
 - **Port:** 5214 for the local smoke harness.
 - **Status:** implementation complete
@@ -59,3 +59,24 @@ Chromium smoke OK (React 19, 16 piano files, 12 drum files, clean console)
 
 - **Outcome:** done. Code commit `540fa82`, followed by the merge from `main` and this handoff.
 - **For GBrain:** `trackOffline: false` skips offline bookkeeping, not sound-module preference writes. The separate adapters reuse the audio engine without using the shared state setters.
+
+## Round 2
+
+Addressed the five blockers from the [review of `437de50`](https://github.com/pepperhorn/module/pull/18#pullrequestreview-6084571572) under the [fix-round handoff](https://github.com/pepperhorn/module/blob/b55eeb5b3d8370de86e02b276b56deed0c674466/docs/handoffs/2026-11-27-0001-t4-keyboard-surface--lead-to-impl-r2.md).
+
+- Generated one literal URL per sample from the piano note index and drum kit manifest. The packed library leaves those literals for Vite to rewrite. The sampler gets the selected codec's resolved URL without an extension substitution, and keeps separate cache keys for piano and drums. `assetBaseUrl` still overrides the bundled assets. No shared sampler code changed.
+- The audio overlay is positioned in scoped CSS. Chromium compares its box against the keyboard before unlocking and then plays both instruments.
+- Both storage suites use a Map-backed stub on Node 22 and 26. The setter writes only changed values and ignores no-ops, so an untouched prop value does not become a site-wide preference.
+- Keyboard and T5 share `useChordPlayer({ ..., accidentals })`, which also returns `releaseAll` and `badges`. Tests cover C♯ major and D♭ major spellings.
+- T5 can stop Escape propagation when a drawer owns it to avoid also panicking the player.
+
+Ran the fix-round Verify command before and after `orch-deslop`. The cleanup removed redundant overlay positioning and tightened the production check to match literal `new URL` arguments against the emitted files.
+
+```text
+Node 22.23.5: 38 test files, 277 tests passed
+Node 26.12.0: 38 test files, 277 tests passed
+sound-module dist OK
+keyboard dist OK (1 export, 60 sampler files, 41 scoped selectors)
+Vite production host OK (60 packed piano and drum files, both codecs, all JS URLs resolved)
+Chromium smoke OK (React 19, 16 piano files, 12 drum files, clean console)
+```

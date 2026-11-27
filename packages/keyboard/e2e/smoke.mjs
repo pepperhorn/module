@@ -45,6 +45,10 @@ try {
 
     async function boot(patch) {
       await page.goto(`${origin}/e2e/smoke.html?patch=${patch}`)
+      const overlay = await page.locator('.kb-power-overlay').boundingBox()
+      const surface = await page.locator('.kb-surface').boundingBox()
+      assert.ok(overlay && surface, 'power overlay and key surface must be visible')
+      assert.deepEqual(overlay, surface, 'power overlay must cover the keyboard')
       await page.getByRole('button', { name: 'Enable audio' }).click()
       await page.waitForFunction(() => !document.querySelector('.kb-loading, .kb-power-overlay, .kb-retry-btn'))
     }

@@ -6,22 +6,15 @@ export interface LitKey { name: string; color: string; root: boolean }
 interface PlayerOptions {
   mode: 'play' | 'chord'
   chord: ChordType
+  accidentals: Accidentals
   isDrums: boolean
   noteOn(m: number, v: number): void
   noteOff(m: number): void
 }
-interface ChordPlayer {
-  press(key: number, velocity: number): void
-  release(key: number): void
-  lit: ReadonlyMap<number, LitKey>
-}
 interface HeldKey { count: number; chord?: ChordType }
 
-export function useChordPlayer(opts: PlayerOptions): ChordPlayer {
-  return useChordPlayerState(opts)
-}
-
-export function useChordPlayerState(opts: PlayerOptions, accidentals: Accidentals = 'flat') {
+export function useChordPlayer(opts: PlayerOptions) {
+  const { accidentals } = opts
   const optionsRef = useRef(opts)
   optionsRef.current = opts
   const tracker = useRef(new VoiceTracker())

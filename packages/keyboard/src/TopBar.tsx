@@ -17,7 +17,7 @@ interface TopBarProps {
 export function TopBar({ patchName, isDrums, mode, chord, showNames, onMode, onChord, onNames, onOpenDrawer }: TopBarProps) {
   return (
     <div className="kb-toolbar">
-      <div className="kb-top-bar flex flex-wrap items-center gap-2">
+      <div className="kb-top-bar flex flex-wrap items-center">
         <button className="kb-button kb-sounds-btn" type="button" onClick={() => onOpenDrawer('sounds')}>
           ♪ {patchName} ▾
         </button>

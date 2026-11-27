@@ -1,13 +1,13 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import type { ChordType } from './theory'
+import type { Accidentals, ChordType } from './theory'
 import { useChordPlayer } from './useChordPlayer'
 
-function setup(chord: ChordType = 'maj', isDrums = false) {
+function setup(chord: ChordType = 'maj', isDrums = false, accidentals: Accidentals = 'flat') {
   const noteOn = vi.fn()
   const noteOff = vi.fn()
   const hook = renderHook(
-    ({ chord, isDrums }) => useChordPlayer({ mode: 'chord', chord, isDrums, noteOn, noteOff }),
+    ({ chord, isDrums }) => useChordPlayer({ mode: 'chord', chord, isDrums, accidentals, noteOn, noteOff }),
     { initialProps: { chord, isDrums } },
   )
   return { ...hook, noteOn, noteOff }
@@ -50,6 +50,15 @@ describe('useChordPlayer', () => {
     expect(noteOff).not.toHaveBeenCalled()
     act(() => result.current.release(60))
     expect(noteOff.mock.calls).toEqual([[60], [64], [67]])
+  })
+
+  it.each([
+    ['sharp', ['C♯', 'E♯', 'G♯']],
+    ['flat', ['D♭', 'F', 'A♭']],
+  ] satisfies [Accidentals, string[]][])('spells a black-key major chord with %s accidentals', (accidentals, names) => {
+    const { result } = setup('maj', false, accidentals)
+    act(() => result.current.press(61, 100))
+    expect([...result.current.lit.values()].map(tone => tone.name)).toEqual(names)
   })
 
   it('ignores chords and silent pads on drums', () => {

@@ -25,10 +25,10 @@ function applyPrefs(engine: AudioEngine, { volume, effects }: KeyboardPrefs) {
 }
 
 export function useKeyboardEngine({ defaultPatch, assetBaseUrl, prefs, setPrefs }: EngineOptions) {
-  const [catalog] = useState(() => {
-    const assets = import.meta.env.DEV ? '../../assets/' : './assets/'
-    return [...bundledPatches(assetBaseUrl ?? new URL(assets, import.meta.url)), ...getBuiltinPatches()]
-  })
+  const [catalog] = useState(() => [
+    ...(assetBaseUrl === undefined ? bundledPatches() : bundledPatches(assetBaseUrl)),
+    ...getBuiltinPatches(),
+  ])
   const [patch, setPatch] = useState(() =>
     catalog.find(p => p.id === resolveId(defaultPatch)) ?? catalog[0],
   )

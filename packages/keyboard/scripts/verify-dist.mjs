@@ -3,6 +3,7 @@ import { readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import postcss from 'postcss'
 import selectorParser from 'postcss-selector-parser'
+import { assetUrlsModule } from './generate-asset-urls.mjs'
 
 const dist = new URL('../dist/', import.meta.url)
 const read = name => readFileSync(new URL(name, dist), 'utf8')
@@ -14,6 +15,12 @@ assert.deepEqual(Object.keys(await import(new URL('index.js', dist))), ['Keyboar
 
 const { assets, modules } = JSON.parse(read('inventory.json'))
 assert.ok(assets.length > 0, 'no bundled sampler assets declared')
+assert.equal(
+  readFileSync(new URL('../src/patches/assetUrls.generated.ts', import.meta.url), 'utf8'),
+  assetUrlsModule('../../assets/'),
+  'regenerate sample URLs with node packages/keyboard/scripts/generate-asset-urls.mjs',
+)
+assert.equal(read('patches/assetUrls.generated.js'), assetUrlsModule('../assets/'))
 for (const asset of assets) {
   assert.match(asset, /^assets\/(piano|drums)\/[\w#.-]+\.(ogg|m4a|mp3)$/)
   assert.ok(statSync(new URL(asset, dist)).size > 0, `empty asset: ${asset}`)

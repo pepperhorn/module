@@ -24,7 +24,7 @@ The stylesheet loads the bundled Poppins font from the package. Its stylesheet i
 | `accidentals` | `flat` |
 | `octaves` | Fits the component width, from two to four. |
 | `startOctave` | `3` (C3 is MIDI 48). |
-| `assetBaseUrl` | The `assets/` directory beside the built JS. |
+| `assetBaseUrl` | The package’s bundled sample URLs. Set this only to serve the sounds yourself. |
 | `className` | Optional class on the root. |
 
 Volume, name spelling, note names, effects, and MIDI device are saved in the browser under `pepperhorn-keyboard:`. Saved preferences take precedence over initial props. The patch, playing mode, chord type and octave shift are not saved.
@@ -41,8 +41,8 @@ export default defineConfig({
 })
 ```
 
-For Vite without Astro, put `optimizeDeps` at the top level of the Vite config. If the host relocates the library JS, copy the contents of `dist/assets/` to a public directory and set `assetBaseUrl` to that directory, for example `/keyboard-assets/`. Keep the `piano/` and `drums/` subdirectories. The built-in catalog uses CDN samples. See `dist/assets/NOTICE` for bundled sample credits.
+For Vite without Astro, put `optimizeDeps` at the top level of the Vite config. Vite production builds emit and rewrite the bundled sample URLs. To serve them yourself, copy the contents of `dist/assets/` to a public directory and set `assetBaseUrl` to that directory, for example `/keyboard-assets/`. Keep the `piano/` and `drums/` subdirectories. The built-in catalog uses CDN samples. See `dist/assets/NOTICE` for bundled sample credits.
 
 ## Local checks
 
-From the repo root, run `npm run build:keyboard && npm run verify:keyboard`. With Chromium and `playwright-core` available, run `node packages/keyboard/e2e/smoke.mjs`. Set `PLAYWRIGHT_MODULE` to the absolute path of a local playwright-core entry if it is not installed in the repo.
+From the repo root, run `npm run build:keyboard && npm run verify:keyboard`. Verify the packed package in a production Vite host with `node packages/keyboard/e2e/host-build.mjs`. With Chromium and `playwright-core` available, run `node packages/keyboard/e2e/smoke.mjs`. Set `PLAYWRIGHT_MODULE` to the absolute path of a local playwright-core entry if it is not installed in the repo.

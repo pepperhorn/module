@@ -145,7 +145,13 @@
   paint-order: stroke;
 }
 
+.keyboard-module .kb-playing-area {
+  position: relative;
+}
+
 .keyboard-module .kb-power-overlay {
+  position: absolute;
+  inset: 0;
   z-index: 2;
   background: #191a2799;
 }

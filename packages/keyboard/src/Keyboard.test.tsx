@@ -1,15 +1,16 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, renderHook, screen } from '@testing-library/react'
 import { beforeEach, afterEach, expect, it, vi } from 'vitest'
 import { Keyboard } from './Keyboard'
+import { memoryStorage } from './Keyboard.testStorage'
+import { useKeyboardPrefs } from './useKeyboardPrefs'
 
 const storageKey = 'pepperhorn-keyboard:prefs:v1'
 
-beforeEach(() => vi.stubGlobal('localStorage', window.localStorage))
+beforeEach(() => vi.stubGlobal('localStorage', memoryStorage()))
 
 afterEach(() => {
   cleanup()
   vi.restoreAllMocks()
-  localStorage.clear()
   vi.unstubAllGlobals()
 })
 
@@ -33,14 +34,39 @@ it('takes patch, mode and chord from the page again on remount', () => {
   fireEvent.click(screen.getByRole('button', { name: 'aug' }))
   fireEvent.click(screen.getByRole('button', { name: 'Play' }))
   expect(container.querySelectorAll('.kb-key-name')).toHaveLength(25)
-  expect(JSON.parse(localStorage.getItem(storageKey)!)).toEqual({
-    volume: 0.35, showNames: true, accidentals: 'flat', effects: {}, midiDeviceId: null,
-  })
+  expect(JSON.parse(localStorage.getItem(storageKey)!)).toMatchObject({ volume: 0.35, showNames: true })
+})
+
+it('persists only choices the user changes, not page defaults', () => {
+  const writes = vi.spyOn(localStorage, 'setItem')
+  const first = render(<Keyboard showNoteNames accidentals="sharp" />)
+  expect(first.container.querySelector('[data-midi="49"]')?.textContent).toBe('C♯')
+  expect(writes).not.toHaveBeenCalled()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Note names' }))
+  expect(writes.mock.calls).toEqual([[storageKey, JSON.stringify({ showNames: false })]])
+  first.unmount()
+
+  const second = render(<Keyboard showNoteNames accidentals="flat" />)
+  expect(screen.getByRole('button', { name: 'Note names' }).getAttribute('aria-pressed')).toBe('false')
+  expect(second.container.querySelector('[data-midi="49"]')?.getAttribute('aria-label')).toBe('D♭')
+  expect(writes).toHaveBeenCalledTimes(1)
+})
+
+it('ignores setter calls that repeat an initial value', () => {
+  const writes = vi.spyOn(localStorage, 'setItem')
+  const { result } = renderHook(() => useKeyboardPrefs({
+    accidentals: 'sharp', effects: { reverb: { on: false, amount: 0.25 } },
+  }))
+  act(() => result.current[1]({ accidentals: 'sharp', effects: { reverb: { on: false, amount: 0.25 } } }))
+  expect(writes).not.toHaveBeenCalled()
+  act(() => result.current[1]({ accidentals: 'sharp', volume: 0.5 }))
+  expect(writes.mock.calls).toEqual([[storageKey, JSON.stringify({ volume: 0.5 })]])
 })
 
 it('mounts when localStorage throws', () => {
-  vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => { throw new Error('storage blocked') })
-  vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => { throw new Error('storage blocked') })
+  vi.spyOn(localStorage, 'getItem').mockImplementation(() => { throw new Error('storage blocked') })
+  vi.spyOn(localStorage, 'setItem').mockImplementation(() => { throw new Error('storage blocked') })
   render(<Keyboard />)
   fireEvent.click(screen.getByRole('button', { name: 'Note names' }))
   expect(screen.getByRole('button', { name: 'Note names' }).getAttribute('aria-pressed')).toBe('true')

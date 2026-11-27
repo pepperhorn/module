@@ -1,7 +1,7 @@
 import { relative, resolve } from 'node:path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
-import { bundledPatches } from './src/patches/bundled'
+import { assetUrlsModule, sampleFiles } from './scripts/generate-asset-urls.mjs'
 
 const repo = resolve(import.meta.dirname, '../..')
 
@@ -14,16 +14,10 @@ export default defineConfig({
         const modules = Object.values(bundle).flatMap(entry =>
           entry.type === 'chunk' ? Object.keys(entry.modules).map(id => relative(repo, id)) : [],
         )
-        const assets = bundledPatches('assets/').flatMap(({ source }) =>
-          source.kind === 'sampler'
-            ? Object.values(source.samples).flatMap(file =>
-                source.formats?.map(format => source.baseUrl + file.replace(/\.[^.]+$/, '.' + format)) ??
-                [source.baseUrl + file],
-              )
-            : [],
-        )
+        // Leave the literal URLs for the consuming host to process.
+        this.emitFile({ type: 'asset', fileName: 'patches/assetUrls.generated.js', source: assetUrlsModule('../assets/') })
         this.emitFile({ type: 'asset', fileName: 'inventory.json', source: JSON.stringify({
-          modules: [...new Set(modules)].sort(), assets: [...new Set(assets)].sort(),
+          modules: [...new Set(modules)].sort(), assets: sampleFiles.map(file => 'assets/' + file),
         }, null, 2) })
       },
     },
@@ -40,7 +34,7 @@ export default defineConfig({
       formats: ['es'],
     },
     rollupOptions: {
-      external: [/^react(?:-dom)?(?:\/|$)/, /^smplr(?:\/|$)/, /^zustand(?:\/|$)/],
+      external: ['./assetUrls.generated.js', /^react(?:-dom)?(?:\/|$)/, /^smplr(?:\/|$)/, /^zustand(?:\/|$)/],
     },
   },
 })

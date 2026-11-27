@@ -7,7 +7,7 @@ import { DRUMS_ID } from './patches/bundled'
 import { DRUM_RANGE } from './patches/drumMap'
 import type { ChordType } from './theory'
 import { TopBar } from './TopBar'
-import { useChordPlayerState } from './useChordPlayer'
+import { useChordPlayer } from './useChordPlayer'
 import { useKeyboardPrefs } from './useKeyboardPrefs'
 
 export interface KeyboardProps {
@@ -42,9 +42,9 @@ export function Keyboard({
   const visibleOctaves = octaves === undefined ? autoOctaves : clampInteger(octaves, 1, 10, 2)
   const low = clampInteger(startOctave + shift, -1, 9 - visibleOctaves, 3) * 12 + 12
   const high = low + visibleOctaves * 12
-  const player = useChordPlayerState({
-    mode: effectiveMode, chord, isDrums, noteOn: audio.noteOn, noteOff: audio.noteOff,
-  }, prefs.accidentals)
+  const player = useChordPlayer({
+    mode: effectiveMode, chord, accidentals: prefs.accidentals, isDrums, noteOn: audio.noteOn, noteOff: audio.noteOff,
+  })
   const { releaseAll } = player
 
   useLayoutEffect(() => { releaseAll() }, [audio.patch.id, releaseAll])
@@ -90,13 +90,13 @@ export function Keyboard({
         showNames={prefs.showNames} onMode={setMode} onChord={setChord}
         onNames={() => setPrefs({ showNames: !prefs.showNames })} onOpenDrawer={() => {}}
       />
-      <div className="kb-playing-area relative">
+      <div className="kb-playing-area">
         <KeyboardSurface
           low={low} high={high} showNames={prefs.showNames} accidentals={prefs.accidentals}
           isDrums={isDrums} lit={player.lit} badges={player.badges} press={press} release={player.release}
         />
         {audio.needsGesture && (
-          <div className="kb-power-overlay absolute inset-0 flex items-center justify-center">
+          <div className="kb-power-overlay flex items-center justify-center">
             <button className="kb-button kb-power-btn" type="button" onClick={() => {
               root.current?.focus({ preventScroll: true })
               void audio.ensureAudio()
