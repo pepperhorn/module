@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import drumKit from '../../assets/drums/kit.json'
 import { bundledPatches, DRUMS_ID, PIANO_ID } from './bundled'
 
@@ -46,6 +46,24 @@ describe('bundled patches', () => {
         const path = file.replace(/\.ogg$/, '.' + ext)
         expect(drumFiles).toContain('../../assets/drums/' + path)
       }
+    }
+  })
+
+  it.each(['ogg', 'm4a'])('uses absolute %s sample URLs and distinct cache keys by default', (format) => {
+    const playable = format === 'ogg' ? 'audio/ogg; codecs="vorbis"' : 'audio/mp4; codecs="mp4a.40.2"'
+    vi.stubGlobal('Audio', class {
+      canPlayType(mime: string) { return mime === playable ? 'probably' : '' }
+    })
+    try {
+      const [piano, drums] = bundledPatches().map(patch => patch.source)
+      if (piano.kind !== 'sampler' || drums.kind !== 'sampler') throw new Error('Expected sampler patches')
+      expect(piano.baseUrl).not.toBe(drums.baseUrl)
+      expect(piano.formats).toBeUndefined()
+      expect(drums.formats).toBeUndefined()
+      expect(new URL(String(piano.samples.C2)).pathname).toMatch(new RegExp(`/assets/piano/C2\\.${format}$`))
+      expect(new URL(String(drums.samples.B1)).pathname).toMatch(new RegExp(`/assets/drums/acoustic-Kick\\.${format}$`))
+    } finally {
+      vi.unstubAllGlobals()
     }
   })
 
