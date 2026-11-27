@@ -2,6 +2,10 @@
   "name": "Acoustic Kit 1",
   "id": "acoustic1",
   "description": "Natural acoustic drum kit",
+  "formats": [
+    "ogg",
+    "m4a"
+  ],
   "samples": {
     "kick": {
       "file": "acoustic-Kick.ogg",
@@ -59,8 +63,5 @@
       "file": "acoustic-RideBell.ogg",
       "label": "Ride Bell"
     }
-  },
-  "formats": [
-    "ogg"
-  ]
+  }
 }

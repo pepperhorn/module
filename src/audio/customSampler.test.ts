@@ -5,6 +5,9 @@ import { CustomSampler } from './customSampler'
 
 type SamplerSource = Extract<PatchSource, { kind: 'sampler' }>
 
+const vorbisType = 'audio/ogg; codecs="vorbis"'
+const aacType = 'audio/mp4; codecs="mp4a.40.2"'
+
 async function loadSampler(overrides: Partial<SamplerSource> = {}) {
   const output = { gain: { value: 1 } }
   const node = {
@@ -37,8 +40,8 @@ afterEach(() => vi.unstubAllGlobals())
 describe('CustomSampler', () => {
   it.each(['ogg', 'm4a'])('formats: picks first playable extension (%s)', async (extension) => {
     const canPlayType = vi.fn((mime: string) => {
-      if (mime === 'audio/ogg') return extension === 'ogg' ? 'probably' : ''
-      return mime === 'audio/mp4' ? 'maybe' : ''
+      if (mime === vorbisType) return extension === 'ogg' ? 'probably' : ''
+      return mime === aacType ? 'maybe' : ''
     })
     vi.stubGlobal('Audio', class {
       canPlayType = canPlayType
@@ -54,7 +57,7 @@ describe('CustomSampler', () => {
     })
 
     expect(canPlayType.mock.calls).toEqual(
-      extension === 'ogg' ? [['audio/ogg']] : [['audio/ogg'], ['audio/mp4']],
+      extension === 'ogg' ? [[vorbisType]] : [[vorbisType], [aacType]],
     )
     expect(storage.fetch.mock.calls.flat()).toEqual([
       `/samples/c4.${extension}`,
@@ -63,6 +66,18 @@ describe('CustomSampler', () => {
       `https://example.test/e4.${extension}?v=1.0#sample`,
       `/samples/e4-p.${extension}`,
     ])
+  })
+
+  it('uses AAC when the browser recognizes Ogg but cannot play Vorbis', async () => {
+    vi.stubGlobal('Audio', class {
+      canPlayType(mime: string) {
+        return mime === 'audio/ogg' || mime === aacType ? 'maybe' : ''
+      }
+    })
+
+    const { storage } = await loadSampler({ formats: ['ogg', 'm4a'] })
+
+    expect(storage.fetch).toHaveBeenCalledExactlyOnceWith('/samples/c4.m4a')
   })
 
   it('exactOnly: unmapped note returns a no-op and starts no source', async () => {
