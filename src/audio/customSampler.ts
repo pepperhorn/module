@@ -48,8 +48,8 @@ function joinUrl(base: string, path: string): string {
 }
 
 const FORMAT_TYPES: Record<string, string> = {
-  ogg: 'audio/ogg',
-  m4a: 'audio/mp4',
+  ogg: 'audio/ogg; codecs="vorbis"',
+  m4a: 'audio/mp4; codecs="mp4a.40.2"',
   mp3: 'audio/mpeg',
 }
 
