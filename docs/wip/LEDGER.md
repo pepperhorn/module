@@ -11,9 +11,9 @@ Next ID: 0002
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0001-t4 | Keyboard T4: package + Keyboard surface | blocked | lead: resume implementer with answers | codex/gpt-6.2-sol | orch/0001-t4-keyboard-surface | — | /home/shaun/.t3/worktrees/module/t3-c0a11e85-ef745eb146b95598 @ d6a5a84 | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t4-keyboard-surface--lead-to-impl-answers.md | 2026-11-27 |
+| 0001-t4 | Keyboard T4: package + Keyboard surface | dispatched | child 0001-t4-impl-r1 (resumed with answers, run 2) | codex/gpt-6.2-sol | orch/0001-t4-keyboard-surface | — | /home/shaun/.t3/worktrees/module/t3-c0a11e85-ef745eb146b95598 @ d6a5a84 | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t4-keyboard-surface--lead-to-impl-answers.md | 2026-11-27 |
 | 0001-t5 | Keyboard T5: drawers, MIDI, responsive | planned | child 0001-t4 (dep) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
-| 0001-t6 | Keyboard T6: swap in drumlet variant-B kit | dispatched | child 0001-t6-impl-r1 | codex/gpt-6.2-sol | orch/0001-t6-variant-b-kit | — | — | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t6-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t6-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t6-variant-b-kit--lead-to-impl.md | 2026-11-27 |
+| 0001-t6 | Keyboard T6: swap in drumlet variant-B kit | in-review | review 0001-t6-review-r1 | codex/gpt-6.2-sol | orch/0001-t6-variant-b-kit | https://github.com/pepperhorn/module/pull/17 | /home/shaun/.t3/worktrees/module/t3-79a44b62-3e2dec6aab2bd213 @ b41f265 | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t6-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t6-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t6-variant-b-kit--codex-to-lead.md | 2026-11-27 |
 
 ## Done / closed
 
@@ -36,6 +36,8 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001-t6 dispatched→in-review — PR #17 @ b41f265 (ogg 335 KB / m4a 313 KB; WebKit decoded AAC); review r1 claude-opus-5-5
+2026-11-27 0001-t4 blocked→dispatched — implementer resumed with answers @ 7afe88f
 2026-11-27 0001-t4 dispatched→blocked — useSoundEngine/useComputerKeyboard/useWebMidi write module:state:v1 and bypass chord routing; lead decided keyboard-local engine adapter (answers handoff)
 2026-11-27 0001-t4 delegated — codex gpt-6.2-sol impl r1
 2026-11-27 0001-t4 planned→dispatched — base f5e6d85
