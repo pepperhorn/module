@@ -11,13 +11,13 @@ Next ID: 0002
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0001-t4 | Keyboard T4: package + Keyboard surface | in-review | review 0001-t4-review-r2 | codex/gpt-6.2-sol | orch/0001-t4-keyboard-surface | https://github.com/pepperhorn/module/pull/18 | /home/shaun/.t3/worktrees/module/t3-c0a11e85-ef745eb146b95598 @ 3f90c73 | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t4-keyboard-surface--codex-to-lead.md | 2026-11-27 |
-| 0001-t5 | Keyboard T5: drawers, MIDI, responsive | planned | child 0001-t4 (dep) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
+| 0001-t5 | Keyboard T5: drawers, MIDI, responsive | dispatched | lead: delegate | codex/gpt-6.2-sol | orch/0001-t5-drawers | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t5-drawers--lead-to-impl.md | 2026-11-27 |
 
 ## Done / closed
 
 | K | Title | PR | Merged | Notes |
 |---|---|---|---|---|
+| 0001-t4 | Keyboard T4: package + Keyboard surface | https://github.com/pepperhorn/module/pull/18 | 2026-11-27 f79eda6 | review r1 changes-requested, r2 approve (opus) @ 3f90c73; keyboard-local engine/MIDI/keys; host prod build check |
 | 0001-t6 | Keyboard T6: variant-B acoustic kit, codec-qualified probe | https://github.com/pepperhorn/module/pull/17 | 2026-11-27 b9de5bc | review r1 approve (opus) @ b41f265; ogg 335 KB / m4a 313 KB; WebKit decoded AAC, no Apple device tested |
 | 0001-t3 | Keyboard T3: chord theory + spelling | https://github.com/pepperhorn/module/pull/14 | 2026-11-27 f5e6d85 | review r1 approve (codex gpt-6.2-sol) @ 19a6bb6 |
 | 0001-t1 | Keyboard T1: sampler opt-ins | https://github.com/pepperhorn/module/pull/16 | 2026-11-27 c70aa6a | review r1 approve (opus) @ 6b692fd; Shaun approved merging all 0001 PRs |
@@ -29,6 +29,9 @@ Next ID: 0002
 
 | S | Kind | Suggestion | Evidence | Effort (S/M/L) | Value | Source | Status |
 |---|---|---|---|---|---|---|---|
+| S4 | risk | A host that raises Vite's `build.assetsInlineLimit` above about 6.7 KB gets `data:` URLs for the smallest drum samples, and the sampler's `joinUrl` doesn't treat `data:` as absolute, so those samples break | PR #18 review 6084684226 | S | low (default limit is 4 KB) | reviewer | new |
+| S5 | improvement | Run the keyboard Chromium smoke test (`packages/keyboard/e2e/smoke.*`) and `host-build.mjs` in CI; today only local verify covers the overlay and the host build | PR #18 review 6084684226 | S | medium | reviewer | new |
+| S6 | efficiency | `bundled.ts` repeats the sampler's audio-format detection; share one helper | PR #18 review 6084684226 | S | low | reviewer | new |
 | S3 | efficiency | The piano patch hard-codes its formats in `bundled.ts`; derive them from its generated note index the way the drums now read `kit.json` | PR #17 review 6084444614, packages/keyboard/src/patches/bundled.ts:20 | S | low (consistency) | reviewer | new |
 | S1 | risk | The app's instrument cache is keyed by sampler `baseUrl` only, so two sampler patches sharing a baseUrl but with different oneShot/exactOnly settings would share one instance | PR #16 review 6084145042 | S | low today (bundled patches use different baseUrls) | reviewer | new |
 | S2 | fix | `new Audio()` in the sampler's format probe isn't guarded outside the browser; a patch with `formats` fails to load under SSR or Node | PR #16 review 6084145042 | S | low (the package is client-only) | reviewer | new |
@@ -37,6 +40,8 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001-t5 planned→dispatched — base f79eda6
+2026-11-27 0001-t4 →merged→closed — #18 f79eda6; main full verify green (277 tests, both libs, keyboard dist)
 2026-11-27 0001-t4 changes-requested→in-review — fixes @ 3f90c73 (277 tests on Node 22+26, host prod build emits all 60 samples); review r2 claude-opus-5-5
 2026-11-27 0001-t4 implementer resumed for fix round 2 @ b55eeb5
 2026-11-27 0001-t4 in-review→changes-requested — review r1 (opus) @ 437de50: 5 blockers (host prod build drops samples; overlay unpositioned; Node≥25 storage tests; props persisted; useChordPlayer flats-only). Lead: fix assets properly, T4 now owns bundled.ts
