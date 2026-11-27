@@ -11,17 +11,17 @@ Next ID: 0002
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0001-t1 | Keyboard T1: sampler opt-ins | in-review | review 0001-t1-review-r1 | codex/gpt-6.2-sol | orch/0001-t1-sampler-optins | https://github.com/pepperhorn/module/pull/16 | /home/shaun/.t3/worktrees/module/t3-badf2e5a-dfd9d4a2bd028698 @ 6b692fd | task node:delegated-task:command%3Amcp%3A5e34c756-69ee-4093-a489-de78f21a5e09%3Adelegate-task%3A0001-t1-impl-r1 / thread thread:delegated-task:command%3Amcp%3A5e34c756-69ee-4093-a489-de78f21a5e09%3Adelegate-task%3A0001-t1-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t1-sampler-optins--codex-to-lead.md | 2026-11-27 |
-| 0001-t2 | Keyboard T2: bundled piano + kit, GM drum map | in-review | review 0001-t2-review-r1 | codex/gpt-6.2-sol | orch/0001-t2-bundled-assets | https://github.com/pepperhorn/module/pull/15 | /home/shaun/.t3/worktrees/module/t3-924f9388-a6e0394aae9b03aa @ 5952fb1 | task node:delegated-task:command%3Amcp%3A5e34c756-69ee-4093-a489-de78f21a5e09%3Adelegate-task%3A0001-t2-impl-r1 / thread thread:delegated-task:command%3Amcp%3A5e34c756-69ee-4093-a489-de78f21a5e09%3Adelegate-task%3A0001-t2-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t2-bundled-assets--codex-to-lead.md | 2026-11-27 |
 | 0001-t3 | Keyboard T3: chord theory + spelling | in-review | review 0001-t3-review-r1 | claudeAgent/claude-sonnet-5-5 | orch/0001-t3-chord-theory | https://github.com/pepperhorn/module/pull/14 | /home/shaun/.t3/worktrees/module/t3-3d1ba71c-5cbef75b0f590833 @ 19a6bb6 | task node:delegated-task:command%3Amcp%3A5e34c756-69ee-4093-a489-de78f21a5e09%3Adelegate-task%3A0001-t3-impl-r1 / thread thread:delegated-task:command%3Amcp%3A5e34c756-69ee-4093-a489-de78f21a5e09%3Adelegate-task%3A0001-t3-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t3-chord-theory--claude-to-lead.md | 2026-11-27 |
-| 0001-t4 | Keyboard T4: package + Keyboard surface | planned | child 0001-t1..t3 (deps) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
+| 0001-t4 | Keyboard T4: package + Keyboard surface | planned | review 0001-t3-review-r1 (T4 dispatches after #14 merges) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
 | 0001-t5 | Keyboard T5: drawers, MIDI, responsive | planned | child 0001-t4 (dep) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
-| 0001-t6 | Keyboard T6: swap in drumlet variant-B kit | planned | review 0001-t2-review-r1 (T6 owns T2's drum assets; dispatch after #15 merges) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
+| 0001-t6 | Keyboard T6: swap in drumlet variant-B kit | dispatched | lead: delegate | codex/gpt-6.2-sol | orch/0001-t6-variant-b-kit | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t6-variant-b-kit--lead-to-impl.md | 2026-11-27 |
 
 ## Done / closed
 
 | K | Title | PR | Merged | Notes |
 |---|---|---|---|---|
+| 0001-t1 | Keyboard T1: sampler opt-ins | https://github.com/pepperhorn/module/pull/16 | 2026-11-27 c70aa6a | review r1 approve (opus) @ 6b692fd; Shaun approved merging all 0001 PRs |
+| 0001-t2 | Keyboard T2: bundled piano + kit, GM drum map | https://github.com/pepperhorn/module/pull/15 | 2026-11-27 89fca9a | review r1 approve (opus) @ 5952fb1; piano 369 KB ogg / 470 KB m4a |
 
 ## Suggestions
 
@@ -29,11 +29,15 @@ Next ID: 0002
 
 | S | Kind | Suggestion | Evidence | Effort (S/M/L) | Value | Source | Status |
 |---|---|---|---|---|---|---|---|
+| S1 | risk | The app's instrument cache is keyed by sampler `baseUrl` only, so two sampler patches sharing a baseUrl but with different oneShot/exactOnly settings would share one instance | PR #16 review 6084145042 | S | low today (bundled patches use different baseUrls) | reviewer | new |
+| S2 | fix | `new Audio()` in the sampler's format probe isn't guarded outside the browser; a patch with `formats` fails to load under SSR or Node | PR #16 review 6084145042 | S | low (the package is client-only) | reviewer | new |
 
 Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001-t6 planned→dispatched — variant-B kit + review follow-ups (codec probe, kit.json formats, stopgap type, NOTICE pin)
+2026-11-27 0001-t1, 0001-t2 →merged→closed — #16 c70aa6a, #15 89fca9a; main verify green (231 tests); Shaun approved merging all 0001 PRs after review+CI
 2026-11-27 0001-t1 dispatched→in-review — PR #16 @ 6b692fd; review r1 claude-opus-5-5
 2026-11-27 0001-t2 dispatched→in-review — PR #15 @ 5952fb1; review r1 claude-opus-5-5
 2026-11-27 0001-t6 blocked→planned — drumlet main has variant B (29 files, 650 KB ogg+m4a); waits only on T2 merge
