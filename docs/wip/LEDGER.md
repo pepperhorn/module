@@ -13,12 +13,12 @@ Next ID: 0002
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
 | 0001-t4 | Keyboard T4: package + Keyboard surface | dispatched | child 0001-t4-impl-r1 (resumed with answers, run 2) | codex/gpt-6.2-sol | orch/0001-t4-keyboard-surface | — | /home/shaun/.t3/worktrees/module/t3-c0a11e85-ef745eb146b95598 @ d6a5a84 | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t4-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t4-keyboard-surface--lead-to-impl-answers.md | 2026-11-27 |
 | 0001-t5 | Keyboard T5: drawers, MIDI, responsive | planned | child 0001-t4 (dep) | — | — | — | — | — | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | — | 2026-11-27 |
-| 0001-t6 | Keyboard T6: swap in drumlet variant-B kit | in-review | review 0001-t6-review-r1 | codex/gpt-6.2-sol | orch/0001-t6-variant-b-kit | https://github.com/pepperhorn/module/pull/17 | /home/shaun/.t3/worktrees/module/t3-79a44b62-3e2dec6aab2bd213 @ b41f265 | task node:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t6-impl-r1 / thread thread:delegated-task:command%3Amcp%3A4d2ebe5c-7c54-43a5-bb9d-bf2932f7fcd5%3Adelegate-task%3A0001-t6-impl-r1 | docs/specs/0001-keyboard.md | docs/plans/0001-keyboard.md | docs/handoffs/2026-11-27-0001-t6-variant-b-kit--codex-to-lead.md | 2026-11-27 |
 
 ## Done / closed
 
 | K | Title | PR | Merged | Notes |
 |---|---|---|---|---|
+| 0001-t6 | Keyboard T6: variant-B acoustic kit, codec-qualified probe | https://github.com/pepperhorn/module/pull/17 | 2026-11-27 b9de5bc | review r1 approve (opus) @ b41f265; ogg 335 KB / m4a 313 KB; WebKit decoded AAC, no Apple device tested |
 | 0001-t3 | Keyboard T3: chord theory + spelling | https://github.com/pepperhorn/module/pull/14 | 2026-11-27 f5e6d85 | review r1 approve (codex gpt-6.2-sol) @ 19a6bb6 |
 | 0001-t1 | Keyboard T1: sampler opt-ins | https://github.com/pepperhorn/module/pull/16 | 2026-11-27 c70aa6a | review r1 approve (opus) @ 6b692fd; Shaun approved merging all 0001 PRs |
 | 0001-t2 | Keyboard T2: bundled piano + kit, GM drum map | https://github.com/pepperhorn/module/pull/15 | 2026-11-27 89fca9a | review r1 approve (opus) @ 5952fb1; piano 369 KB ogg / 470 KB m4a |
@@ -29,6 +29,7 @@ Next ID: 0002
 
 | S | Kind | Suggestion | Evidence | Effort (S/M/L) | Value | Source | Status |
 |---|---|---|---|---|---|---|---|
+| S3 | efficiency | The piano patch hard-codes its formats in `bundled.ts`; derive them from its generated note index the way the drums now read `kit.json` | PR #17 review 6084444614, packages/keyboard/src/patches/bundled.ts:20 | S | low (consistency) | reviewer | new |
 | S1 | risk | The app's instrument cache is keyed by sampler `baseUrl` only, so two sampler patches sharing a baseUrl but with different oneShot/exactOnly settings would share one instance | PR #16 review 6084145042 | S | low today (bundled patches use different baseUrls) | reviewer | new |
 | S2 | fix | `new Audio()` in the sampler's format probe isn't guarded outside the browser; a patch with `formats` fails to load under SSR or Node | PR #16 review 6084145042 | S | low (the package is client-only) | reviewer | new |
 
@@ -36,6 +37,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-27 0001-t6 →merged→closed — #17 b9de5bc; main verify green (257 tests)
 2026-11-27 0001-t6 dispatched→in-review — PR #17 @ b41f265 (ogg 335 KB / m4a 313 KB; WebKit decoded AAC); review r1 claude-opus-5-5
 2026-11-27 0001-t4 blocked→dispatched — implementer resumed with answers @ 7afe88f
 2026-11-27 0001-t4 dispatched→blocked — useSoundEngine/useComputerKeyboard/useWebMidi write module:state:v1 and bypass chord routing; lead decided keyboard-local engine adapter (answers handoff)
