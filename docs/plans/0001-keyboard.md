@@ -69,7 +69,7 @@ T1, T2 and T3 own disjoint files and can run in parallel. T4 needs all three. T5
 ### T2 — Bundled assets: piano build script, drum kit, patch manifests, GM drum map
 - **Depends on:** — (writes manifests against T1's interface above; it doesn't import T1's code)
 - **Route:** implement (default)
-- **Owns:** `packages/keyboard/assets/**`, `packages/keyboard/scripts/build-piano.mjs`, `packages/keyboard/scripts/copy-kit.mjs`, `packages/keyboard/src/patches/**`
+- **Owns:** `packages/keyboard/assets/**`, `packages/keyboard/scripts/build-piano.mjs`, `packages/keyboard/scripts/copy-kit.mjs`, `packages/keyboard/src/patches/**`, plus the identical include-line edits to `vitest.config.ts` and `tsconfig.json` that T3 also makes
 - **May read:** anything; `/home/shaun/drumlet/public/samples/acoustic1/` (source kit); the gleitz CDN (`https://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/acoustic_grand_piano-{ogg,mp3}.js`)
 - **Acceptance:** AC2; the asset half of AC3
 - **Verify:** `node packages/keyboard/scripts/build-piano.mjs --check && npm test`
@@ -100,7 +100,7 @@ T1, T2 and T3 own disjoint files and can run in parallel. T4 needs all three. T5
 ### T3 — Music theory: chords, spelling, colours, voice tracking
 - **Depends on:** —
 - **Route:** implement (alt)
-- **Owns:** `packages/keyboard/src/theory/**`
+- **Owns:** `packages/keyboard/src/theory/**`, plus the identical include-line edits to `vitest.config.ts` and `tsconfig.json` that T2 also makes
 - **May read:** anything
 - **Acceptance:** the logic halves of AC4 and AC5, and AC6 (spelling)
 - **Verify:** `npx vitest run packages/keyboard/src/theory`
