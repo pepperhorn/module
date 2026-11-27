@@ -65,6 +65,10 @@ npm run typecheck && npx vitest run --testTimeout=60000 --maxWorkers=2 && npm ru
 ---
 ## Receiver ack
 
+I own the keyboard package, playing surface and build checks. T5 owns the drawers and responsive checks. I will keep the T5 interfaces and leave sound-module, the app and T6's files unchanged.
+
+Blocked: the required `useSoundEngine` calls a patch setter that always writes `module:state:v1`. Its options cannot disable that write or route its Web MIDI notes through the chord player. The shared computer-keyboard hook also writes `module:state:v1` on octave and velocity shortcuts. The handoff requires stopping before changes outside T4's owned files.
+
 ---
 ## Return
 (write it in docs/handoffs/2026-11-27-0001-t4-keyboard-surface--<you>-to-lead.md)
