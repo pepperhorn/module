@@ -13,7 +13,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "build:lib": "node -e \"require('node:fs').rmSync('packages/sound-module/dist',{recursive:true,force:true})\" && vite build --config packages/sound-module/vite.config.ts && tsc -p packages/sound-module/tsconfig.build.json && node packages/sound-module/scripts/build-css.mjs && node packages/sound-module/scripts/copy-patches.mjs",
-    "verify:lib": "node packages/sound-module/scripts/verify-dist.mjs"
+    "verify:lib": "node packages/sound-module/scripts/verify-dist.mjs",
+    "build:keyboard": "vite build --config packages/keyboard/vite.config.ts && tsc -p packages/keyboard/tsconfig.build.json && node packages/keyboard/scripts/build-css.mjs",
+    "verify:keyboard": "node packages/keyboard/scripts/verify-dist.mjs"
   },
   "dependencies": {
     "@fontsource/chakra-petch": "^5.3.0",
