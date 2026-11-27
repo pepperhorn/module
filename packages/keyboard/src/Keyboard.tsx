@@ -1,4 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
+import { EffectsDrawer } from './drawers/EffectsDrawer'
+import { SettingsDrawer } from './drawers/SettingsDrawer'
+import { SoundsDrawer } from './drawers/SoundsDrawer'
 import { useKeyboardEngine } from './engine/useKeyboardEngine'
 import { useKeyboardKeys } from './engine/useKeyboardKeys'
 import { useKeyboardMidi } from './engine/useKeyboardMidi'
@@ -88,7 +91,24 @@ export function Keyboard({
       <TopBar
         patchName={audio.patch.name} isDrums={isDrums} mode={effectiveMode} chord={chord}
         showNames={prefs.showNames} onMode={setMode} onChord={setChord}
-        onNames={() => setPrefs({ showNames: !prefs.showNames })} onOpenDrawer={() => {}}
+        onNames={() => setPrefs({ showNames: !prefs.showNames })}
+        soundsDrawer={close => (
+          <SoundsDrawer catalog={audio.catalog} selectedId={audio.patch.id} onSelect={id => {
+            audio.selectPatch(id)
+            close()
+          }} />
+        )}
+        effectsDrawer={(
+          <EffectsDrawer effects={prefs.effects} onEnabled={audio.setEffectEnabled} onAmount={audio.setEffectAmount} />
+        )}
+        settingsDrawer={(
+          <SettingsDrawer
+            volume={prefs.volume} onVolume={audio.setVolume} shift={shift} isDrums={isDrums}
+            onShift={value => setShift(clampInteger(value, -2, 2, 0))}
+            accidentals={prefs.accidentals} onAccidentals={value => setPrefs({ accidentals: value })}
+            devices={midi.devices} deviceId={midi.deviceId} onDevice={midi.setDeviceId} requestMidi={midi.requestMidi}
+          />
+        )}
       />
       <div className="kb-playing-area">
         <KeyboardSurface
