@@ -30,3 +30,7 @@ npm run build:keyboard && npm run verify:keyboard
 python3 -c "import yaml;yaml.safe_load(open('.github/workflows/release.yml'))"
 ```
 Never run `npm publish` (a `--dry-run` is fine) and never push a tag.
+
+## Receiver ack
+
+I’ll add a keyboard-only tag job to `release.yml` using npm trusted publishing. It will check the tag against the keyboard package version before running the release checks. I’ll leave the sound-module steps unchanged, verify locally, and open a draft PR without publishing, pushing a tag, merging, or watching. No open questions.
