@@ -56,3 +56,7 @@ For Vite without Astro, put `optimizeDeps` at the top level of the Vite config. 
 From the repo root, run `npm run build:keyboard && npm run verify:keyboard`. Verify the packed package in a production Vite host with `node packages/keyboard/e2e/host-build.mjs`. With Chromium and `playwright-core` available, run `node packages/keyboard/e2e/smoke.mjs`. Set `PLAYWRIGHT_MODULE` to the absolute path of a local playwright-core entry if it is not installed in the repo.
 
 Run `node packages/keyboard/e2e/widths.mjs` to check the built keyboard at 360, 390 and 1280 px. It saves screenshots to a temporary directory, or to `KEYBOARD_WIDTH_SCREENSHOTS` if set. Both browser checks accept `CHROMIUM_BIN` for a cached Chromium executable.
+
+## Releasing
+
+Tag a commit that contains the release workflow with `keyboard-v<version>`, using the version in `packages/keyboard/package.json` at that commit. The workflow verifies the package before publishing to npm via OIDC. Tags starting with `v` release `@pepperhorn/sound-module` instead.
