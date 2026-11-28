@@ -5,12 +5,13 @@
 > Waiting on: `child <taskId>` · `review <taskId>` · `ci` · `human: <why>` · `lead: <next action>`. Set it on every status change. A row needs the lead when it starts with `lead`, or when it's empty and Status is dispatched, in-review, changes-requested, ready, or merged. The lead's Stop hook won't let the lead end its turn while any row needs it.
 > Type: normal items have a spec and plan. Quick items have the title prefix `[quick]` (no spec or plan, a short handoff). PRs adopted by `orch-sweep` have the prefix `[pr]`.
 
-Next ID: 0002
+Next ID: 0003
 
 ## Active
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 0002 | [quick] Bump @pepperhorn/keyboard to 0.1.1 | dispatched | lead: delegate | | orch/0002-keyboard-0-1-1 | | | | | | docs/handoffs/2026-11-28-0002-keyboard-0-1-1--lead-to-impl.md | 2026-11-28 |
 
 ## Done / closed
 
@@ -43,6 +44,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-28 0002 →dispatched — npm 409 on 0.1.0 (previously staged, none pending); Shaun approved bump to 0.1.1
 2026-11-27 0001 complete — all six tasks merged; main @ 68fa3cd full verify green (285 tests, app, sound-module lib, keyboard dist, host prod build). Next: Shaun publishes @pepperhorn/keyboard 0.1.0; becreative integration is a follow-up there
 2026-11-27 0001-t5 →merged→closed — #19 68fa3cd
 2026-11-27 0001-t5 changes-requested→in-review — fixes @ 881d692 (285 tests Node 22+26); review r2 claude-opus-5-5
