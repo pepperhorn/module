@@ -6,7 +6,7 @@
 - **Branch:** orch/0003-keyboard-release · **Worktree:** created by T3
 - **PR:** <url once opened>
 - **Base commit:** 57d67a05b0b2ce08d2944e8417279534c68dd5fa
-- **Status:** open
+- **Status:** closed
 
 ## Goal
 Publish `@pepperhorn/keyboard` from GitHub Actions with npm trusted publishing (OIDC), triggered by `keyboard-v*` tags, the way `.github/workflows/release.yml` already publishes `@pepperhorn/sound-module` on `v*` tags. Shaun is registering the trusted publisher on npmjs.com as repo `pepperhorn/module`, workflow `release.yml`, no environment, so the job **must live in `release.yml`** (no new workflow file, no `environment:`).

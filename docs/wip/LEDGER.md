@@ -11,12 +11,12 @@ Next ID: 0004
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0003 | [quick] Keyboard release job (trusted publishing) | ready | human: approve merge (CI change) | codex/gpt-6.2-sol | orch/0003-keyboard-release | https://github.com/pepperhorn/module/pull/21 | /home/shaun/.t3/worktrees/module/t3-2704d1c1-c2b37bb5050bed07 | node:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 / thread:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 |  |  | docs/handoffs/2026-11-28-0003-keyboard-release--impl-to-lead.md | 2026-11-28 |
 
 ## Done / closed
 
 | K | Title | PR | Merged | Notes |
 |---|---|---|---|---|
+| 0003 | [quick] Keyboard release job (trusted publishing) | https://github.com/pepperhorn/module/pull/21 | 2026-11-28 126edda | review r1 approve (opus) @ 8587669; keyboard-v* tags publish via OIDC; first live run untested |
 | 0002 | [quick] Bump @pepperhorn/keyboard to 0.1.1 | https://github.com/pepperhorn/module/pull/20 | 2026-11-28 8e46c96 | review r1 approve (opus) @ d9f7fa8; 0.1.0 was already live; Shaun chose to publish 0.1.1 anyway |
 | 0001-t5 | Keyboard T5: drawers, MIDI, responsive | https://github.com/pepperhorn/module/pull/19 | 2026-11-27 68fa3cd | review r1 changes-requested, r2 approve (opus) @ 881d692; keys keep drawers open (Shaun) |
 | 0001-t4 | Keyboard T4: package + Keyboard surface | https://github.com/pepperhorn/module/pull/18 | 2026-11-27 f79eda6 | review r1 changes-requested, r2 approve (opus) @ 3f90c73; keyboard-local engine/MIDI/keys; host prod build check |
@@ -46,6 +46,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-28 0003 ready→merged→closed — #21 126edda (merge approved via mybuddy relay in Shaun's question dialog); stale local tag keyboard-v0.1.2 deleted
 2026-11-28 0003 in-review→ready — r1 approve (opus) @ 8587669, CI green; CI change so merge waits on Shaun
 2026-11-28 0003 dispatched→in-review — PR #21 @ 8587669; review r1 claude-opus-5-5 (high)
 2026-11-28 0003 →dispatched, codex gpt-6.2-sol (high) — Shaun asked for the keyboard trusted-publishing PR (CI change: merge needs his OK)
