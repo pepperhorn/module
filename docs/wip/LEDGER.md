@@ -11,7 +11,7 @@ Next ID: 0003
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0002 | [quick] Bump @pepperhorn/keyboard to 0.1.1 | dispatched | lead: delegate | | orch/0002-keyboard-0-1-1 | | | | | | docs/handoffs/2026-11-28-0002-keyboard-0-1-1--lead-to-impl.md | 2026-11-28 |
+| 0002 | [quick] Bump @pepperhorn/keyboard to 0.1.1 | dispatched | child node:delegated-task:command%3Amcp%3A4b7b2543-482e-4790-b138-f2635a5c5e1a%3Adelegate-task%3A0002-impl-r1 | codex/gpt-6.2-sol | orch/0002-keyboard-0-1-1 | | | node:delegated-task:command%3Amcp%3A4b7b2543-482e-4790-b138-f2635a5c5e1a%3Adelegate-task%3A0002-impl-r1 / thread:delegated-task:command%3Amcp%3A4b7b2543-482e-4790-b138-f2635a5c5e1a%3Adelegate-task%3A0002-impl-r1 | | | docs/handoffs/2026-11-28-0002-keyboard-0-1-1--lead-to-impl.md | 2026-11-28 |
 
 ## Done / closed
 
@@ -44,7 +44,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
-2026-11-28 0002 →dispatched — npm 409 on 0.1.0 (previously staged, none pending); Shaun approved bump to 0.1.1
+2026-11-28 0002 delegated codex gpt-6.2-sol (high) — npm 409 on 0.1.0 (previously staged, none pending); Shaun approved bump to 0.1.1
 2026-11-27 0001 complete — all six tasks merged; main @ 68fa3cd full verify green (285 tests, app, sound-module lib, keyboard dist, host prod build). Next: Shaun publishes @pepperhorn/keyboard 0.1.0; becreative integration is a follow-up there
 2026-11-27 0001-t5 →merged→closed — #19 68fa3cd
 2026-11-27 0001-t5 changes-requested→in-review — fixes @ 881d692 (285 tests Node 22+26); review r2 claude-opus-5-5
