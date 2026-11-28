@@ -28,3 +28,9 @@ npm run build:keyboard && npm run verify:keyboard
 npm publish ./packages/keyboard --access public --dry-run   # must print + @pepperhorn/keyboard@0.1.1; never run without --dry-run
 ```
 Do not publish. The lead publishes after merge.
+
+## Receiver ack
+
+I’ll change only the keyboard package’s version from `0.1.0` to `0.1.1`,
+run the listed checks and publish dry run, then open a draft PR. The lead
+owns publishing after merge. No open questions.

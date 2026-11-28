@@ -1,6 +1,6 @@
 {
   "name": "@pepperhorn/keyboard",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "React play-along keyboard with bundled piano and drums, chords and note names.",
   "type": "module",
   "license": "MIT",
