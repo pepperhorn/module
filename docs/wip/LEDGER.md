@@ -11,7 +11,7 @@ Next ID: 0004
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0003 | [quick] Keyboard release job (trusted publishing) | in-review | review node:delegated-task:command%3Amcp%3A2d348a53-8584-492d-89f4-cc111945526a%3Adelegate-task%3A0003-review-r1 | codex/gpt-6.2-sol | orch/0003-keyboard-release | https://github.com/pepperhorn/module/pull/21 | /home/shaun/.t3/worktrees/module/t3-2704d1c1-c2b37bb5050bed07 | node:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 / thread:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 |  |  | docs/handoffs/2026-11-28-0003-keyboard-release--impl-to-lead.md | 2026-11-28 |
+| 0003 | [quick] Keyboard release job (trusted publishing) | ready | human: approve merge (CI change) | codex/gpt-6.2-sol | orch/0003-keyboard-release | https://github.com/pepperhorn/module/pull/21 | /home/shaun/.t3/worktrees/module/t3-2704d1c1-c2b37bb5050bed07 | node:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 / thread:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 |  |  | docs/handoffs/2026-11-28-0003-keyboard-release--impl-to-lead.md | 2026-11-28 |
 
 ## Done / closed
 
@@ -31,6 +31,7 @@ Next ID: 0004
 
 | S | Kind | Suggestion | Evidence | Effort (S/M/L) | Value | Source | Status |
 |---|---|---|---|---|---|---|---|
+| S10 | risk | Pin npm to `^11.5.1` instead of `npm@latest` in both release jobs, so a future npm major can't break a release | PR #21 review 6097107489; .github/workflows/release.yml "Update npm" steps | S | low | reviewer | new |
 | S7 | efficiency | Remove or fix the engine's `setEffect`/`setEffectEnabled`/`setEffectAmount`, which no drawer calls any more and which still use the stale-ref pattern | PR #19 review 6085513878; packages/keyboard/src/engine/useKeyboardEngine.ts:104-113 | S | low | reviewer | new |
 | S8 | improvement | Dim an effect's amount slider while that effect is off | PR #19 reviews r1+r2 | S | low (UI polish; Shaun's call) | reviewer | new |
 | S9 | risk | `useDrawer.ts:38` treats keys of any keyboard on the page as "keys"; only matters if two keyboards share a page, which the one-engine limit already rules out | PR #19 review 6085513878 | S | low | reviewer | new |
@@ -45,6 +46,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-28 0003 in-review→ready — r1 approve (opus) @ 8587669, CI green; CI change so merge waits on Shaun
 2026-11-28 0003 dispatched→in-review — PR #21 @ 8587669; review r1 claude-opus-5-5 (high)
 2026-11-28 0003 →dispatched, codex gpt-6.2-sol (high) — Shaun asked for the keyboard trusted-publishing PR (CI change: merge needs his OK)
 2026-11-28 0002 ready→merged→closed — #20 8e46c96; keyboard dist verify OK; npm publish of 0.1.1 needs Shaun's browser 2FA
