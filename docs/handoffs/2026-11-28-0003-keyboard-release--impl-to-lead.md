@@ -5,7 +5,7 @@
 - Ledger: 0003 · Spec and plan: none (quick item)
 - Branch: `orch/0003-keyboard-release`
 - Worktree: `/home/shaun/.t3/worktrees/module/t3-2704d1c1-c2b37bb5050bed07`
-- PR: Draft against `main`, opened after this handoff is committed.
+- PR: [Draft #21](https://github.com/pepperhorn/module/pull/21) against `main`.
 - Base commit: `57d67a05b0b2ce08d2944e8417279534c68dd5fa`
 - Status: open for lead review
 
