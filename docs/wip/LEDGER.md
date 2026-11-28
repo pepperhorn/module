@@ -11,7 +11,7 @@ Next ID: 0004
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0003 | [quick] Keyboard release job (trusted publishing) | dispatched | lead: delegate | | orch/0003-keyboard-release | | | | | | docs/handoffs/2026-11-28-0003-keyboard-release--lead-to-impl.md | 2026-11-28 |
+| 0003 | [quick] Keyboard release job (trusted publishing) | dispatched | child node:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 | codex/gpt-6.2-sol | orch/0003-keyboard-release |  |  | node:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 / thread:delegated-task:command%3Amcp%3A04e398fd-f9eb-4c8c-a6e1-0a49038d440b%3Adelegate-task%3A0003-impl-r1 |  |  | docs/handoffs/2026-11-28-0003-keyboard-release--lead-to-impl.md | 2026-11-28 |
 
 ## Done / closed
 
@@ -45,7 +45,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
-2026-11-28 0003 →dispatched — Shaun asked for the keyboard trusted-publishing PR (CI change: merge needs his OK)
+2026-11-28 0003 →dispatched, codex gpt-6.2-sol (high) — Shaun asked for the keyboard trusted-publishing PR (CI change: merge needs his OK)
 2026-11-28 0002 ready→merged→closed — #20 8e46c96; keyboard dist verify OK; npm publish of 0.1.1 needs Shaun's browser 2FA
 2026-11-28 0002 in-review→ready — r1 approve (opus) @ d9f7fa8; but npm shows 0.1.0 published 05:09:38Z (shasum 219369cb = main build), so the bump may be moot; asked Shaun
 2026-11-28 0002 dispatched→in-review — PR #20 @ d9f7fa8; review r1 claude-opus-5-5 (high)
