@@ -11,12 +11,12 @@ Next ID: 0003
 
 | K | Title | Status | Waiting on | Owner (provider/model) | Branch | PR | Worktree | T3 task/thread | Spec | Plan | Latest handoff | Updated |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 0002 | [quick] Bump @pepperhorn/keyboard to 0.1.1 | ready | human: 0.1.0 is live on npm (shasum matches main build); close #20 or merge it? | codex/gpt-6.2-sol | orch/0002-keyboard-0-1-1 | https://github.com/pepperhorn/module/pull/20 | /home/shaun/.t3/worktrees/module/t3-8aea9dd6-c842736013130b55 | node:delegated-task:command%3Amcp%3A4b7b2543-482e-4790-b138-f2635a5c5e1a%3Adelegate-task%3A0002-impl-r1 / thread:delegated-task:command%3Amcp%3A4b7b2543-482e-4790-b138-f2635a5c5e1a%3Adelegate-task%3A0002-impl-r1 |  |  | docs/handoffs/2026-11-28-0002-keyboard-0-1-1--impl-to-lead.md | 2026-11-28 |
 
 ## Done / closed
 
 | K | Title | PR | Merged | Notes |
 |---|---|---|---|---|
+| 0002 | [quick] Bump @pepperhorn/keyboard to 0.1.1 | https://github.com/pepperhorn/module/pull/20 | 2026-11-28 8e46c96 | review r1 approve (opus) @ d9f7fa8; 0.1.0 was already live; Shaun chose to publish 0.1.1 anyway |
 | 0001-t5 | Keyboard T5: drawers, MIDI, responsive | https://github.com/pepperhorn/module/pull/19 | 2026-11-27 68fa3cd | review r1 changes-requested, r2 approve (opus) @ 881d692; keys keep drawers open (Shaun) |
 | 0001-t4 | Keyboard T4: package + Keyboard surface | https://github.com/pepperhorn/module/pull/18 | 2026-11-27 f79eda6 | review r1 changes-requested, r2 approve (opus) @ 3f90c73; keyboard-local engine/MIDI/keys; host prod build check |
 | 0001-t6 | Keyboard T6: variant-B acoustic kit, codec-qualified probe | https://github.com/pepperhorn/module/pull/17 | 2026-11-27 b9de5bc | review r1 approve (opus) @ b41f265; ogg 335 KB / m4a 313 KB; WebKit decoded AAC, no Apple device tested |
@@ -44,6 +44,7 @@ Last health scan: never
 
 ## Log
 <!-- One line per status change, newest first: YYYY-MM-DD NNNN old→new — note -->
+2026-11-28 0002 ready→merged→closed — #20 8e46c96; keyboard dist verify OK; npm publish of 0.1.1 needs Shaun's browser 2FA
 2026-11-28 0002 in-review→ready — r1 approve (opus) @ d9f7fa8; but npm shows 0.1.0 published 05:09:38Z (shasum 219369cb = main build), so the bump may be moot; asked Shaun
 2026-11-28 0002 dispatched→in-review — PR #20 @ d9f7fa8; review r1 claude-opus-5-5 (high)
 2026-11-28 0002 delegated codex gpt-6.2-sol (high) — npm 409 on 0.1.0 (previously staged, none pending); Shaun approved bump to 0.1.1

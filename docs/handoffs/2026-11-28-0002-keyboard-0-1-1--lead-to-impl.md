@@ -6,7 +6,7 @@
 - **Branch:** orch/0002-keyboard-0-1-1 · **Worktree:** created by T3
 - **PR:** <url once opened>
 - **Base commit:** 5d2a9ec91dbede883aaf3c9743478862ae41b513
-- **Status:** open
+- **Status:** closed
 
 ## Goal
 npm refuses to publish `@pepperhorn/keyboard@0.1.0` (`409 Cannot publish over previously staged version "0.1.0"`; a staged 0.1.0 was rejected or expired, and npm keeps the number). Bump the package version to `0.1.1` so the lead can publish it. Nothing else changes. Shaun approved the bump (2026-11-28).
